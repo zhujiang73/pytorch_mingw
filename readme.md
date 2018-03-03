@@ -2,9 +2,9 @@
 
     pytorch cpu_only on windows mingw (msys2/win10)
 
-    Based on pytorch:  https://github.com/pytorch/pytorch 
+    Based on pytorch  https://github.com/pytorch/pytorch 
 
-    msys2:  http://www.msys2.org/ 
+    msys2  http://www.msys2.org/ 
 
 
     pytorch_mingw  install : 
