@@ -30,33 +30,6 @@ if(NOT DEFINED CMAKE_INSTALL_CMAKEDIR)
     set(CMAKE_INSTALL_CMAKEDIR "lib/cmake/nanopb")
 endif()
 
-if(nanopb_BUILD_GENERATOR)
-    set(generator_protos nanopb plugin)
-
-    find_package(PythonInterp 2.7 REQUIRED)
-    execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c
-            "from distutils import sysconfig; print(sysconfig.get_python_lib(prefix='${CMAKE_INSTALL_PREFIX}'))"
-        OUTPUT_VARIABLE PYTHON_INSTDIR
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-
-    foreach(generator_proto IN LISTS generator_protos)
-        string(REGEX REPLACE "([^;]+)" "${PROJECT_SOURCE_DIR}/generator/proto/\\1.proto" generator_proto_file "${generator_proto}")
-        string(REGEX REPLACE "([^;]+)" "\\1_pb2.py" generator_proto_py_file "${generator_proto}")
-        add_custom_command(
-            OUTPUT ${generator_proto_py_file}
-            COMMAND protoc --python_out=${PROJECT_BINARY_DIR} -I${PROJECT_SOURCE_DIR}/generator/proto ${generator_proto_file}
-            DEPENDS ${generator_proto_file}
-        )
-        add_custom_target("generate_${generator_proto_py_file}" ALL DEPENDS ${generator_proto_py_file})
-        install(
-            FILES ${PROJECT_BINARY_DIR}/${generator_proto_py_file}
-			DESTINATION ${PYTHON_INSTDIR}
-        )
-    endforeach()
-endif()
-
 if(nanopb_BUILD_RUNTIME)
     add_library(protobuf-nanopb STATIC
         pb.h
