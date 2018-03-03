@@ -4,7 +4,7 @@
 
     Based on pytorch:  https://github.com/pytorch/pytorch 
 
-    msys2:  http://www.msys2.org/
+    msys2:  http://www.msys2.org/ 
 
 
     pytorch_mingw  install : 
