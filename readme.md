@@ -12,6 +12,10 @@
       win10  cmd  console :
             
         cd pytorch_mingw
+        
+        md build
+
+        cd build 
 
         cmake -G "MinGW Makefiles"  .. -DCMAKE_INSTALL_PREFIX="c:\mingw"
 
