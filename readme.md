@@ -9,7 +9,7 @@
 
   pytorch_mingw  install : 
 
-    win10  cmd  console :
+      win10  cmd  console :
             
         cd pytorch_mingw
 
@@ -17,6 +17,14 @@
 
         mingw32-make  install
 
+  
+  examples  run :
+      
+     win10  cmd  console :
+
+     cd  pytorch_mingw\\examples
+
+     python3  var_back.py
 
 
                                                        zhujiangmail@hotmail.com
