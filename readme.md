@@ -22,9 +22,9 @@
       
      win10  cmd  console :
 
-     cd  pytorch_mingw\\examples
+       cd  pytorch_mingw\examples
 
-     python3  var_back.py
+       python3  var_back.py
 
 
                                                        zhujiangmail@hotmail.com
