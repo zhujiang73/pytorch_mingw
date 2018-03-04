@@ -26,13 +26,6 @@
       
      win10  cmd  console :
 
-       set  PYTHONPATH=C:\mingw\python
-
-       set  PATH=%PATH%;C:\mingw\lib 
-
-       cd  pytorch_mingw\examples
-
-       python3  var_back.py
 
 
                                                        zhujiangmail@hotmail.com
