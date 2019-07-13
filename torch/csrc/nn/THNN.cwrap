@@ -1,0 +1,1923 @@
+#include <TH/TH.h>
+
+
+TH_API void THNN_FloatSpatialConvolutionMM_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, int, int, int);
+[[
+  name: FloatSpatialConvolutionMM_updateOutput
+  return: void
+  cname: THNN_FloatSpatialConvolutionMM_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - THFloatTensor* weight
+    - type: THFloatTensor*
+      name: bias
+      nullable: True
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+]]
+
+
+TH_API void THNN_DoubleSpatialConvolutionMM_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int);
+[[
+  name: DoubleSpatialConvolutionMM_updateOutput
+  return: void
+  cname: THNN_DoubleSpatialConvolutionMM_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - THDoubleTensor* weight
+    - type: THDoubleTensor*
+      name: bias
+      nullable: True
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+]]
+
+
+TH_API void THNN_FloatVolumetricConvolutionMM_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, int, int, int, int, int, int);
+[[
+  name: FloatVolumetricConvolutionMM_updateOutput
+  return: void
+  cname: THNN_FloatVolumetricConvolutionMM_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - THFloatTensor* weight
+    - type: THFloatTensor*
+      name: bias
+      nullable: True
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kT
+    - int kW
+    - int kH
+    - int dT
+    - int dW
+    - int dH
+    - int pT
+    - int pW
+    - int pH
+]]
+
+
+TH_API void THNN_DoubleVolumetricConvolutionMM_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int, int, int, int);
+[[
+  name: DoubleVolumetricConvolutionMM_updateOutput
+  return: void
+  cname: THNN_DoubleVolumetricConvolutionMM_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - THDoubleTensor* weight
+    - type: THDoubleTensor*
+      name: bias
+      nullable: True
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kT
+    - int kW
+    - int kH
+    - int dT
+    - int dW
+    - int dH
+    - int pT
+    - int pW
+    - int pH
+]]
+
+
+TH_API void THNN_FloatAbsCriterion_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatAbsCriterion_updateOutput
+  return: void
+  cname: THNN_FloatAbsCriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleAbsCriterion_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleAbsCriterion_updateOutput
+  return: void
+  cname: THNN_DoubleAbsCriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatAbsCriterion_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatAbsCriterion_updateGradInput
+  return: void
+  cname: THNN_FloatAbsCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleAbsCriterion_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleAbsCriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleAbsCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatBCECriterion_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t, THFloatTensor*);
+[[
+  name: FloatBCECriterion_updateOutput
+  return: void
+  cname: THNN_FloatBCECriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+]]
+
+
+TH_API void THNN_DoubleBCECriterion_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t, THDoubleTensor*);
+[[
+  name: DoubleBCECriterion_updateOutput
+  return: void
+  cname: THNN_DoubleBCECriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+]]
+
+
+TH_API void THNN_FloatBCECriterion_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t, THFloatTensor*);
+[[
+  name: FloatBCECriterion_updateGradInput
+  return: void
+  cname: THNN_FloatBCECriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+]]
+
+
+TH_API void THNN_DoubleBCECriterion_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t, THDoubleTensor*);
+[[
+  name: DoubleBCECriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleBCECriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+]]
+
+
+TH_API void THNN_FloatClassNLLCriterion_updateOutput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, int64_t, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatClassNLLCriterion_updateOutput
+  return: void
+  cname: THNN_FloatClassNLLCriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+    - THFloatTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
+TH_API void THNN_DoubleClassNLLCriterion_updateOutput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, int64_t, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleClassNLLCriterion_updateOutput
+  return: void
+  cname: THNN_DoubleClassNLLCriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+    - THDoubleTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
+TH_API void THNN_FloatClassNLLCriterion_updateGradInput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, int64_t, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatClassNLLCriterion_updateGradInput
+  return: void
+  cname: THNN_FloatClassNLLCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+    - THFloatTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
+TH_API void THNN_DoubleClassNLLCriterion_updateGradInput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, int64_t, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleClassNLLCriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleClassNLLCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+    - THDoubleTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
+TH_API void THNN_FloatELU_updateOutput(void*, THFloatTensor*, THFloatTensor*, double, double, double, bool);
+[[
+  name: FloatELU_updateOutput
+  return: void
+  cname: THNN_FloatELU_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - double alpha
+    - double scale
+    - double input_scale
+    - bool inplace
+]]
+
+
+TH_API void THNN_DoubleELU_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, double, double, double, bool);
+[[
+  name: DoubleELU_updateOutput
+  return: void
+  cname: THNN_DoubleELU_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - double alpha
+    - double scale
+    - double input_scale
+    - bool inplace
+]]
+
+
+TH_API void THNN_FloatELU_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, double, double);
+[[
+  name: FloatELU_updateGradInput
+  return: void
+  cname: THNN_FloatELU_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* output
+    - double alpha
+    - double scale
+    - double input_scale
+]]
+
+
+TH_API void THNN_DoubleELU_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, double, double);
+[[
+  name: DoubleELU_updateGradInput
+  return: void
+  cname: THNN_DoubleELU_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* output
+    - double alpha
+    - double scale
+    - double input_scale
+]]
+
+
+TH_API void THNN_FloatGatedLinear_updateOutput(void*, THFloatTensor*, THFloatTensor*, int);
+[[
+  name: FloatGatedLinear_updateOutput
+  return: void
+  cname: THNN_FloatGatedLinear_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - int dim
+]]
+
+
+TH_API void THNN_DoubleGatedLinear_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, int);
+[[
+  name: DoubleGatedLinear_updateOutput
+  return: void
+  cname: THNN_DoubleGatedLinear_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - int dim
+]]
+
+
+TH_API void THNN_FloatGatedLinear_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int);
+[[
+  name: FloatGatedLinear_updateGradInput
+  return: void
+  cname: THNN_FloatGatedLinear_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int dim
+]]
+
+
+TH_API void THNN_DoubleGatedLinear_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int);
+[[
+  name: DoubleGatedLinear_updateGradInput
+  return: void
+  cname: THNN_DoubleGatedLinear_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int dim
+]]
+
+
+TH_API void THNN_FloatHardTanh_updateOutput(void*, THFloatTensor*, THFloatTensor*, double, double, bool);
+[[
+  name: FloatHardTanh_updateOutput
+  return: void
+  cname: THNN_FloatHardTanh_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - double min_val
+    - double max_val
+    - bool inplace
+]]
+
+
+TH_API void THNN_DoubleHardTanh_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, double, double, bool);
+[[
+  name: DoubleHardTanh_updateOutput
+  return: void
+  cname: THNN_DoubleHardTanh_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - double min_val
+    - double max_val
+    - bool inplace
+]]
+
+
+TH_API void THNN_FloatHardTanh_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, double, bool);
+[[
+  name: FloatHardTanh_updateGradInput
+  return: void
+  cname: THNN_FloatHardTanh_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - double min_val
+    - double max_val
+    - bool inplace
+]]
+
+
+TH_API void THNN_DoubleHardTanh_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, double, bool);
+[[
+  name: DoubleHardTanh_updateGradInput
+  return: void
+  cname: THNN_DoubleHardTanh_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - double min_val
+    - double max_val
+    - bool inplace
+]]
+
+
+TH_API void THNN_FloatLeakyReLU_updateOutput(void*, THFloatTensor*, THFloatTensor*, double, bool);
+[[
+  name: FloatLeakyReLU_updateOutput
+  return: void
+  cname: THNN_FloatLeakyReLU_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - double negval
+    - bool inplace
+]]
+
+
+TH_API void THNN_DoubleLeakyReLU_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, double, bool);
+[[
+  name: DoubleLeakyReLU_updateOutput
+  return: void
+  cname: THNN_DoubleLeakyReLU_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - double negval
+    - bool inplace
+]]
+
+
+TH_API void THNN_FloatLeakyReLU_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, bool);
+[[
+  name: FloatLeakyReLU_updateGradInput
+  return: void
+  cname: THNN_FloatLeakyReLU_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - double negval
+    - bool inplace
+]]
+
+
+TH_API void THNN_DoubleLeakyReLU_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, bool);
+[[
+  name: DoubleLeakyReLU_updateGradInput
+  return: void
+  cname: THNN_DoubleLeakyReLU_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - double negval
+    - bool inplace
+]]
+
+
+TH_API void THNN_FloatLogSigmoid_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*);
+[[
+  name: FloatLogSigmoid_updateOutput
+  return: void
+  cname: THNN_FloatLogSigmoid_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - THFloatTensor* buffer
+]]
+
+
+TH_API void THNN_DoubleLogSigmoid_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*);
+[[
+  name: DoubleLogSigmoid_updateOutput
+  return: void
+  cname: THNN_DoubleLogSigmoid_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - THDoubleTensor* buffer
+]]
+
+
+TH_API void THNN_FloatLogSigmoid_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*);
+[[
+  name: FloatLogSigmoid_updateGradInput
+  return: void
+  cname: THNN_FloatLogSigmoid_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* buffer
+]]
+
+
+TH_API void THNN_DoubleLogSigmoid_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*);
+[[
+  name: DoubleLogSigmoid_updateGradInput
+  return: void
+  cname: THNN_DoubleLogSigmoid_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* buffer
+]]
+
+
+TH_API void THNN_FloatSoftMarginCriterion_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatSoftMarginCriterion_updateOutput
+  return: void
+  cname: THNN_FloatSoftMarginCriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleSoftMarginCriterion_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleSoftMarginCriterion_updateOutput
+  return: void
+  cname: THNN_DoubleSoftMarginCriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatSoftMarginCriterion_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatSoftMarginCriterion_updateGradInput
+  return: void
+  cname: THNN_FloatSoftMarginCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleSoftMarginCriterion_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleSoftMarginCriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleSoftMarginCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatMSECriterion_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatMSECriterion_updateOutput
+  return: void
+  cname: THNN_FloatMSECriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleMSECriterion_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleMSECriterion_updateOutput
+  return: void
+  cname: THNN_DoubleMSECriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatMSECriterion_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatMSECriterion_updateGradInput
+  return: void
+  cname: THNN_FloatMSECriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleMSECriterion_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleMSECriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleMSECriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatMultiLabelMarginCriterion_updateOutput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatMultiLabelMarginCriterion_updateOutput
+  return: void
+  cname: THNN_FloatMultiLabelMarginCriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* output
+    - THFloatTensor* isTarget
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleMultiLabelMarginCriterion_updateOutput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleMultiLabelMarginCriterion_updateOutput
+  return: void
+  cname: THNN_DoubleMultiLabelMarginCriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* output
+    - THDoubleTensor* isTarget
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatMultiLabelMarginCriterion_updateGradInput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatMultiLabelMarginCriterion_updateGradInput
+  return: void
+  cname: THNN_FloatMultiLabelMarginCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* isTarget
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleMultiLabelMarginCriterion_updateGradInput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleMultiLabelMarginCriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleMultiLabelMarginCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* isTarget
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatMultiMarginCriterion_updateOutput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, int64_t, int, THFloatTensor*, double);
+[[
+  name: FloatMultiMarginCriterion_updateOutput
+  return: void
+  cname: THNN_FloatMultiMarginCriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+    - int p
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+    - double margin
+]]
+
+
+TH_API void THNN_DoubleMultiMarginCriterion_updateOutput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, int64_t, int, THDoubleTensor*, double);
+[[
+  name: DoubleMultiMarginCriterion_updateOutput
+  return: void
+  cname: THNN_DoubleMultiMarginCriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+    - int p
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+    - double margin
+]]
+
+
+TH_API void THNN_FloatMultiMarginCriterion_updateGradInput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, int64_t, int, THFloatTensor*, double);
+[[
+  name: FloatMultiMarginCriterion_updateGradInput
+  return: void
+  cname: THNN_FloatMultiMarginCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+    - int p
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+    - double margin
+]]
+
+
+TH_API void THNN_DoubleMultiMarginCriterion_updateGradInput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, int64_t, int, THDoubleTensor*, double);
+[[
+  name: DoubleMultiMarginCriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleMultiMarginCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+    - int p
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+    - double margin
+]]
+
+
+TH_API void THNN_FloatRReLU_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, double, bool, bool, at::Generator*);
+[[
+  name: FloatRReLU_updateOutput
+  return: void
+  cname: THNN_FloatRReLU_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - THFloatTensor* noise
+    - double lower
+    - double upper
+    - bool train
+    - bool inplace
+    - at::Generator* generator
+]]
+
+
+TH_API void THNN_DoubleRReLU_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, double, bool, bool, at::Generator*);
+[[
+  name: DoubleRReLU_updateOutput
+  return: void
+  cname: THNN_DoubleRReLU_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - THDoubleTensor* noise
+    - double lower
+    - double upper
+    - bool train
+    - bool inplace
+    - at::Generator* generator
+]]
+
+
+TH_API void THNN_FloatRReLU_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, double, bool, bool);
+[[
+  name: FloatRReLU_updateGradInput
+  return: void
+  cname: THNN_FloatRReLU_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* noise
+    - double lower
+    - double upper
+    - bool train
+    - bool inplace
+]]
+
+
+TH_API void THNN_DoubleRReLU_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, double, bool, bool);
+[[
+  name: DoubleRReLU_updateGradInput
+  return: void
+  cname: THNN_DoubleRReLU_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* noise
+    - double lower
+    - double upper
+    - bool train
+    - bool inplace
+]]
+
+
+TH_API void THNN_FloatSigmoid_updateOutput(void*, THFloatTensor*, THFloatTensor*);
+[[
+  name: FloatSigmoid_updateOutput
+  return: void
+  cname: THNN_FloatSigmoid_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+]]
+
+
+TH_API void THNN_DoubleSigmoid_updateOutput(void*, THDoubleTensor*, THDoubleTensor*);
+[[
+  name: DoubleSigmoid_updateOutput
+  return: void
+  cname: THNN_DoubleSigmoid_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+]]
+
+
+TH_API void THNN_FloatSigmoid_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*);
+[[
+  name: FloatSigmoid_updateGradInput
+  return: void
+  cname: THNN_FloatSigmoid_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* output
+]]
+
+
+TH_API void THNN_DoubleSigmoid_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*);
+[[
+  name: DoubleSigmoid_updateGradInput
+  return: void
+  cname: THNN_DoubleSigmoid_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* output
+]]
+
+
+TH_API void THNN_FloatSmoothL1Criterion_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatSmoothL1Criterion_updateOutput
+  return: void
+  cname: THNN_FloatSmoothL1Criterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleSmoothL1Criterion_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleSmoothL1Criterion_updateOutput
+  return: void
+  cname: THNN_DoubleSmoothL1Criterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatSmoothL1Criterion_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatSmoothL1Criterion_updateGradInput
+  return: void
+  cname: THNN_FloatSmoothL1Criterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_DoubleSmoothL1Criterion_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleSmoothL1Criterion_updateGradInput
+  return: void
+  cname: THNN_DoubleSmoothL1Criterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+]]
+
+
+TH_API void THNN_FloatSoftPlus_updateOutput(void*, THFloatTensor*, THFloatTensor*, double, double);
+[[
+  name: FloatSoftPlus_updateOutput
+  return: void
+  cname: THNN_FloatSoftPlus_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - double beta
+    - double threshold
+]]
+
+
+TH_API void THNN_DoubleSoftPlus_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, double, double);
+[[
+  name: DoubleSoftPlus_updateOutput
+  return: void
+  cname: THNN_DoubleSoftPlus_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - double beta
+    - double threshold
+]]
+
+
+TH_API void THNN_FloatSoftPlus_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, double);
+[[
+  name: FloatSoftPlus_updateGradInput
+  return: void
+  cname: THNN_FloatSoftPlus_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* output
+    - double beta
+    - double threshold
+]]
+
+
+TH_API void THNN_DoubleSoftPlus_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, double);
+[[
+  name: DoubleSoftPlus_updateGradInput
+  return: void
+  cname: THNN_DoubleSoftPlus_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* output
+    - double beta
+    - double threshold
+]]
+
+
+TH_API void THNN_FloatSoftShrink_updateOutput(void*, THFloatTensor*, THFloatTensor*, double);
+[[
+  name: FloatSoftShrink_updateOutput
+  return: void
+  cname: THNN_FloatSoftShrink_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - double lambda
+]]
+
+
+TH_API void THNN_DoubleSoftShrink_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, double);
+[[
+  name: DoubleSoftShrink_updateOutput
+  return: void
+  cname: THNN_DoubleSoftShrink_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - double lambda
+]]
+
+
+TH_API void THNN_FloatSoftShrink_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double);
+[[
+  name: FloatSoftShrink_updateGradInput
+  return: void
+  cname: THNN_FloatSoftShrink_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - double lambda
+]]
+
+
+TH_API void THNN_DoubleSoftShrink_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double);
+[[
+  name: DoubleSoftShrink_updateGradInput
+  return: void
+  cname: THNN_DoubleSoftShrink_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - double lambda
+]]
+
+
+TH_API void THNN_FloatIndexLinear_updateOutput(void*, THLongTensor*, int64_t, THFloatTensor*, THLongTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int);
+[[
+  name: FloatIndexLinear_updateOutput
+  return: void
+  cname: THNN_FloatIndexLinear_updateOutput
+  arguments:
+    - void* state
+    - THLongTensor* keys
+    - int64_t keysOffset
+    - THFloatTensor* values
+    - THLongTensor* sizes
+    - THLongTensor* cumSumSizes
+    - THFloatTensor* output
+    - THFloatTensor* weight
+    - THFloatTensor* bias
+    - THFloatTensor* normalizedValues
+    - int train
+]]
+
+
+TH_API void THNN_DoubleIndexLinear_updateOutput(void*, THLongTensor*, int64_t, THDoubleTensor*, THLongTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int);
+[[
+  name: DoubleIndexLinear_updateOutput
+  return: void
+  cname: THNN_DoubleIndexLinear_updateOutput
+  arguments:
+    - void* state
+    - THLongTensor* keys
+    - int64_t keysOffset
+    - THDoubleTensor* values
+    - THLongTensor* sizes
+    - THLongTensor* cumSumSizes
+    - THDoubleTensor* output
+    - THDoubleTensor* weight
+    - THDoubleTensor* bias
+    - THDoubleTensor* normalizedValues
+    - int train
+]]
+
+
+TH_API void THNN_FloatIndexLinear_accGradParameters(void*, THLongTensor*, int64_t, THFloatTensor*, THLongTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, double);
+[[
+  name: FloatIndexLinear_accGradParameters
+  return: void
+  cname: THNN_FloatIndexLinear_accGradParameters
+  arguments:
+    - void* state
+    - THLongTensor* keys
+    - int64_t keysOffset
+    - THFloatTensor* values
+    - THLongTensor* sizes
+    - THLongTensor* cumSumSizes
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradWeight
+    - THFloatTensor* gradBias
+    - THFloatTensor* weight
+    - THFloatTensor* bias
+    - THFloatTensor* valuesBuffer
+    - double weightDecay
+    - double scale
+]]
+
+
+TH_API void THNN_DoubleIndexLinear_accGradParameters(void*, THLongTensor*, int64_t, THDoubleTensor*, THLongTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, double);
+[[
+  name: DoubleIndexLinear_accGradParameters
+  return: void
+  cname: THNN_DoubleIndexLinear_accGradParameters
+  arguments:
+    - void* state
+    - THLongTensor* keys
+    - int64_t keysOffset
+    - THDoubleTensor* values
+    - THLongTensor* sizes
+    - THLongTensor* cumSumSizes
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradWeight
+    - THDoubleTensor* gradBias
+    - THDoubleTensor* weight
+    - THDoubleTensor* bias
+    - THDoubleTensor* valuesBuffer
+    - double weightDecay
+    - double scale
+]]
+
+
+TH_API void THNN_FloatIndexLinear_accUpdateGradParameters(void*, THLongTensor*, int64_t, THFloatTensor*, THLongTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, double);
+[[
+  name: FloatIndexLinear_accUpdateGradParameters
+  return: void
+  cname: THNN_FloatIndexLinear_accUpdateGradParameters
+  arguments:
+    - void* state
+    - THLongTensor* keys
+    - int64_t keysOffset
+    - THFloatTensor* values
+    - THLongTensor* sizes
+    - THLongTensor* cumSumSizes
+    - THFloatTensor* gradOutput
+    - THFloatTensor* weight
+    - THFloatTensor* bias
+    - double weightDecay
+    - double scale
+]]
+
+
+TH_API void THNN_DoubleIndexLinear_accUpdateGradParameters(void*, THLongTensor*, int64_t, THDoubleTensor*, THLongTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, double);
+[[
+  name: DoubleIndexLinear_accUpdateGradParameters
+  return: void
+  cname: THNN_DoubleIndexLinear_accUpdateGradParameters
+  arguments:
+    - void* state
+    - THLongTensor* keys
+    - int64_t keysOffset
+    - THDoubleTensor* values
+    - THLongTensor* sizes
+    - THLongTensor* cumSumSizes
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* weight
+    - THDoubleTensor* bias
+    - double weightDecay
+    - double scale
+]]
+
+
+TH_API void THNN_FloatIndexLinear_updateParameters(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THLongTensor*, THLongTensor*, int64_t, double, double);
+[[
+  name: FloatIndexLinear_updateParameters
+  return: void
+  cname: THNN_FloatIndexLinear_updateParameters
+  arguments:
+    - void* state
+    - THFloatTensor* gradWeight
+    - THFloatTensor* gradBias
+    - THFloatTensor* weight
+    - THFloatTensor* bias
+    - THLongTensor* runningKeys
+    - THLongTensor* cumSumSizes
+    - int64_t keysOffset
+    - double weightDecay
+    - double learningRate
+]]
+
+
+TH_API void THNN_DoubleIndexLinear_updateParameters(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THLongTensor*, THLongTensor*, int64_t, double, double);
+[[
+  name: DoubleIndexLinear_updateParameters
+  return: void
+  cname: THNN_DoubleIndexLinear_updateParameters
+  arguments:
+    - void* state
+    - THDoubleTensor* gradWeight
+    - THDoubleTensor* gradBias
+    - THDoubleTensor* weight
+    - THDoubleTensor* bias
+    - THLongTensor* runningKeys
+    - THLongTensor* cumSumSizes
+    - int64_t keysOffset
+    - double weightDecay
+    - double learningRate
+]]
+
+
+TH_API void THNN_FloatTemporalRowConvolution_updateOutput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, bool);
+[[
+  name: FloatTemporalRowConvolution_updateOutput
+  return: void
+  cname: THNN_FloatTemporalRowConvolution_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - THFloatTensor* weight
+    - THFloatTensor* bias
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kW
+    - int dW
+    - int padW
+    - bool featFirst
+]]
+
+
+TH_API void THNN_DoubleTemporalRowConvolution_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, bool);
+[[
+  name: DoubleTemporalRowConvolution_updateOutput
+  return: void
+  cname: THNN_DoubleTemporalRowConvolution_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - THDoubleTensor* weight
+    - THDoubleTensor* bias
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kW
+    - int dW
+    - int padW
+    - bool featFirst
+]]
+
+
+TH_API void THNN_FloatTemporalRowConvolution_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, bool);
+[[
+  name: FloatTemporalRowConvolution_updateGradInput
+  return: void
+  cname: THNN_FloatTemporalRowConvolution_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* weight
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kW
+    - int dW
+    - int padW
+    - bool featFirst
+]]
+
+
+TH_API void THNN_DoubleTemporalRowConvolution_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, bool);
+[[
+  name: DoubleTemporalRowConvolution_updateGradInput
+  return: void
+  cname: THNN_DoubleTemporalRowConvolution_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* weight
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kW
+    - int dW
+    - int padW
+    - bool featFirst
+]]
+
+
+TH_API void THNN_FloatTemporalRowConvolution_accGradParameters(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, bool, double);
+[[
+  name: FloatTemporalRowConvolution_accGradParameters
+  return: void
+  cname: THNN_FloatTemporalRowConvolution_accGradParameters
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradWeight
+    - THFloatTensor* gradBias
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kW
+    - int dW
+    - int padW
+    - bool featFirst
+    - double scale
+]]
+
+
+TH_API void THNN_DoubleTemporalRowConvolution_accGradParameters(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, bool, double);
+[[
+  name: DoubleTemporalRowConvolution_accGradParameters
+  return: void
+  cname: THNN_DoubleTemporalRowConvolution_accGradParameters
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradWeight
+    - THDoubleTensor* gradBias
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kW
+    - int dW
+    - int padW
+    - bool featFirst
+    - double scale
+]]
+
+
+TH_API void THNN_FloatSpatialConvolutionMM_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, int, int, int);
+[[
+  name: FloatSpatialConvolutionMM_updateGradInput
+  return: void
+  cname: THNN_FloatSpatialConvolutionMM_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* weight
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+]]
+
+
+TH_API void THNN_DoubleSpatialConvolutionMM_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int);
+[[
+  name: DoubleSpatialConvolutionMM_updateGradInput
+  return: void
+  cname: THNN_DoubleSpatialConvolutionMM_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* weight
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+]]
+
+
+TH_API void THNN_FloatSpatialConvolutionMM_accGradParameters(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, int, int, int, double);
+[[
+  name: FloatSpatialConvolutionMM_accGradParameters
+  return: void
+  cname: THNN_FloatSpatialConvolutionMM_accGradParameters
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradWeight
+    - type: THFloatTensor*
+      name: gradBias
+      nullable: True
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+    - double scale
+]]
+
+
+TH_API void THNN_DoubleSpatialConvolutionMM_accGradParameters(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int, double);
+[[
+  name: DoubleSpatialConvolutionMM_accGradParameters
+  return: void
+  cname: THNN_DoubleSpatialConvolutionMM_accGradParameters
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradWeight
+    - type: THDoubleTensor*
+      name: gradBias
+      nullable: True
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+    - double scale
+]]
+
+
+TH_API void THNN_Floatunfolded_acc(THFloatTensor*, THFloatTensor*, int, int, int, int, int, int, int, int, int, int, int);
+[[
+  name: Floatunfolded_acc
+  return: void
+  cname: THNN_Floatunfolded_acc
+  arguments:
+    - THFloatTensor* finput
+    - THFloatTensor* input
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+    - int nInputPlane
+    - int inputWidth
+    - int inputHeight
+    - int osizeW
+    - int outputHeight
+]]
+
+
+TH_API void THNN_Doubleunfolded_acc(THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int, int, int, int, int, int);
+[[
+  name: Doubleunfolded_acc
+  return: void
+  cname: THNN_Doubleunfolded_acc
+  arguments:
+    - THDoubleTensor* finput
+    - THDoubleTensor* input
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+    - int nInputPlane
+    - int inputWidth
+    - int inputHeight
+    - int osizeW
+    - int outputHeight
+]]
+
+
+TH_API void THNN_Floatunfolded_copy(THFloatTensor*, THFloatTensor*, int, int, int, int, int, int, int, int, int, int, int);
+[[
+  name: Floatunfolded_copy
+  return: void
+  cname: THNN_Floatunfolded_copy
+  arguments:
+    - THFloatTensor* finput
+    - THFloatTensor* input
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+    - int nInputPlane
+    - int inputWidth
+    - int inputHeight
+    - int outputWidth
+    - int outputHeight
+]]
+
+
+TH_API void THNN_Doubleunfolded_copy(THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int, int, int, int, int, int);
+[[
+  name: Doubleunfolded_copy
+  return: void
+  cname: THNN_Doubleunfolded_copy
+  arguments:
+    - THDoubleTensor* finput
+    - THDoubleTensor* input
+    - int kW
+    - int kH
+    - int dW
+    - int dH
+    - int padW
+    - int padH
+    - int nInputPlane
+    - int inputWidth
+    - int inputHeight
+    - int outputWidth
+    - int outputHeight
+]]
+
+
+TH_API void THNN_FloatFeatureLPPooling_updateOutput(void*, THFloatTensor*, THFloatTensor*, double, int, int, bool);
+[[
+  name: FloatFeatureLPPooling_updateOutput
+  return: void
+  cname: THNN_FloatFeatureLPPooling_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - double power
+    - int width
+    - int stride
+    - bool batchMode
+]]
+
+
+TH_API void THNN_DoubleFeatureLPPooling_updateOutput(void*, THDoubleTensor*, THDoubleTensor*, double, int, int, bool);
+[[
+  name: DoubleFeatureLPPooling_updateOutput
+  return: void
+  cname: THNN_DoubleFeatureLPPooling_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - double power
+    - int width
+    - int stride
+    - bool batchMode
+]]
+
+
+TH_API void THNN_FloatFeatureLPPooling_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, double, int, int, bool);
+[[
+  name: FloatFeatureLPPooling_updateGradInput
+  return: void
+  cname: THNN_FloatFeatureLPPooling_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* gradOutput
+    - THFloatTensor* input
+    - THFloatTensor* output
+    - THFloatTensor* gradInput
+    - double power
+    - int width
+    - int stride
+    - bool batchMode
+]]
+
+
+TH_API void THNN_DoubleFeatureLPPooling_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, double, int, int, bool);
+[[
+  name: DoubleFeatureLPPooling_updateGradInput
+  return: void
+  cname: THNN_DoubleFeatureLPPooling_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+    - THDoubleTensor* gradInput
+    - double power
+    - int width
+    - int stride
+    - bool batchMode
+]]
+
+
+TH_API void THNN_FloatTanh_updateOutput(void*, THFloatTensor*, THFloatTensor*);
+[[
+  name: FloatTanh_updateOutput
+  return: void
+  cname: THNN_FloatTanh_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* output
+]]
+
+
+TH_API void THNN_DoubleTanh_updateOutput(void*, THDoubleTensor*, THDoubleTensor*);
+[[
+  name: DoubleTanh_updateOutput
+  return: void
+  cname: THNN_DoubleTanh_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* output
+]]
+
+
+TH_API void THNN_FloatTanh_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*);
+[[
+  name: FloatTanh_updateGradInput
+  return: void
+  cname: THNN_FloatTanh_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* output
+]]
+
+
+TH_API void THNN_DoubleTanh_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*);
+[[
+  name: DoubleTanh_updateGradInput
+  return: void
+  cname: THNN_DoubleTanh_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* output
+]]
+
+
+TH_API void THNN_FloatVolumetricConvolutionMM_updateGradInput(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, int, int, int, int, int, int);
+[[
+  name: FloatVolumetricConvolutionMM_updateGradInput
+  return: void
+  cname: THNN_FloatVolumetricConvolutionMM_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - THFloatTensor* weight
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kT
+    - int kW
+    - int kH
+    - int dT
+    - int dW
+    - int dH
+    - int pT
+    - int pW
+    - int pH
+]]
+
+
+TH_API void THNN_DoubleVolumetricConvolutionMM_updateGradInput(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int, int, int, int);
+[[
+  name: DoubleVolumetricConvolutionMM_updateGradInput
+  return: void
+  cname: THNN_DoubleVolumetricConvolutionMM_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - THDoubleTensor* weight
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kT
+    - int kW
+    - int kH
+    - int dT
+    - int dW
+    - int dH
+    - int pT
+    - int pW
+    - int pH
+]]
+
+
+TH_API void THNN_FloatVolumetricConvolutionMM_accGradParameters(void*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, THFloatTensor*, int, int, int, int, int, int, int, int, int, double);
+[[
+  name: FloatVolumetricConvolutionMM_accGradParameters
+  return: void
+  cname: THNN_FloatVolumetricConvolutionMM_accGradParameters
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradWeight
+    - type: THFloatTensor*
+      name: gradBias
+      nullable: True
+    - THFloatTensor* finput
+    - THFloatTensor* fgradInput
+    - int kT
+    - int kW
+    - int kH
+    - int dT
+    - int dW
+    - int dH
+    - int pT
+    - int pW
+    - int pH
+    - double scale
+]]
+
+
+TH_API void THNN_DoubleVolumetricConvolutionMM_accGradParameters(void*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, THDoubleTensor*, int, int, int, int, int, int, int, int, int, double);
+[[
+  name: DoubleVolumetricConvolutionMM_accGradParameters
+  return: void
+  cname: THNN_DoubleVolumetricConvolutionMM_accGradParameters
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradWeight
+    - type: THDoubleTensor*
+      name: gradBias
+      nullable: True
+    - THDoubleTensor* finput
+    - THDoubleTensor* fgradInput
+    - int kT
+    - int kW
+    - int kH
+    - int dT
+    - int dW
+    - int dH
+    - int pT
+    - int pW
+    - int pH
+    - double scale
+]]
+
+
+TH_API void THNN_FloatSpatialClassNLLCriterion_updateOutput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, int64_t, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatSpatialClassNLLCriterion_updateOutput
+  return: void
+  cname: THNN_FloatSpatialClassNLLCriterion_updateOutput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* output
+    - int64_t reduction
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+    - THFloatTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
+TH_API void THNN_DoubleSpatialClassNLLCriterion_updateOutput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, int64_t, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleSpatialClassNLLCriterion_updateOutput
+  return: void
+  cname: THNN_DoubleSpatialClassNLLCriterion_updateOutput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* output
+    - int64_t reduction
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+    - THDoubleTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
+TH_API void THNN_FloatSpatialClassNLLCriterion_updateGradInput(void*, THFloatTensor*, THLongTensor*, THFloatTensor*, THFloatTensor*, int64_t, THFloatTensor*, THFloatTensor*, int64_t);
+[[
+  name: FloatSpatialClassNLLCriterion_updateGradInput
+  return: void
+  cname: THNN_FloatSpatialClassNLLCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THFloatTensor* input
+    - THLongTensor* target
+    - THFloatTensor* gradOutput
+    - THFloatTensor* gradInput
+    - int64_t reduction
+    - type: THFloatTensor*
+      name: weights
+      nullable: True
+    - THFloatTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
+TH_API void THNN_DoubleSpatialClassNLLCriterion_updateGradInput(void*, THDoubleTensor*, THLongTensor*, THDoubleTensor*, THDoubleTensor*, int64_t, THDoubleTensor*, THDoubleTensor*, int64_t);
+[[
+  name: DoubleSpatialClassNLLCriterion_updateGradInput
+  return: void
+  cname: THNN_DoubleSpatialClassNLLCriterion_updateGradInput
+  arguments:
+    - void* state
+    - THDoubleTensor* input
+    - THLongTensor* target
+    - THDoubleTensor* gradOutput
+    - THDoubleTensor* gradInput
+    - int64_t reduction
+    - type: THDoubleTensor*
+      name: weights
+      nullable: True
+    - THDoubleTensor* total_weight
+    - int64_t ignore_index
+]]
+
+
