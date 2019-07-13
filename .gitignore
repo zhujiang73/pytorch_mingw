@@ -1,11 +1,13 @@
 ## General
 build/
+__pycache__/
 
 # Compiled Object files
 *.slo
 *.lo
 *.o
 *.cuo
+*.pyc
 
 # Compiled Dynamic libraries
 *.so
