@@ -283,7 +283,10 @@ target_compile_definitions(torch_python PUBLIC _THP_CORE)
 add_dependencies(torch_python torch_python_stubs)
 
 #target_link_libraries(torch_python ${TORCH_PYTHON_LINK_LIBRARIES})
-target_link_libraries(torch_python -L${CMAKE_BINARY_DIR}/lib shm torch c10 protobuf C:/msys64/mingw64/lib/libgflags.dll.a -lshlwapi C:/msys64/mingw64/lib/libopenblas.dll.a -lpython3.7m -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 )
+target_link_libraries(torch_python -L${CMAKE_BINARY_DIR}/lib shm torch c10  protobuf 
+                                   -LC:/msys64/mingw64/lib -lgflags -lshlwapi  -lopenblas -lpython3.7m 
+                                                           -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 
+                                                           -loleaut32 -luuid -lcomdlg32 -ladvapi32 )
 
 target_compile_definitions(torch_python PRIVATE ${TORCH_PYTHON_COMPILE_DEFINITIONS})
 
