@@ -88,7 +88,9 @@ class cwrap(object):
                 in_declaration = True
             elif line == ']]':
                 in_declaration = False
-                declaration = yaml.load('\n'.join(declaration_lines))
+                #declaration = yaml.load('\n'.join(declaration_lines))
+                declaration = yaml.load('\n'.join(declaration_lines), Loader=yaml.FullLoader)
+
                 cwrap_common.set_declaration_defaults(declaration)
 
                 # Pass declaration in a list - maybe some plugins want to add
