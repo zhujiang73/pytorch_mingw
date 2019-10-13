@@ -222,7 +222,7 @@ class Encoder_Thread(threading.Thread):
         self.wh = 97
         #self.wh = 129
         self.batch_size = 5
-        self.n_loops = 1  #100
+        self.n_loops = 1
         self.len_fns = len(self.str_fns)
         self.imgs_ten = torch.Tensor(self.batch_size,1,self.wh,self.wh)
 
@@ -258,7 +258,7 @@ class Encoder_Thread(threading.Thread):
                     break;
             
             GLib.idle_add(self.caller_slot, "torch data")
-            #time.sleep(5.0)
+            #time.sleep(1.0)
 
 class main:
     def __init__(self):
@@ -285,24 +285,17 @@ class main:
         self.sw = Gtk.ScrolledWindow()
         self.win.add(self.sw)
         self.sw.set_border_width(2)
-        self.win.show_all()
 
-        self.axs = [[0,0,0,0,0],[0,0,0,0,0]]
+        fig = Figure(figsize=(8, 8), dpi=80)
+        self.canvas = FigureCanvas(fig) 
+        self.canvas.set_size_request(1000, 600)
+        self.sw.add(self.canvas)
+        self.win.show_all()
 
         self.torch_lock = threading.Lock()
         self.torch_show_data = {}
         self.n_test_imgs = 5
         self.torch_show_data["mess_quit"] = False  
-
-        fig = Figure(figsize=(8, 8), dpi=80)
-
-        for n in range(2):
-            for i in range(self.n_test_imgs):
-                self.axs[n][i] = fig.add_subplot(2, self.n_test_imgs, n*self.n_test_imgs+i+1)
-
-        self.canvas = FigureCanvas(fig)
-        self.canvas.set_size_request(800, 620)
-        self.sw.add(self.canvas)
 
         thread_torch = Encoder_Thread(self.update_torch_data, self.torch_lock, self.autoencoder, 
                                         self.str_fns, self.torch_show_data)
@@ -316,14 +309,24 @@ class main:
         #self.torch_show_data.clear()
         self.torch_lock.release()
 
-        self.sw.hide()
+        self.sw.remove(self.canvas)
+
+        axs = [[0,0,0,0,0],[0,0,0,0,0]]
+
+        fig = Figure(figsize=(8, 8), dpi=80)
+
+        for n in range(2):
+            for i in range(self.n_test_imgs):
+                axs[n][i] = fig.add_subplot(2, self.n_test_imgs, n*self.n_test_imgs+i+1)
 
         for i in range(self.n_test_imgs):
-            self.axs[0][i].imshow(np_imgs[i][0], cmap='gray')
-            self.axs[1][i].imshow(np_decoded[i][0], cmap='gray')
+            axs[0][i].imshow(np_imgs[i][0], cmap='gray')
+            axs[1][i].imshow(np_decoded[i][0], cmap='gray')
 
+        self.canvas = FigureCanvas(fig)
+        self.canvas.set_size_request(1000, 600)
+        self.sw.add(self.canvas)
         self.sw.show_all()
-
 
     def win_quit(self,  a,  b):     
         self.torch_lock.acquire()

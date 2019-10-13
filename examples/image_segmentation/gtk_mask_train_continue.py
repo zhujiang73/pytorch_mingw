@@ -330,26 +330,17 @@ class main:
         self.sw = Gtk.ScrolledWindow()
         self.win.add(self.sw)
         self.sw.set_border_width(2)
-        self.win.show_all()
 
-        self.axs = [[0,0,0,0,0],
-                    [0,0,0,0,0],
-                    [0,0,0,0,0]]
+        fig = Figure(figsize=(8, 8), dpi=80)
+        self.canvas = FigureCanvas(fig) 
+        self.canvas.set_size_request(1000, 600)
+        self.sw.add(self.canvas)
+        self.win.show_all()
 
         self.torch_lock = threading.Lock()
         self.torch_show_data = {}
         self.n_test_imgs = 5
         self.torch_show_data["mess_quit"] = False  
-
-        fig = Figure(figsize=(8, 8), dpi=80)
-
-        for n in range(3):
-            for i in range(self.n_test_imgs):
-                self.axs[n][i] = fig.add_subplot(3, self.n_test_imgs, n*self.n_test_imgs+i+1)
-
-        self.canvas = FigureCanvas(fig)
-        self.canvas.set_size_request(800, 600)
-        self.sw.add(self.canvas)
 
         thread_torch = Encoder_Thread(self.update_torch_data, self.torch_lock, self.autoencoder, 
                                         self.str_imgs_fns, self.str_mask_fns, self.torch_show_data)
@@ -365,16 +356,29 @@ class main:
         np_decoded = self.torch_show_data["np_decoded"]
         self.torch_lock.release()
 
-        self.sw.hide()
+        self.sw.remove(self.canvas)
+
+        axs = [[0,0,0,0,0],
+               [0,0,0,0,0],
+               [0,0,0,0,0]]
+
+        fig = Figure(figsize=(8, 8), dpi=80)
+
+        for n in range(3):
+            for i in range(self.n_test_imgs):
+                axs[n][i] = fig.add_subplot(3, self.n_test_imgs, n*self.n_test_imgs+i+1)
 
         for i in range(self.n_test_imgs):
-            self.axs[0][i].imshow(np_imgs[i][0], cmap='gray')
-            self.axs[1][i].imshow(np_mask_imgs[i][0], cmap='gray')
-            self.axs[2][i].imshow(np_decoded[i][0], cmap='gray')
+            axs[0][i].imshow(np_imgs[i][0], cmap='gray')
+            axs[1][i].imshow(np_mask_imgs[i][0], cmap='gray')
+            axs[2][i].imshow(np_decoded[i][0], cmap='gray')
 
+        self.canvas = FigureCanvas(fig)
+        self.canvas.set_size_request(1000, 600)
+        self.sw.add(self.canvas)
         self.sw.show_all()
 
-    def win_quit(self,  _a,  _b):     
+    def win_quit(self,  a,  b):     
         self.torch_lock.acquire()
         self.torch_show_data["mess_quit"] = True   
         self.torch_lock.release()

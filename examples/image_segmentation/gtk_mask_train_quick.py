@@ -271,27 +271,29 @@ class Encoder_Thread(threading.Thread):
                 np_mask_imgs = self.imgs_mask_ten.detach().numpy()
                 np_decoded = x_decoded.detach().numpy()
 
+                self.lock.acquire()
+                mess_quit = self.show_data["mess_quit"]
+                self.lock.release()
+
+                if (mess_quit == True):
+                    return  
+
                 if (idx_loop % 10 == 0):
                     print("loop_{0:0>5d} idx:{1:0>5d}  train loss: {2:.4f}".format(idx_loop, idx_batch, loss.data.numpy()))
 
                 if (idx_loop % 10 == 0):
                     self.lock.acquire()
-                    mess_quit = self.show_data["mess_quit"]
                     self.show_data["np_imgs"] = np_imgs.copy()
                     self.show_data["np_mask_imgs"] = np_mask_imgs.copy()
                     self.show_data["np_decoded"] = np_decoded.copy()
                     self.lock.release()
-
-                    if (mess_quit == True):
-                        return  
-
                     GLib.idle_add(self.caller_slot, "torch data")
-
 
                 if ((idx_loop+1) % 500 == 0):
                     str_pth_fn = "./models/bpcv_encoder_{0:0>5d}.pth".format(idx_loop+1)
                     print("model save to : {}".format(str_pth_fn))
                     torch.save(self.model, str_pth_fn)
+
 
 
 class main:
@@ -328,26 +330,17 @@ class main:
         self.sw = Gtk.ScrolledWindow()
         self.win.add(self.sw)
         self.sw.set_border_width(2)
-        self.win.show_all()
 
-        self.axs = [[0,0,0,0,0],
-                    [0,0,0,0,0],
-                    [0,0,0,0,0]]
+        fig = Figure(figsize=(8, 8), dpi=80)
+        self.canvas = FigureCanvas(fig) 
+        self.canvas.set_size_request(1000, 600)
+        self.sw.add(self.canvas)
+        self.win.show_all()
 
         self.torch_lock = threading.Lock()
         self.torch_show_data = {}
         self.n_test_imgs = 5
         self.torch_show_data["mess_quit"] = False  
-
-        fig = Figure(figsize=(8, 8), dpi=80)
-
-        for n in range(3):
-            for i in range(self.n_test_imgs):
-                self.axs[n][i] = fig.add_subplot(3, self.n_test_imgs, n*self.n_test_imgs+i+1)
-
-        self.canvas = FigureCanvas(fig)
-        self.canvas.set_size_request(800, 600)
-        self.sw.add(self.canvas)
 
         thread_torch = Encoder_Thread(self.update_torch_data, self.torch_lock, self.autoencoder, 
                                         self.str_imgs_fns, self.str_mask_fns, self.torch_show_data)
@@ -363,13 +356,26 @@ class main:
         np_decoded = self.torch_show_data["np_decoded"]
         self.torch_lock.release()
 
-        self.sw.hide()
+        self.sw.remove(self.canvas)
+
+        axs = [[0,0,0,0,0],
+               [0,0,0,0,0],
+               [0,0,0,0,0]]
+
+        fig = Figure(figsize=(8, 8), dpi=80)
+
+        for n in range(3):
+            for i in range(self.n_test_imgs):
+                axs[n][i] = fig.add_subplot(3, self.n_test_imgs, n*self.n_test_imgs+i+1)
 
         for i in range(self.n_test_imgs):
-            self.axs[0][i].imshow(np_imgs[i][0], cmap='gray')
-            self.axs[1][i].imshow(np_mask_imgs[i][0], cmap='gray')
-            self.axs[2][i].imshow(np_decoded[i][0], cmap='gray')
+            axs[0][i].imshow(np_imgs[i][0], cmap='gray')
+            axs[1][i].imshow(np_mask_imgs[i][0], cmap='gray')
+            axs[2][i].imshow(np_decoded[i][0], cmap='gray')
 
+        self.canvas = FigureCanvas(fig)
+        self.canvas.set_size_request(1000, 600)
+        self.sw.add(self.canvas)
         self.sw.show_all()
 
     def win_quit(self,  _a,  _b):     
