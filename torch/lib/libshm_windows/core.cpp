@@ -21,5 +21,3 @@ at::DataPtr THManagedMapAllocator::makeDataPtr(const char* manager_handle, const
 THManagedMapAllocator* THManagedMapAllocator::fromDataPtr(const at::DataPtr& dptr) {
   return dptr.cast_context<THManagedMapAllocator>(&deleteTHManagedMapAllocator);
 }
-
-

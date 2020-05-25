@@ -86,7 +86,7 @@ public:
 struct  ModuleInput {
   ModuleInput(ModuleInput&& ) = default;
 
-  ModuleInput(const ModuleInput&) = delete;
+  ModuleInput(const ModuleInput& ) = delete;
   ModuleInput& operator=(ModuleInput& ) = delete;
   ModuleInput& operator=(ModuleInput&& ) = delete;
 

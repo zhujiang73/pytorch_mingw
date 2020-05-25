@@ -74,7 +74,7 @@ static PyObject * THPGenerator_pynew(PyTypeObject *type, PyObject *args, PyObjec
   END_HANDLE_TH_ERRORS
 }
 
-static PyObject * THPGenerator_getState(THPGenerator *self)
+static PyObject * THPGenerator_getState(THPGenerator *self, PyObject *noargs)
 {
   using namespace torch::autograd;
   HANDLE_TH_ERRORS
@@ -102,7 +102,7 @@ static PyObject * THPGenerator_setState(THPGenerator *self, PyObject *_new_state
   }
   auto& tensor = ((THPVariable*)_new_state)->cdata;
   if (tensor.layout() != kStrided || tensor.device().type() != kCPU || tensor.scalar_type() != kByte) {
-    auto type_name = torch::utils::type_to_string(tensor.dispatch_type(), tensor.scalar_type());
+    auto type_name = torch::utils::type_to_string(tensor.type());
     throw TypeError("expected a torch.ByteTensor, but got %s", type_name.c_str());
   }
   if (self->cdata->device().type() == at::kCPU) {
@@ -134,7 +134,7 @@ static PyObject * THPGenerator_manualSeed(THPGenerator *self, PyObject *seed)
   END_HANDLE_TH_ERRORS
 }
 
-static PyObject * THPGenerator_seed(THPGenerator *self)
+static PyObject * THPGenerator_seed(THPGenerator *self, PyObject *noargs)
 {
   HANDLE_TH_ERRORS
   // See Note [Acquire lock when using random generators]
@@ -144,14 +144,14 @@ static PyObject * THPGenerator_seed(THPGenerator *self)
   END_HANDLE_TH_ERRORS
 }
 
-static PyObject * THPGenerator_initialSeed(THPGenerator *self)
+static PyObject * THPGenerator_initialSeed(THPGenerator *self, PyObject *noargs)
 {
   HANDLE_TH_ERRORS
   return THPUtils_packUInt64(self->cdata->current_seed());
   END_HANDLE_TH_ERRORS
 }
 
-static PyObject * THPGenerator_get_device(THPGenerator *self) {
+static PyObject * THPGenerator_get_device(THPGenerator *self, void *unused) {
   HANDLE_TH_ERRORS
   return THPDevice_New(self->cdata->device());
   END_HANDLE_TH_ERRORS
@@ -182,38 +182,38 @@ PyTypeObject THPGeneratorType = {
   sizeof(THPGenerator),                        /* tp_basicsize */
   0,                                           /* tp_itemsize */
   (destructor)THPGenerator_dealloc,            /* tp_dealloc */
-  nullptr,                                     /* tp_print */
-  nullptr,                                     /* tp_getattr */
-  nullptr,                                     /* tp_setattr */
-  nullptr,                                     /* tp_reserved */
-  nullptr,                                     /* tp_repr */
-  nullptr,                                     /* tp_as_number */
-  nullptr,                                     /* tp_as_sequence */
-  nullptr,                                     /* tp_as_mapping */
-  nullptr,                                     /* tp_hash  */
-  nullptr,                                     /* tp_call */
-  nullptr,                                     /* tp_str */
-  nullptr,                                     /* tp_getattro */
-  nullptr,                                     /* tp_setattro */
-  nullptr,                                     /* tp_as_buffer */
+  0,                                     /* tp_print */
+  0,                                     /* tp_getattr */
+  0,                                     /* tp_setattr */
+  0,                                     /* tp_reserved */
+  0,                                     /* tp_repr */
+  0,                                     /* tp_as_number */
+  0,                                     /* tp_as_sequence */
+  0,                                     /* tp_as_mapping */
+  0,                                     /* tp_hash  */
+  0,                                     /* tp_call */
+  0,                                     /* tp_str */
+  0,                                     /* tp_getattro */
+  0,                                     /* tp_setattro */
+  0,                                     /* tp_as_buffer */
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,    /* tp_flags */
-  nullptr,                                     /* tp_doc */
-  nullptr,                                     /* tp_traverse */
-  nullptr,                                     /* tp_clear */
-  nullptr,                                     /* tp_richcompare */
+  0,                                     /* tp_doc */
+  0,                                     /* tp_traverse */
+  0,                                     /* tp_clear */
+  0,                                     /* tp_richcompare */
   0,                                           /* tp_weaklistoffset */
-  nullptr,                                     /* tp_iter */
-  nullptr,                                     /* tp_iternext */
+  0,                                     /* tp_iter */
+  0,                                     /* tp_iternext */
   THPGenerator_methods,                        /* tp_methods */
   THPGenerator_members,                        /* tp_members */
   THPGenerator_properties,                     /* tp_getset */
-  nullptr,                                     /* tp_base */
-  nullptr,                                     /* tp_dict */
-  nullptr,                                     /* tp_descr_get */
-  nullptr,                                     /* tp_descr_set */
+  0,                                     /* tp_base */
+  0,                                     /* tp_dict */
+  0,                                     /* tp_descr_get */
+  0,                                     /* tp_descr_set */
   0,                                           /* tp_dictoffset */
-  nullptr,                                     /* tp_init */
-  nullptr,                                     /* tp_alloc */
+  0,                                     /* tp_init */
+  0,                                     /* tp_alloc */
   THPGenerator_pynew,                          /* tp_new */
 };
 

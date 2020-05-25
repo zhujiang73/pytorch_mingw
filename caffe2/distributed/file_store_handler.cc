@@ -43,11 +43,11 @@ FileStoreHandler::FileStoreHandler(
   if (!prefix.empty()) {
     basePath_ = basePath_ + "/" + encodeName(prefix);
   }
-#if defined(_MSC_VER)
-  auto ret = _mkdir(basePath_.c_str());
-#else
+#if defined(_WIN64)
   auto ret = mkdir(basePath_.c_str());
-#endif // defined(_MSC_VER)
+#else
+  auto ret = mkdir(basePath_.c_str(), 0777);
+#endif // defined(_WIN64)
   if (ret == -1) {
     CHECK_EQ(errno, EEXIST) << "mkdir: " << strerror(errno);
   }

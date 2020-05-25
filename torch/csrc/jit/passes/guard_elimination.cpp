@@ -1,6 +1,10 @@
-#include <torch/csrc/jit/passes/alias_analysis.h>
-#include <torch/csrc/jit/passes/guard_elimination.h>
 #include <memory>
+#include <torch/csrc/jit/graph_executor.h>
+#include <torch/csrc/jit/jit_log.h>
+#include <torch/csrc/jit/passes/alias_analysis.h>
+#include <torch/csrc/jit/passes/constant_propagation.h>
+#include <torch/csrc/jit/passes/guard_elimination.h>
+#include <torch/csrc/jit/passes/peephole.h>
 #include <unordered_set>
 
 namespace torch {
@@ -9,12 +13,15 @@ namespace jit {
 struct GuardElimination {
   GuardElimination(std::shared_ptr<Graph> graph)
       : graph_(std::move(graph)),
-        aliasDb_(caffe2::make_unique<AliasDb>(graph_)) {}
+        aliasDb_(c10::guts::make_unique<AliasDb>(graph_)) {}
 
   void run() {
     moveGuardsToDefs(graph_->block());
+    GRAPH_DUMP("After moveGuardsToDefs", graph_);
     coalesceGuards(graph_->block());
+    GRAPH_DUMP("After coalesceGuards", graph_);
     eliminateRedundantGuards(graph_->block());
+    GRAPH_DUMP("After eliminateRedundantGuards", graph_);
   }
 
   void moveGuardsToDefs(Block* b) {
@@ -31,7 +38,14 @@ struct GuardElimination {
         if (guardee->owningBlock() != n->owningBlock()) {
           guardee = *n->owningBlock()->nodes().begin();
         }
-        aliasDb_->moveAfterTopologicallyValid(n, guardee);
+        bool moved = aliasDb_->moveAfterTopologicallyValid(n, guardee);
+        if (moved) {
+          GRAPH_UPDATE(
+              "Moved ",
+              n->output()->debugName(),
+              " to ",
+              n->inputs().at(0)->debugName());
+        }
       } else {
         it++;
         for (Block* ib : n->blocks()) {
@@ -55,6 +69,11 @@ struct GuardElimination {
         if (inputs_to_guards.count(n->input())) {
           auto prev = inputs_to_guards[n->input()];
           n->output()->replaceAllUsesWith(prev->output());
+          GRAPH_UPDATE(
+              "Replacing ",
+              n->output()->debugName(),
+              " with ",
+              prev->output()->debugName());
           it.destroyCurrent();
         } else {
           inputs_to_guards.insert({n->input(), n});
@@ -68,12 +87,16 @@ struct GuardElimination {
     }
   }
 
+  // we need to make sure there are no ops in between guardee's
+  // output and its guard except for other guards as they can
+  // invalidate shape information.
   bool guardsOutput(Node* guard) {
     auto output = guard->input()->node();
     auto it = guard;
-
     while (it != output) {
       if (it->kind() != prim::Guard && it->kind() != prim::Constant) {
+        GRAPH_DEBUG("found an unexpected node ", *it,
+                    " while trying to eliminate ", *guard);
         return false;
       }
       it = it->prev();
@@ -94,6 +117,8 @@ struct GuardElimination {
         auto pttp = n->output()->type();
         n->output()->replaceAllUsesWith(n->inputs().at(0));
         n->inputs().at(0)->setType(pttp);
+        GRAPH_UPDATE(
+            "Eliminating the redundant guard ", n->output()->debugName());
         it.destroyCurrent();
       } else {
         it++;
@@ -104,25 +129,123 @@ struct GuardElimination {
     }
   }
 
- private:
-  bool removableGuard(Node* n) {
-    if (!simple_ops_.count(n->kind())) {
-      return false;
-    }
-
+  // `checkInputs` check the invariants specified in `removableGuard`
+  // on inputs to `n`. The invarints must hold, or an input must
+  // be a `prim::Constant` or be of `NumberType` or be included
+  // as an exception in `except`
+  bool checkInputs(Node *n, const std::unordered_set<size_t> &except) {
     bool all_inputs_guarded = true;
+    size_t i = 0;
     for (auto input : n->inputs()) {
-      if (input->node()->kind() == prim::Guard ||
-          input->node()->kind() == prim::Constant) {
+      if ((input->node()->kind() == prim::Guard &&
+           !input->type()->expect<TensorType>()->isSummarized()) ||
+          input->node()->kind() == prim::Constant ||
+          input->type()->isSubtypeOf(NumberType::get()) ||
+          except.count(i) != 0) {
         AT_ASSERT(
             input->node()->kind() != prim::Guard ||
-            input->type()->expect<ProfiledTensorType>());
+            input->type()->expect<TensorType>());
       } else {
+        GRAPH_DEBUG("input ", input->debugName(), " isn't guarded, type ",
+                    *input->type());
         all_inputs_guarded = false;
         break;
       }
+      i++;
     }
     return all_inputs_guarded;
+  }
+
+private:
+  // `removableGuard` relies on the properties checked by `isSummarized()`
+  // and passes shouldn't insert nodes between a guard and its uses that
+  // may alter those properties.
+  // `removableGuard` expects type information to come directly from
+  // Profiler. Passes shouldn't try to alter type information provided by
+  // profiling
+  // While we can derive very simple rules stating when it's valid to remove
+  // `prim::Guard` on operation's output if all of its inputs are guarded for
+  // some
+  // categories of operations
+  // there's no comprehensive set of rules that covers all the operations
+  // available in PyTorch
+  // If your operation falls into one of the categories described below, you
+  // should add it
+  // to switch statement below that contains the other operations in the said
+  // category.
+  // Otherwise, you will need to derive the rules for your case on your own.
+  // Generally, any operation that is stateful in any way or uses its underlying
+  // data
+  // to compute any properties `isSummarized()` isn't amenable to guard
+  // elimination.
+  // Categories:
+  // * Functional-like(e.g. add, sub, le) operations with broadcast semenatics
+  //   Guards can be removed if all inputs are guarded and `isSummarized()`
+  //   returns
+  //   false or inputs are `prim::Constant`
+  //
+  bool removableGuard(Node *n) {
+
+    const static auto no_exceptions = std::unordered_set<size_t>{};
+    switch (n->kind()) {
+    case aten::add:
+    case aten::sub:
+    case aten::mul:
+    case aten::div:
+    case aten::t:
+    case aten::sigmoid:
+    case aten::tanh:
+    case aten::mm:
+    case aten::min:
+    case aten::max:
+    case aten::type_as:
+    case aten::ge:
+    case aten::gt:
+    case aten::lt:
+    case aten::le:
+    case aten::eq:
+    case aten::ne:
+    case aten::neg:
+    case prim::ConstantChunk:
+    case aten::size:
+      return checkInputs(n, no_exceptions);
+    case aten::cat:
+      // check that the dimension argument is constant
+      return n->input(1)->node()->kind() == prim::Constant &&
+             n->input(0)->node()->kind() == prim::ListConstruct &&
+             // no extra nodes in between aten::cat and prim::ListConstruct
+             n->prev() == n->input(0)->node() &&
+             // check the inputs to prim::ListConstruct (not aten::cat)
+             checkInputs(n->input(0)->node(), no_exceptions);
+    case aten::clamp:
+      // the second and third args do not affect shapes
+      return checkInputs(n, std::unordered_set<size_t>{1, 2});
+    // after some optimizations we might end up with two Guards back-to-back
+    // which case we can remove the one whose input is also prim::Guard
+    case aten::_grad_sum_to_size:
+      // skip checking size argument
+      if (checkInputs(n, std::unordered_set<size_t>{1})) {
+        auto asize = n->input(1)->node();
+        if (asize->kind() == prim::Constant) {
+          return true;
+        } else if (asize->matches("aten::size(Tensor self) -> int[]")) {
+          // aten::size is effectively a constant
+          if (asize->input()
+                  ->type()
+                  ->expect<TensorType>()
+                  ->sizes()
+                  .concrete_sizes()) {
+            return true;
+          }
+        }
+      }
+      return false;
+    case prim::Guard:
+      return true;
+    default:
+      GRAPH_DEBUG("cannot remove ", n->kind().toQualString());
+      return false;
+    }
   }
 
   std::shared_ptr<Graph> graph_;
@@ -130,22 +253,6 @@ struct GuardElimination {
   static std::unordered_set<Symbol> simple_ops_;
 };
 
-std::unordered_set<Symbol> GuardElimination::simple_ops_ = {aten::add,
-                                                            aten::sub,
-                                                            aten::mul,
-                                                            aten::div};
-
-static void removeProfilingNodes(Block* b) {
-  for (auto it = b->nodes().begin(); it != b->nodes().end(); it++) {
-    if (it->kind() == prim::profile) {
-      it.destroyCurrent();
-    } else {
-      for (Block* ib : it->blocks()) {
-        removeProfilingNodes(ib);
-      }
-    }
-  }
-}
 
 void EliminateRedundantGuards(std::shared_ptr<Graph> graph) {
   GuardElimination ge(std::move(graph));

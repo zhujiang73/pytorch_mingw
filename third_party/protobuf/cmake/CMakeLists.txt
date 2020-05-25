@@ -25,7 +25,7 @@ else()
 endif()
 
 # Options
-option(protobuf_BUILD_TESTS "Build tests" OFF)
+option(protobuf_BUILD_TESTS "Build tests" ON)
 option(protobuf_BUILD_EXAMPLES "Build examples" OFF)
 option(protobuf_BUILD_PROTOC_BINARIES "Build libprotoc and protoc compiler" ON)
 if (BUILD_SHARED_LIBS)

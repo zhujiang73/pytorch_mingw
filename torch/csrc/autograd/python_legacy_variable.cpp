@@ -42,28 +42,37 @@ static PyObject *THPVariable_pynew(PyTypeObject* type, PyObject *args, PyObject 
     throw TypeError("_grad_fn has to be a Function object or None, but got %s",
         Py_TYPE(grad_fn)->tp_name);
   }
-  Tensor tensor;
+  Variable var;
   if (!data || data == Py_None) {
     // For legacy serialization code, create an empty tensor. This is also used
     // by nn.Parameter() with no arguments.
+    auto type_id = torch::tensors::get_default_tensor_type_id();
     auto scalar_type = torch::tensors::get_default_scalar_type();
-    auto var = at::empty({0}, torch::tensors::get_default_tensor_type().options(scalar_type));
-    tensor = static_cast<Variable&>(var).tensor_data();
+    auto options = TensorOptions(scalar_type)
+        .device(computeDeviceType(type_id))
+        .layout(layout_from_backend(tensorTypeIdToBackend(type_id)))
+        .is_variable(true);
+    var = at::empty({0}, options);
   } else if (THPVariable_Check(data)) {
-    tensor = ((THPVariable*)data)->cdata.tensor_data();
+    var = ((THPVariable*)data)->cdata.detach();
   } else {
     throw torch::TypeError("Variable data has to be a tensor, but got %s",
         Py_TYPE(data)->tp_name);
   }
+  // We set `tensor`'s `allow_tensor_metadata_change` to true here, because we want to
+  // allow the following use case for backward compatibility:
+  //
+  // ```python
+  // var = Variable(torch.randn(2, 3))
+  // var.resize_(4, 5)
+  // ```
+  var.unsafeGetTensorImpl()->set_allow_tensor_metadata_change(true);
 
-  Variable var;
-  if (grad_fn) {
-    auto grad_fn_ = THPFunction_asFunction((THPFunction*)grad_fn);
-    Edge edge(grad_fn_, grad_fn_->add_input_metadata(tensor));
-    var = make_variable(std::move(tensor), std::move(edge));
-  } else {
-    var = make_variable(std::move(tensor), requires_grad);
-  }
+  TORCH_CHECK(!grad_fn,
+    "_grad_fn argument to legacy Variable constructor is no longer supported.  "
+    "Instead, please invoke your _grad_fn to produce a variable with it as the "
+    "_grad_fn.");
+  var.set_requires_grad(requires_grad);
 
   if (name) {
     var.set_name(name);
@@ -84,39 +93,39 @@ PyTypeObject THPLegacyVariableType = {
   "torch._C._LegacyVariableBase",        /* tp_name */
   0,                                     /* tp_basicsize */
   0,                                     /* tp_itemsize */
-  nullptr,                                     /* tp_dealloc */
-  nullptr,                                     /* tp_print */
-  nullptr,                                     /* tp_getattr */
-  nullptr,                                     /* tp_setattr */
-  nullptr,                                     /* tp_reserved */
-  nullptr,                                     /* tp_repr */
-  nullptr,                                     /* tp_as_number */
-  nullptr,                                     /* tp_as_sequence */
-  nullptr,                                     /* tp_as_mapping */
-  nullptr,                                     /* tp_hash  */
-  nullptr,                                     /* tp_call */
-  nullptr,                                     /* tp_str */
-  nullptr,                                     /* tp_getattro */
-  nullptr,                                     /* tp_setattro */
-  nullptr,                                     /* tp_as_buffer */
+  0,                                     /* tp_dealloc */
+  0,                                     /* tp_print */
+  0,                                     /* tp_getattr */
+  0,                                     /* tp_setattr */
+  0,                                     /* tp_reserved */
+  0,                                     /* tp_repr */
+  0,                                     /* tp_as_number */
+  0,                                     /* tp_as_sequence */
+  0,                                     /* tp_as_mapping */
+  0,                                     /* tp_hash  */
+  0,                                     /* tp_call */
+  0,                                     /* tp_str */
+  0,                                     /* tp_getattro */
+  0,                                     /* tp_setattro */
+  0,                                     /* tp_as_buffer */
   Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-  nullptr,                               /* tp_doc */
-  nullptr,                                     /* tp_traverse */
-  nullptr,                                     /* tp_clear */
-  nullptr,                                     /* tp_richcompare */
+  0,                               /* tp_doc */
+  0,                                     /* tp_traverse */
+  0,                                     /* tp_clear */
+  0,                                     /* tp_richcompare */
   0,                                     /* tp_weaklistoffset */
-  nullptr,                                     /* tp_iter */
-  nullptr,                                     /* tp_iternext */
-  nullptr,                                     /* tp_methods */
-  nullptr,                                     /* tp_members */
-  nullptr,                                     /* tp_getset */
-  nullptr,                                     /* tp_base */
-  nullptr,                                     /* tp_dict */
-  nullptr,                                     /* tp_descr_get */
-  nullptr,                                     /* tp_descr_set */
+  0,                                     /* tp_iter */
+  0,                                     /* tp_iternext */
+  0,                                     /* tp_methods */
+  0,                                     /* tp_members */
+  0,                                     /* tp_getset */
+  0,                                     /* tp_base */
+  0,                                     /* tp_dict */
+  0,                                     /* tp_descr_get */
+  0,                                     /* tp_descr_set */
   0,                                     /* tp_dictoffset */
-  nullptr,                                     /* tp_init */
-  nullptr,                                     /* tp_alloc */
+  0,                                     /* tp_init */
+  0,                                     /* tp_alloc */
   THPVariable_pynew                      /* tp_new */
 };
 

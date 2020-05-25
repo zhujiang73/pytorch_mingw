@@ -136,7 +136,7 @@ struct C10_API EnforceOK {};
 
 class C10_API EnforceFailMessage {
  public:
-#ifdef _MSC_VER
+#ifdef _WIN64
   // MSVC + NVCC ignores constexpr and will issue a warning if included.
   /* implicit */ EnforceFailMessage(EnforceOK) : msg_(nullptr) {}
 #else
@@ -229,7 +229,7 @@ BINARY_COMP_HELPER(LessEquals, <=)
   CAFFE_ENFORCE_THAT_IMPL((condition), #condition, __VA_ARGS__)
 
 #define CAFFE_ENFORCE_EQ(x, y, ...) \
-  CAFFE_ENFORCE_THAT_IMPL(Equals((x), (y)), #x " == " #y, __VA_ARGS__)
+  CAFFE_ENFORCE_THAT_IMPL( Equals ( (x), (y) ), #x " == " #y, __VA_ARGS__ )
 #define CAFFE_ENFORCE_NE(x, y, ...) \
   CAFFE_ENFORCE_THAT_IMPL(NotEquals((x), (y)), #x " != " #y, __VA_ARGS__)
 #define CAFFE_ENFORCE_LE(x, y, ...) \
