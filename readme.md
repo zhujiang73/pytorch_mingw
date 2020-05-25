@@ -5,11 +5,13 @@
 
   Based on pytorch :
 
-        https://github.com/ROCmSoftwarePlatform/pytorch 
         https://github.com/pytorch/pytorch 
+        https://github.com/ROCmSoftwarePlatform/pytorch 
 
 
-  msys2 :  http://www.msys2.org
+  msys2 : 
+  
+        http://www.msys2.org
 
 
   pytorch_mingw  install : 
@@ -37,7 +39,7 @@
 
        cd  pytorch_mingw\examples
 
-       python3  var_back.py
+       python  var_back.py
 
 
                                                        zhujiangmail@hotmail.com
