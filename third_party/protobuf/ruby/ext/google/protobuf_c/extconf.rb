@@ -2,8 +2,10 @@
 
 require 'mkmf'
 
-unless RUBY_PLATFORM =~ /mswin|mingw/
-  $CFLAGS += " -std=c99 -O3 -DNDEBUG"
+if RUBY_PLATFORM =~ /darwin/ || RUBY_PLATFORM =~ /linux/
+  $CFLAGS += " -std=gnu90 -O3 -DNDEBUG -Wall -Wdeclaration-after-statement -Wsign-compare"
+else
+  $CFLAGS += " -std=gnu90 -O3 -DNDEBUG"
 end
 
 

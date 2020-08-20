@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -15,7 +15,12 @@
 #define LOG2VECTLENSP 2
 #define VECTLENSP (1 << LOG2VECTLENSP)
 
+#if CONFIG == 4
+#define ISANAME "AARCH32 NEON-VFPV4"
+#define ENABLE_FMA_SP
+#else
 #define ISANAME "AARCH32 NEON"
+#endif
 #define DFTPRIORITY 10
 
 #define ENABLE_RECSQRT_SP
@@ -47,7 +52,7 @@ static vfloat vloaduf(float *p) { return vld1q_f32(p); }
 static void vstoreuf(float *p, vfloat v) { vst1q_f32(p, v); }
 
 static vint2 vloadu_vi2_p(int32_t *p) { return vld1q_s32(p); }
-static void vstoreu_p_vi2(int32_t *p, vint2 v) { vst1q_s32(p, v); }
+static void vstoreu_v_p_vi2(int32_t *p, vint2 v) { vst1q_s32(p, v); }
 
 //
 
@@ -106,11 +111,63 @@ static INLINE vfloat vadd_vf_vf_vf(vfloat x, vfloat y) { return vaddq_f32(x, y);
 static INLINE vfloat vsub_vf_vf_vf(vfloat x, vfloat y) { return vsubq_f32(x, y); }
 static INLINE vfloat vmul_vf_vf_vf(vfloat x, vfloat y) { return vmulq_f32(x, y); }
 
+static INLINE vfloat vabs_vf_vf(vfloat f) { return vabsq_f32(f); }
+static INLINE vfloat vneg_vf_vf(vfloat f) { return vnegq_f32(f); }
+#if CONFIG == 4
+static INLINE vfloat vmla_vf_vf_vf_vf  (vfloat x, vfloat y, vfloat z) { return vfmaq_f32(z, x, y); }
+static INLINE vfloat vmlanp_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vfmsq_f32(z, x, y); }
+static INLINE vfloat vfma_vf_vf_vf_vf  (vfloat x, vfloat y, vfloat z) { return vfmaq_f32(z, x, y); }
+static INLINE vfloat vfmanp_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vfmsq_f32(z, x, y); }
+static INLINE vfloat vfmapn_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vneg_vf_vf(vfmanp_vf_vf_vf_vf(x, y, z)); }
+static INLINE vfloat vmlapn_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vneg_vf_vf(vfmanp_vf_vf_vf_vf(x, y, z)); }
+
+static INLINE vfloat vdiv_vf_vf_vf(vfloat x, vfloat y) {
+  float32x4_t t = vrecpeq_f32(y), u;
+  t = vmulq_f32(t, vrecpsq_f32(y, t));
+  t = vfmaq_f32(t, vfmsq_f32(vdupq_n_f32(1.0f), y, t), t);
+  u = vmulq_f32(x, t);
+  return vfmaq_f32(u, vfmsq_f32(x, y, u), t);
+}
+
+static INLINE vfloat vsqrt_vf_vf(vfloat d) {
+  float32x4_t x = vrsqrteq_f32(d);
+  x = vmulq_f32(x, vrsqrtsq_f32(d, vmulq_f32(x, x)));
+  x = vmulq_f32(x, vrsqrtsq_f32(d, vmulq_f32(x, x)));
+  float32x4_t u = vmulq_f32(x, d);
+  u = vfmaq_f32(u, vfmsq_f32(d, u, u), vmulq_f32(x, vdupq_n_f32(0.5)));
+  return vreinterpretq_f32_u32(vbicq_u32(vreinterpretq_u32_f32(u), vceqq_f32(d, vdupq_n_f32(0.0f))));
+}
+
+static INLINE vfloat vrec_vf_vf(vfloat y) {
+  float32x4_t t = vrecpeq_f32(y), u;
+  t = vmulq_f32(t, vrecpsq_f32(y, t));
+  t = vfmaq_f32(t, vfmsq_f32(vdupq_n_f32(1.0f), y, t), t);
+  return vfmaq_f32(t, vfmsq_f32(vdupq_n_f32(1.0f), y, t), t);
+}
+
+static INLINE vfloat vrecsqrt_vf_vf(vfloat d) {
+  float32x4_t x = vrsqrteq_f32(d);
+  x = vmulq_f32(x, vrsqrtsq_f32(d, vmulq_f32(x, x)));
+  return vfmaq_f32(x, vfmsq_f32(vdupq_n_f32(1), x, vmulq_f32(x, d)), vmulq_f32(x, vdupq_n_f32(0.5)));
+}
+#else // #if CONFIG == 4
+static INLINE vfloat vmla_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vmlaq_f32(z, x, y); }
+static INLINE vfloat vmlanp_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vmlsq_f32(z, x, y); }
+static INLINE vfloat vmlapn_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vneg_vf_vf(vmlsq_f32(z, x, y)); }
+
 static INLINE vfloat vdiv_vf_vf_vf(vfloat n, vfloat d) {
   float32x4_t x = vrecpeq_f32(d);
   x = vmulq_f32(x, vrecpsq_f32(d, x));
   float32x4_t t = vmulq_f32(n, x);
   return vmlsq_f32(vaddq_f32(t, t), vmulq_f32(t, x), d);
+}
+
+static INLINE vfloat vsqrt_vf_vf(vfloat d) {
+  float32x4_t x = vrsqrteq_f32(d);
+  x = vmulq_f32(x, vrsqrtsq_f32(d, vmulq_f32(x, x)));
+  float32x4_t u = vmulq_f32(x, d);
+  u = vmlaq_f32(u, vmlsq_f32(d, u, u), vmulq_f32(x, vdupq_n_f32(0.5)));
+  return vreinterpretq_f32_u32(vbicq_u32(vreinterpretq_u32_f32(u), vceqq_f32(d, vdupq_n_f32(0.0f))));
 }
 
 static INLINE vfloat vrec_vf_vf(vfloat d) {
@@ -119,24 +176,12 @@ static INLINE vfloat vrec_vf_vf(vfloat d) {
   return vmlsq_f32(vaddq_f32(x, x), vmulq_f32(x, x), d);
 }
 
-static INLINE vfloat vsqrt_vf_vf(vfloat d) {
-  float32x4_t x = vrsqrteq_f32(d);
-  x = vmulq_f32(x, vrsqrtsq_f32(d, vmulq_f32(x, x)));
-  float32x4_t u = vmulq_f32(x, d);
-  u = vmlaq_f32(u, vmlsq_f32(d, u, u), vmulq_f32(x, vdupq_n_f32(0.5)));
-  return (float32x4_t)vbicq_u32((uint32x4_t)u, vceqq_f32(d, vdupq_n_f32(0.0f)));
-}
-
 static INLINE vfloat vrecsqrt_vf_vf(vfloat d) {
   float32x4_t x = vrsqrteq_f32(d);
   x = vmulq_f32(x, vrsqrtsq_f32(d, vmulq_f32(x, x)));
   return vmlaq_f32(x, vmlsq_f32(vdupq_n_f32(1), x, vmulq_f32(x, d)), vmulq_f32(x, vdupq_n_f32(0.5)));
 }
-
-static INLINE vfloat vabs_vf_vf(vfloat f) { return vabsq_f32(f); }
-static INLINE vfloat vneg_vf_vf(vfloat f) { return vnegq_f32(f); }
-static INLINE vfloat vmla_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vmlaq_f32(z, x, y); }
-static INLINE vfloat vmlanp_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vmlsq_f32(z, x, y); }
+#endif // #if CONFIG == 4
 static INLINE vfloat vmax_vf_vf_vf(vfloat x, vfloat y) { return vmaxq_f32(x, y); }
 static INLINE vfloat vmin_vf_vf_vf(vfloat x, vfloat y) { return vminq_f32(x, y); }
 
@@ -164,9 +209,9 @@ static INLINE vint2 vandnot_vi2_vo_vi2(vopmask x, vint2 y) { return (vint2)vbicq
 #define vsra_vi2_vi2_i(x, c) vshrq_n_s32(x, c)
 
 static INLINE vopmask veq_vo_vi2_vi2(vint2 x, vint2 y) { return vceqq_s32(x, y); }
-static INLINE vopmask vgt_vo_vi2_vi2(vint2 x, vint2 y) { return vcgeq_s32(x, y); }
+static INLINE vopmask vgt_vo_vi2_vi2(vint2 x, vint2 y) { return vcgtq_s32(x, y); }
 static INLINE vint2 veq_vi2_vi2_vi2(vint2 x, vint2 y) { return (vint2)vceqq_s32(x, y); }
-static INLINE vint2 vgt_vi2_vi2_vi2(vint2 x, vint2 y) { return (vint2)vcgeq_s32(x, y); }
+static INLINE vint2 vgt_vi2_vi2_vi2(vint2 x, vint2 y) { return (vint2)vcgtq_s32(x, y); }
 
 static INLINE vint2 vsel_vi2_vo_vi2_vi2(vopmask m, vint2 x, vint2 y) { return (vint2)vbslq_u32(m, (vmask)x, (vmask)y); }
 
@@ -210,6 +255,15 @@ static INLINE vfloat vloadu_vf_p(const float *ptr) { return vld1q_f32(ptr); }
 static INLINE void vstore_v_p_vf(float *ptr, vfloat v) { vst1q_f32(__builtin_assume_aligned(ptr, 16), v); }
 static INLINE void vstoreu_v_p_vf(float *ptr, vfloat v) { vst1q_f32(ptr, v); }
 
+static INLINE vfloat vgather_vf_p_vi2(const float *ptr, vint2 vi2) {
+  return ((vfloat) {
+      ptr[vgetq_lane_s32(vi2, 0)],
+      ptr[vgetq_lane_s32(vi2, 1)],
+      ptr[vgetq_lane_s32(vi2, 2)],
+      ptr[vgetq_lane_s32(vi2, 3)]
+    });
+}
+
 #define PNMASKf ((vfloat) { +0.0f, -0.0f, +0.0f, -0.0f })
 #define NPMASKf ((vfloat) { -0.0f, +0.0f, -0.0f, +0.0f })
 
@@ -221,6 +275,7 @@ static INLINE vfloat vmlsubadd_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { retur
 
 static INLINE vfloat vrev21_vf_vf(vfloat d0) { return vrev64q_f32(d0); }
 static INLINE vfloat vreva2_vf_vf(vfloat d0) { return vcombine_f32(vget_high_f32(d0), vget_low_f32(d0)); }
+static INLINE vint2 vrev21_vi2_vi2(vint2 i) { return vreinterpret_vi2_vf(vrev21_vf_vf(vreinterpret_vf_vi2(i))); }
 
 static INLINE void vstream_v_p_vf(float *ptr, vfloat v) { vstore_v_p_vf(ptr, v); }
 

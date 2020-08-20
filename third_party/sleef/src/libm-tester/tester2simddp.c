@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -10,6 +10,15 @@
 #include <time.h>
 #include <float.h>
 #include <limits.h>
+
+#if defined(POWER64_UNDEF_USE_EXTERN_INLINES)
+// This is a workaround required to cross compile for PPC64 binaries
+#include <features.h>
+#ifdef __USE_EXTERN_INLINES
+#undef __USE_EXTERN_INLINES
+#endif
+#endif
+
 #include <math.h>
 
 #ifdef ENABLE_SYS_getrandom
@@ -20,8 +29,6 @@
 
 #include "sleef.h"
 #include "testerutil.h"
-
-#define DORENAME
 
 #ifdef ENABLE_SSE2
 #define CONFIG 2
@@ -79,6 +86,14 @@ typedef Sleef___m512d_2 vdouble2;
 typedef Sleef___m512_2 vfloat2;
 #endif
 
+#ifdef ENABLE_AVX512FNOFMA
+#define CONFIG 2
+#include "helperavx512f.h"
+#include "renameavx512fnofma.h"
+typedef Sleef___m512d_2 vdouble2;
+typedef Sleef___m512_2 vfloat2;
+#endif
+
 #ifdef ENABLE_VECEXT
 #define CONFIG 1
 #include "helpervecext.h"
@@ -99,15 +114,63 @@ typedef Sleef_float64x2_t_2 vdouble2;
 typedef Sleef_float32x4_t_2 vfloat2;
 #endif
 
+#ifdef ENABLE_ADVSIMDNOFMA
+#define CONFIG 2
+#include "helperadvsimd.h"
+#include "renameadvsimdnofma.h"
+typedef Sleef_float64x2_t_2 vdouble2;
+typedef Sleef_float32x4_t_2 vfloat2;
+#endif
+
 #ifdef ENABLE_SVE
 #define CONFIG 1
 #include "helpersve.h"
-#ifdef DORENAME
 #include "renamesve.h"
 typedef Sleef_svfloat64_t_2 vdouble2;
 typedef Sleef_svfloat32_t_2 vfloat2;
-#endif /* DORENAME */
 #endif /* ENABLE_SVE */
+
+#ifdef ENABLE_SVENOFMA
+#define CONFIG 2
+#include "helpersve.h"
+#include "renamesvenofma.h"
+typedef Sleef_svfloat64_t_2 vdouble2;
+typedef Sleef_svfloat32_t_2 vfloat2;
+#endif
+
+#ifdef ENABLE_VSX
+#define CONFIG 1
+#include "helperpower_128.h"
+#include "renamevsx.h"
+typedef Sleef_vector_double_2 vdouble2;
+typedef Sleef_vector_float_2 vfloat2;
+#endif
+
+#ifdef ENABLE_VSXNOFMA
+#define CONFIG 2
+#include "helperpower_128.h"
+#include "renamevsxnofma.h"
+typedef Sleef_vector_double_2 vdouble2;
+typedef Sleef_vector_float_2 vfloat2;
+#endif
+
+#ifdef ENABLE_PUREC_SCALAR
+#define CONFIG 1
+#include "helperpurec_scalar.h"
+#include "renamepurec_scalar.h"
+typedef Sleef_double_2 vdouble2;
+typedef Sleef_float_2 vfloat2;
+#endif
+
+#ifdef ENABLE_PURECFMA_SCALAR
+#define CONFIG 2
+#include "helperpurec_scalar.h"
+#include "renamepurecfma_scalar.h"
+typedef Sleef_double_2 vdouble2;
+typedef Sleef_float_2 vfloat2;
+#endif
+
+//
 
 #define DENORMAL_DBL_MIN (4.9406564584124654418e-324)
 
@@ -237,8 +300,6 @@ int main(int argc,char **argv)
   
   srandom(time(NULL));
 
-  const double rangemax = 1e+14; // 2^(24*2-1)
-  
   for(cnt = 0;ecnt < 1000;cnt++) {
     int e = cnt % VECTLENDP;
     switch(cnt & 7) {
@@ -249,7 +310,7 @@ int main(int argc,char **argv)
       zo = rnd();
       break;
     case 1:
-      cd.d = rint((2 * (double)random() / RAND_MAX - 1) * 1e+10) * M_PI_4;
+      cd.d = rint(rnd_zo() * 1e+10) * M_PI_4;
       cd.i64 += (random() & 0xff) - 0x7f;
       d = cd.d;
       d2 = rnd();
@@ -257,10 +318,9 @@ int main(int argc,char **argv)
       zo = rnd();
       break;
     case 2:
-      cd.d = rint((2 * (double)random() / RAND_MAX - 1) * 32) * M_PI_4;
-      cd.i64 += (random() & 0xff) - 0x7f;
+      cd.d = rnd_fr() * M_PI_4;
+      cd.i64 += (random() & 0xf) - 0x7;
       d = cd.d;
-      for(int i=0;i<VECTLENDP;i++) vd = vset(vd, i, (2 * (double)random() / RAND_MAX - 1) * 32);
       d2 = rnd();
       d3 = rnd();
       zo = rnd();
@@ -337,7 +397,7 @@ int main(int argc,char **argv)
 	fflush(stdout); ecnt++;
       }
     }
-    
+
     sc = xsincos(vd);
     sc2 = xsincos_u1(vd);
     
@@ -347,28 +407,28 @@ int main(int argc,char **argv)
 
       double u0 = countULPdp(t = vget(xsin(vd), e), frx);
       
-      if (u0 != 0 && ((fabs(d) <= rangemax && u0 > 3.5) || fabs(t) > 1 || !isnumber(t))) {
+      if (u0 != 0 && (u0 > 3.5 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " sin arg=%.20g ulp=%.20g\n", d, u0);
 	fflush(stdout); ecnt++;
       }
 
       double u1 = countULPdp(t = vget(sc.x, e), frx);
       
-      if (u1 != 0 && ((fabs(d) <= rangemax && u1 > 3.5) || fabs(t) > 1 || !isnumber(t))) {
+      if (u1 != 0 && (u1 > 3.5 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " sincos sin arg=%.20g ulp=%.20g\n", d, u1);
 	fflush(stdout); ecnt++;
       }
 
       double u2 = countULPdp(t = vget(xsin_u1(vd), e), frx);
       
-      if (u2 != 0 && ((fabs(d) <= rangemax && u2 > 1) || fabs(t) > 1 || !isnumber(t))) {
+      if (u2 != 0 && (u2 > 1 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " sin_u1 arg=%.20g ulp=%.20g\n", d, u2);
 	fflush(stdout); ecnt++;
       }
 
       double u3 = countULPdp(t = vget(sc2.x, e), frx);
       
-      if (u3 != 0 && ((fabs(d) <= rangemax && u3 > 1) || fabs(t) > 1 || !isnumber(t))) {
+      if (u3 != 0 && (u3 > 1 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " sincos_u1 sin arg=%.20g ulp=%.20g\n", d, u3);
 	fflush(stdout); ecnt++;
       }
@@ -380,28 +440,28 @@ int main(int argc,char **argv)
 
       double u0 = countULPdp(t = vget(xcos(vd), e), frx);
       
-      if (u0 != 0 && ((fabs(d) <= rangemax && u0 > 3.5) || fabs(t) > 1 || !isnumber(t))) {
+      if (u0 != 0 && (u0 > 3.5 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " cos arg=%.20g ulp=%.20g\n", d, u0);
 	fflush(stdout); ecnt++;
       }
 
       double u1 = countULPdp(t = vget(sc.y, e), frx);
       
-      if (u1 != 0 && ((fabs(d) <= rangemax && u1 > 3.5) || fabs(t) > 1 || !isnumber(t))) {
+      if (u1 != 0 && (u1 > 3.5 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " sincos cos arg=%.20g ulp=%.20g\n", d, u1);
 	fflush(stdout); ecnt++;
       }
 
       double u2 = countULPdp(t = vget(xcos_u1(vd), e), frx);
       
-      if (u2 != 0 && ((fabs(d) <= rangemax && u2 > 1) || fabs(t) > 1 || !isnumber(t))) {
+      if (u2 != 0 && (u2 > 1 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " cos_u1 arg=%.20g ulp=%.20g\n", d, u2);
 	fflush(stdout); ecnt++;
       }
 
       double u3 = countULPdp(t = vget(sc2.y, e), frx);
       
-      if (u3 != 0 && ((fabs(d) <= rangemax && u3 > 1) || fabs(t) > 1 || !isnumber(t))) {
+      if (u3 != 0 && (u3 > 1 || fabs(t) > 1 || !isnumber(t))) {
 	printf(ISANAME " sincos_u1 cos arg=%.20g ulp=%.20g\n", d, u3);
 	fflush(stdout); ecnt++;
       }
@@ -413,19 +473,19 @@ int main(int argc,char **argv)
 
       double u0 = countULPdp(t = vget(xtan(vd), e), frx);
       
-      if (u0 != 0 && ((fabs(d) < 1e+7 && u0 > 3.5) || (fabs(d) <= rangemax && u0 > 5) || isnan(t))) {
+      if (u0 != 0 && (u0 > 3.5 || isnan(t))) {
 	printf(ISANAME " tan arg=%.20g ulp=%.20g\n", d, u0);
 	fflush(stdout); ecnt++;
       }
 
       double u1 = countULPdp(t = vget(xtan_u1(vd), e), frx);
       
-      if (u1 != 0 && ((fabs(d) <= rangemax && u1 > 1) || isnan(t))) {
+      if (u1 != 0 && (u1 > 1 || isnan(t))) {
 	printf(ISANAME " tan_u1 arg=%.20g ulp=%.20g\n", d, u1);
 	fflush(stdout); ecnt++;
       }
     }
-    
+
     {
       mpfr_set_d(frx, fabs(d), GMP_RNDN);
       mpfr_log(frx, frx, GMP_RNDN);
@@ -467,6 +527,13 @@ int main(int argc,char **argv)
 	printf(ISANAME " log2 arg=%.20g ulp=%.20g\n", d, u0);
 	fflush(stdout); ecnt++;
       }
+
+      double u1 = countULPdp(t = vget(xlog2_u35(vad), e), frx);
+      
+      if (u1 > 3.5) {
+	printf(ISANAME " log2_u35 arg=%.20g ulp=%.20g\n", d, u1);
+	fflush(stdout); ecnt++;
+      }
     }
 
     {
@@ -505,6 +572,13 @@ int main(int argc,char **argv)
 	printf(ISANAME " exp2 arg=%.20g ulp=%.20g\n", d, u0);
 	fflush(stdout); ecnt++;
       }
+
+      double u1 = countULPdp(t = vget(xexp2_u35(vd), e), frx);
+      
+      if (u1 > 3.5) {
+	printf(ISANAME " exp2_u35 arg=%.20g ulp=%.20g\n", d, u1);
+	fflush(stdout); ecnt++;
+      }
     }
     
     {
@@ -513,8 +587,15 @@ int main(int argc,char **argv)
 
       double u0 = countULPdp(t = vget(xexp10(vd), e), frx);
       
-      if (u0 > 1) {
+      if (u0 > 1.09) {
 	printf(ISANAME " exp10 arg=%.20g ulp=%.20g\n", d, u0);
+	fflush(stdout); ecnt++;
+      }
+
+      double u1 = countULPdp(t = vget(xexp10_u35(vd), e), frx);
+      
+      if (u1 > 3.5) {
+	printf(ISANAME " exp10_u35 arg=%.20g ulp=%.20g\n", d, u1);
 	fflush(stdout); ecnt++;
       }
     }
@@ -674,6 +755,47 @@ int main(int argc,char **argv)
       
       if (u0 > 1) {
 	printf(ISANAME " tanh arg=%.20g ulp=%.20g\n", d, u0);
+	fflush(stdout); ecnt++;
+      }
+    }
+
+    {
+      mpfr_set_d(frx, d, GMP_RNDN);
+      mpfr_sinh(frx, frx, GMP_RNDN);
+
+      double u0 = countULPdp(t = vget(xsinh_u35(vd), e), frx);
+      
+      if ((fabs(d) <= 709 && u0 > 3.5) ||
+	  (d >  709 && !(u0 <= 3.5 || (isinf(t) && t > 0))) ||
+	  (d < -709 && !(u0 <= 3.5 || (isinf(t) && t < 0)))) {
+	printf(ISANAME " sinh_u35 arg=%.20g ulp=%.20g\n", d, u0);
+	printf("correct = %.20g, test = %.20g\n", mpfr_get_d(frx, GMP_RNDN), t);
+	fflush(stdout); ecnt++;
+      }
+    }
+    
+    {
+      mpfr_set_d(frx, d, GMP_RNDN);
+      mpfr_cosh(frx, frx, GMP_RNDN);
+
+      double u0 = countULPdp(t = vget(xcosh_u35(vd), e), frx);
+      
+      if ((fabs(d) <= 709 && u0 > 3.5) || !(u0 <= 3.5 || (isinf(t) && t > 0))) {
+	printf(ISANAME " cosh_u35 arg=%.20g ulp=%.20g\n", d, u0);
+	printf("correct = %.20g, test = %.20g\n", mpfr_get_d(frx, GMP_RNDN), t);
+	fflush(stdout); ecnt++;
+      }
+    }
+    
+    {
+      mpfr_set_d(frx, d, GMP_RNDN);
+      mpfr_tanh(frx, frx, GMP_RNDN);
+
+      double u0 = countULPdp(t = vget(xtanh_u35(vd), e), frx);
+      
+      if (u0 > 3.5) {
+	printf(ISANAME " tanh_u35 arg=%.20g ulp=%.20g\n", d, u0);
+	printf("correct = %.20g, test = %.20g\n", mpfr_get_d(frx, GMP_RNDN), t);
 	fflush(stdout); ecnt++;
       }
     }
@@ -871,6 +993,7 @@ int main(int argc,char **argv)
       }
     }
 
+#ifndef DETERMINISTIC
     {
       mpfr_set_d(frx, d, GMP_RNDN);
       mpfr_sqrt(frx, frx, GMP_RNDN);
@@ -909,6 +1032,7 @@ int main(int argc,char **argv)
 	fflush(stdout); ecnt++;
       }
     }
+#endif // #ifndef DETERMINISTIC
 
     {
       mpfr_set_d(frx, d, GMP_RNDN);

@@ -1,6 +1,6 @@
 #include <ATen/cuda/detail/CUDAHooks.h>
 
-#include <ATen/CUDAGenerator.h>
+#include <ATen/CUDAGeneratorImpl.h>
 #include <ATen/Context.h>
 #include <ATen/DeviceGuard.h>
 #include <ATen/DynamicLibrary.h>
@@ -57,7 +57,7 @@ std::unique_ptr<THCState, void (*)(THCState*)> CUDAHooks::initCUDA() const {
       });
 }
 
-Generator* CUDAHooks::getDefaultCUDAGenerator(DeviceIndex device_index) const {
+const Generator& CUDAHooks::getDefaultCUDAGenerator(DeviceIndex device_index) const {
   return at::cuda::detail::getDefaultCUDAGenerator(device_index);
 }
 
@@ -179,6 +179,10 @@ c10::optional<int64_t> CUDAHooks::getDevceIndexWithPrimaryContext() const {
 
 Allocator* CUDAHooks::getPinnedMemoryAllocator() const {
   return at::cuda::getPinnedMemoryAllocator();
+}
+
+Allocator* CUDAHooks::getCUDADeviceAllocator() const {
+  return at::cuda::getCUDADeviceAllocator();
 }
 
 bool CUDAHooks::compiledWithCuDNN() const {

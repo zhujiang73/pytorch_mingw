@@ -1,13 +1,16 @@
 #pragma once
 
+#include <c10/macros/Macros.h>
+#include <c10/util/Registry.h>
+#include "caffe2/core/operator.h"
+
 // TODO Also register c10 operators on mobile
-#if !defined(CAFFE2_IS_XPLAT_BUILD)
+#if !defined(CAFFE2_IS_XPLAT_BUILD) && !defined(C10_MOBILE)
 #include <ATen/core/dispatch/Dispatcher.h>
 #include <ATen/core/ivalue.h>
 #include <c10/util/ArrayRef.h>
 #include <c10/util/C++17.h>
 #include <c10/util/Metaprogramming.h>
-#include "caffe2/core/operator.h"
 #include "caffe2/core/export_caffe2_op_to_c10.h"
 
 namespace caffe2 {
@@ -126,7 +129,7 @@ class C10OperatorWrapper final : public Operator<Context> {
 
   void callKernel_() {
     AT_ASSERT(stack_.size() == op_.schema().arguments().size());
-    c10::Dispatcher::singleton().callBoxed(op_, &stack_);
+    op_.callBoxed(&stack_);
   }
 
   void popOutputs_() {
@@ -219,7 +222,7 @@ createC10OperatorWrapper(const c10::OperatorName& op_name) {
         ".",
         op_name.overload_name,
         " with caffe2, but didn't find the c10 operator.");
-    return c10::guts::make_unique<C10OperatorWrapper<Context>>(
+    return std::make_unique<C10OperatorWrapper<Context>>(
         *op_handle, op_def, ws);
   };
 }

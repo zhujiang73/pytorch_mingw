@@ -123,7 +123,7 @@ static PyObject* THPDTypeInfo_bits(THPDTypeInfo* self, void*) {
 }
 
 static PyObject* THPFInfo_eps(THPFInfo* self, void*) {
-  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(
+  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(at::kHalf,
       self->type, "epsilon", [] {
         return PyFloat_FromDouble(
             std::numeric_limits<
@@ -132,14 +132,14 @@ static PyObject* THPFInfo_eps(THPFInfo* self, void*) {
 }
 
 static PyObject* THPFInfo_max(THPFInfo* self, void*) {
-  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(self->type, "max", [] {
+  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(at::kHalf, self->type, "max", [] {
     return PyFloat_FromDouble(
         std::numeric_limits<at::scalar_value_type<scalar_t>::type>::max());
   });
 }
 
 static PyObject* THPFInfo_min(THPFInfo* self, void*) {
-  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(self->type, "min", [] {
+  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(at::kHalf, self->type, "min", [] {
     return PyFloat_FromDouble(
         std::numeric_limits<at::scalar_value_type<scalar_t>::type>::lowest());
   });
@@ -170,7 +170,7 @@ static PyObject* THPIInfo_min(THPFInfo* self, void*) {
 }
 
 static PyObject* THPFInfo_tiny(THPFInfo* self, void*) {
-  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES(self->type, "min", [] {
+  return AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(at::kHalf, self->type, "min", [] {
     return PyFloat_FromDouble(
         std::numeric_limits<at::scalar_value_type<scalar_t>::type>::min());
   });
@@ -192,39 +192,39 @@ PyTypeObject THPFInfoType = {
     PyVarObject_HEAD_INIT(nullptr, 0) "torch.finfo", /* tp_name */
     sizeof(THPFInfo), /* tp_basicsize */
     0, /* tp_itemsize */
-    0, /* tp_dealloc */
-    0, /* tp_print */
-    0, /* tp_getattr */
-    0, /* tp_setattr */
-    0, /* tp_reserved */
+    nullptr, /* tp_dealloc */
+    0, /* tp_vectorcall_offset */
+    nullptr, /* tp_getattr */
+    nullptr, /* tp_setattr */
+    nullptr, /* tp_reserved */
     (reprfunc)THPFInfo_str, /* tp_repr */
-    0, /* tp_as_number */
-    0, /* tp_as_sequence */
-    0, /* tp_as_mapping */
-    0, /* tp_hash  */
-    0, /* tp_call */
+    nullptr, /* tp_as_number */
+    nullptr, /* tp_as_sequence */
+    nullptr, /* tp_as_mapping */
+    nullptr, /* tp_hash  */
+    nullptr, /* tp_call */
     (reprfunc)THPFInfo_str, /* tp_str */
-    0, /* tp_getattro */
-    0, /* tp_setattro */
-    0, /* tp_as_buffer */
+    nullptr, /* tp_getattro */
+    nullptr, /* tp_setattro */
+    nullptr, /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT, /* tp_flags */
-    0, /* tp_doc */
-    0, /* tp_traverse */
-    0, /* tp_clear */
+    nullptr, /* tp_doc */
+    nullptr, /* tp_traverse */
+    nullptr, /* tp_clear */
     (richcmpfunc)THPDTypeInfo_compare, /* tp_richcompare */
     0, /* tp_weaklistoffset */
-    0, /* tp_iter */
-    0, /* tp_iternext */
+    nullptr, /* tp_iter */
+    nullptr, /* tp_iternext */
     THPFInfo_methods, /* tp_methods */
-    0, /* tp_members */
+    nullptr, /* tp_members */
     THPFInfo_properties, /* tp_getset */
-    0, /* tp_base */
-    0, /* tp_dict */
-    0, /* tp_descr_get */
-    0, /* tp_descr_set */
+    nullptr, /* tp_base */
+    nullptr, /* tp_dict */
+    nullptr, /* tp_descr_get */
+    nullptr, /* tp_descr_set */
     0, /* tp_dictoffset */
-    0, /* tp_init */
-    0, /* tp_alloc */
+    nullptr, /* tp_init */
+    nullptr, /* tp_alloc */
     THPFInfo_pynew, /* tp_new */
 };
 
@@ -242,39 +242,39 @@ PyTypeObject THPIInfoType = {
     PyVarObject_HEAD_INIT(nullptr, 0) "torch.iinfo", /* tp_name */
     sizeof(THPIInfo), /* tp_basicsize */
     0, /* tp_itemsize */
-    0, /* tp_dealloc */
-    0, /* tp_print */
-    0, /* tp_getattr */
-    0, /* tp_setattr */
-    0, /* tp_reserved */
+    nullptr, /* tp_dealloc */
+    0, /* tp_vectorcall_offset */
+    nullptr, /* tp_getattr */
+    nullptr, /* tp_setattr */
+    nullptr, /* tp_reserved */
     (reprfunc)THPIInfo_str, /* tp_repr */
-    0, /* tp_as_number */
-    0, /* tp_as_sequence */
-    0, /* tp_as_mapping */
-    0, /* tp_hash  */
-    0, /* tp_call */
+    nullptr, /* tp_as_number */
+    nullptr, /* tp_as_sequence */
+    nullptr, /* tp_as_mapping */
+    nullptr, /* tp_hash  */
+    nullptr, /* tp_call */
     (reprfunc)THPIInfo_str, /* tp_str */
-    0, /* tp_getattro */
-    0, /* tp_setattro */
-    0, /* tp_as_buffer */
+    nullptr, /* tp_getattro */
+    nullptr, /* tp_setattro */
+    nullptr, /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT, /* tp_flags */
-    0, /* tp_doc */
-    0, /* tp_traverse */
-    0, /* tp_clear */
+    nullptr, /* tp_doc */
+    nullptr, /* tp_traverse */
+    nullptr, /* tp_clear */
     (richcmpfunc)THPDTypeInfo_compare, /* tp_richcompare */
     0, /* tp_weaklistoffset */
-    0, /* tp_iter */
-    0, /* tp_iternext */
+    nullptr, /* tp_iter */
+    nullptr, /* tp_iternext */
     THPIInfo_methods, /* tp_methods */
-    0, /* tp_members */
+    nullptr, /* tp_members */
     THPIInfo_properties, /* tp_getset */
-    0, /* tp_base */
-    0, /* tp_dict */
-    0, /* tp_descr_get */
-    0, /* tp_descr_set */
+    nullptr, /* tp_base */
+    nullptr, /* tp_dict */
+    nullptr, /* tp_descr_get */
+    nullptr, /* tp_descr_set */
     0, /* tp_dictoffset */
-    0, /* tp_init */
-    0, /* tp_alloc */
+    nullptr, /* tp_init */
+    nullptr, /* tp_alloc */
     THPIInfo_pynew, /* tp_new */
 };
 

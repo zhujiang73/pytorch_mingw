@@ -1,9 +1,9 @@
 #include "torch/csrc/autograd/VariableTypeUtils.h"
 
 #include <ATen/TypeDefault.h>
-#include <ATen/core/op_registration/op_registration.h>
+#include <torch/library.h>
 
-// @generated from tools/autograd\templates/VariableType.cpp
+// @generated from tools\autograd\templates/VariableType.cpp
 
 // NOTE [Sharded File]: on this file's split-into-shards state
 //
@@ -31,24 +31,22 @@ using namespace torch::autograd::generated;
 namespace torch { namespace autograd {
 
 namespace VariableType {
-namespace {
-Tensor & __ilshift__(Tensor & self, Scalar other) {
-  RECORD_FUNCTION("__ilshift__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__ilshift__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+namespace{
+  void reset_grad_accumulator(Variable & self) {
+    AutogradMeta* meta = torch::autograd::impl::get_autograd_meta(self);
+    if (meta != nullptr) {
+      meta->grad_accumulator_.reset();
+    }
   }
+}
+
+// Comment the anonymous namespace so that the generated functions
+// can be accessed from outside of the files (register_mobile_autograd.cpp).
+// Later when we merge the mobile op registration the anonymous namespace
+// will be restored.
+// namespace {
+Tensor & __ilshift___Scalar(Tensor & self, Scalar other) {
+  auto& self_ = unpack(self, "self", 0);
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -64,30 +62,11 @@ Tensor & __ilshift__(Tensor & self, Scalar other) {
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & __ilshift__(Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("__ilshift__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
+Tensor & __ilshift___Tensor(Tensor & self, const Tensor & other) {
   auto& self_ = unpack(self, "self", 0);
   auto& other_ = unpack(other, "other", 1);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__ilshift__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -110,197 +89,26 @@ Tensor & __ilshift__(Tensor & self, const Tensor & other) {
     AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
   if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & __ior__(Tensor & self, Scalar other) {
-  RECORD_FUNCTION("__ior__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__ior__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  #endif
-  {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    self_.__ior__(other);
-  }
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
+Tensor & __ior___Scalar(Tensor & self, Scalar other) {
+  TypeDefault::__ior___Scalar(self, other);
   return self;
 }
-Tensor & __ior__(Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("__ior__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  auto& other_ = unpack(other, "other", 1);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__ior__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  c10::optional<Storage> other__storage_saved =
-    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> other__impl_saved;
-  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
-  #endif
-  {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    self_.__ior__(other_);
-  }
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  if (other__storage_saved.has_value())
-    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
-  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
+Tensor & __ior___Tensor(Tensor & self, const Tensor & other) {
+  TypeDefault::__ior___Tensor(self, other);
   return self;
 }
-Tensor & __ixor__(Tensor & self, Scalar other) {
-  RECORD_FUNCTION("__ixor__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__ixor__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  #endif
-  {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    self_.__ixor__(other);
-  }
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
+Tensor & __ixor___Scalar(Tensor & self, Scalar other) {
+  TypeDefault::__ixor___Scalar(self, other);
   return self;
 }
-Tensor & __ixor__(Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("__ixor__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  auto& other_ = unpack(other, "other", 1);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__ixor__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  c10::optional<Storage> other__storage_saved =
-    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> other__impl_saved;
-  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
-  #endif
-  {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    self_.__ixor__(other_);
-  }
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  if (other__storage_saved.has_value())
-    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
-  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
+Tensor & __ixor___Tensor(Tensor & self, const Tensor & other) {
+  TypeDefault::__ixor___Tensor(self, other);
   return self;
 }
-Tensor __lshift__(const Tensor & self, Scalar other) {
-  RECORD_FUNCTION("__lshift__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
+Tensor __lshift___Scalar(const Tensor & self, Scalar other) {
   auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__lshift__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -311,36 +119,17 @@ Tensor __lshift__(const Tensor & self, Scalar other) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::__lshift__(self_, other);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor __lshift__(const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("__lshift__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
+Tensor __lshift___Tensor(const Tensor & self, const Tensor & other) {
   auto& self_ = unpack(self, "self", 0);
   auto& other_ = unpack(other, "other", 1);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__lshift__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -355,7 +144,7 @@ Tensor __lshift__(const Tensor & self, const Tensor & other) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::__lshift__(self_, other_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -364,186 +153,25 @@ Tensor __lshift__(const Tensor & self, const Tensor & other) {
     AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
   if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor __or__(const Tensor & self, Scalar other) {
-  RECORD_FUNCTION("__or__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__or__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  #endif
-  auto tmp = ([&]() {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::__or__(self_, other);
-  })();
-  auto result = as_variable(std::move(tmp));
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor __or___Scalar(const Tensor & self, Scalar other) {
+  auto result = TypeDefault::__or___Scalar(self, other);
   return result;
 }
-Tensor __or__(const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("__or__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  auto& other_ = unpack(other, "other", 1);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__or__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  c10::optional<Storage> other__storage_saved =
-    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> other__impl_saved;
-  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
-  #endif
-  auto tmp = ([&]() {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::__or__(self_, other_);
-  })();
-  auto result = as_variable(std::move(tmp));
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  if (other__storage_saved.has_value())
-    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
-  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor __or___Tensor(const Tensor & self, const Tensor & other) {
+  auto result = TypeDefault::__or___Tensor(self, other);
   return result;
 }
-Tensor __xor__(const Tensor & self, Scalar other) {
-  RECORD_FUNCTION("__xor__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__xor__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  #endif
-  auto tmp = ([&]() {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::__xor__(self_, other);
-  })();
-  auto result = as_variable(std::move(tmp));
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor __xor___Scalar(const Tensor & self, Scalar other) {
+  auto result = TypeDefault::__xor___Scalar(self, other);
   return result;
 }
-Tensor __xor__(const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("__xor__", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  auto& self_ = unpack(self, "self", 0);
-  auto& other_ = unpack(other, "other", 1);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::__xor__");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  c10::optional<Storage> other__storage_saved =
-    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> other__impl_saved;
-  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
-  #endif
-  auto tmp = ([&]() {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::__xor__(self_, other_);
-  })();
-  auto result = as_variable(std::move(tmp));
-  #ifndef NDEBUG
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  if (other__storage_saved.has_value())
-    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
-  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
-  #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor __xor___Tensor(const Tensor & self, const Tensor & other) {
+  auto result = TypeDefault::__xor___Tensor(self, other);
   return result;
 }
-Tensor & _addr_out(Tensor & out, const Tensor & self, const Tensor & vec1, const Tensor & vec2, Scalar beta, Scalar alpha) {
-  RECORD_FUNCTION("_addr_out", std::vector<c10::IValue>({out, self, vec1, vec2, beta, alpha}), Node::peek_at_next_sequence_nr());
+Tensor & _addr_out_out(Tensor & out, const Tensor & self, const Tensor & vec1, const Tensor & vec2, Scalar beta, Scalar alpha) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& vec1_ = unpack(vec1, "vec1", 2);
@@ -554,28 +182,6 @@ Tensor & _addr_out(Tensor & out, const Tensor & self, const Tensor & vec1, const
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("_addr");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_addr");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "vec1", vec1);
-    jit::tracer::addInputs(node, "vec2", vec2);
-    jit::tracer::addInputs(node, "beta", beta);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("_addr_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -617,90 +223,67 @@ Tensor & _addr_out(Tensor & out, const Tensor & self, const Tensor & vec1, const
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor & _baddbmm_mkl_(Tensor & self, const Tensor & batch1, const Tensor & batch2, Scalar beta, Scalar alpha) {
-  RECORD_FUNCTION("_baddbmm_mkl_", std::vector<c10::IValue>({self, batch1, batch2, beta, alpha}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::_baddbmm_mkl");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::_baddbmm_mkl_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "batch1", batch1);
-    jit::tracer::addInputs(node, "batch2", batch2);
-    jit::tracer::addInputs(node, "beta", beta);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("_baddbmm_mkl_", self);
-    jit::tracer::setTracingState(nullptr);
-  }
   TypeDefault::_baddbmm_mkl_(self, batch1, batch2, beta, alpha);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
+Tensor & _bmm_out_out(Tensor & out, const Tensor & self, const Tensor & mat2, bool deterministic) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  auto& mat2_ = unpack(mat2, "mat2", 2);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self, mat2 )) {
+    throw_error_out_requires_grad("_bmm");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("_bmm");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  c10::optional<Storage> mat2__storage_saved =
+    mat2_.has_storage() ? c10::optional<Storage>(mat2_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> mat2__impl_saved;
+  if (mat2_.defined()) mat2__impl_saved = mat2_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::_bmm_out(out_, self_, mat2_, deterministic);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  if (mat2__storage_saved.has_value())
+    AT_ASSERT(mat2__storage_saved.value().is_alias_of(mat2_.storage()));
+  if (mat2__impl_saved) AT_ASSERT(mat2__impl_saved == mat2_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
+  }
+  return out;
+}
 Tensor _cast_Double(const Tensor & self, bool non_blocking) {
-  RECORD_FUNCTION("_cast_Double", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_cast_Double");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "non_blocking", non_blocking);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::_cast_Double(self, non_blocking);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor _cast_Short(const Tensor & self, bool non_blocking) {
-  RECORD_FUNCTION("_cast_Short", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_cast_Short");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "non_blocking", non_blocking);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::_cast_Short(self, non_blocking);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _cudnn_rnn(const Tensor & input, TensorList weight, int64_t weight_stride0, const Tensor & weight_buf, const Tensor & hx, const Tensor & cx, int64_t mode, int64_t hidden_size, int64_t num_layers, bool batch_first, double dropout, bool train, bool bidirectional, IntArrayRef batch_sizes, const Tensor & dropout_state) {
-  RECORD_FUNCTION("_cudnn_rnn", std::vector<c10::IValue>({input, weight_buf, hx, cx, dropout_state}), Node::peek_at_next_sequence_nr());
   auto& input_ = unpack(input, "input", 0);
   auto weight_ = unpack(weight, "weight", 1);
   auto weight_buf_ = unpack_opt(weight_buf, "weight_buf", 3);
@@ -733,40 +316,13 @@ std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _cudnn_rnn(const Tensor & input, 
   Tensor result2;
   Tensor result3;
   Tensor result4;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_cudnn_rnn");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "weight_stride0", weight_stride0);
-    jit::tracer::addInputs(node, "weight_buf", weight_buf);
-    jit::tracer::addInputs(node, "hx", hx);
-    jit::tracer::addInputs(node, "cx", cx);
-    jit::tracer::addInputs(node, "mode", mode);
-    jit::tracer::addInputs(node, "hidden_size", hidden_size);
-    jit::tracer::addInputs(node, "num_layers", num_layers);
-    jit::tracer::addInputs(node, "batch_first", batch_first);
-    jit::tracer::addInputs(node, "dropout", dropout);
-    jit::tracer::addInputs(node, "train", train);
-    jit::tracer::addInputs(node, "bidirectional", bidirectional);
-    jit::tracer::addInputs(node, "batch_sizes", batch_sizes);
-    jit::tracer::addInputs(node, "dropout_state", dropout_state);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> input__storage_saved =
     input_.has_storage() ? c10::optional<Storage>(input_.storage()) : c10::nullopt;
   c10::intrusive_ptr<TensorImpl> input__impl_saved;
   if (input_.defined()) input__impl_saved = input_.getIntrusivePtr();
   std::vector<c10::optional<Storage>> weight__storage_saved(weight_.size());
-  for (Tensor tensor : weight_)
+  for (const Tensor& tensor : weight_)
     weight__storage_saved.push_back(
       tensor.has_storage() ? c10::optional<Storage>(tensor.storage()) : c10::nullopt);
   std::vector<c10::intrusive_ptr<TensorImpl>> weight__impl_saved(weight_.size());
@@ -793,7 +349,7 @@ std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _cudnn_rnn(const Tensor & input, 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_cudnn_rnn(input_, weight_, weight_stride0, weight_buf_, hx_, cx_, mode, hidden_size, num_layers, batch_first, dropout, train, bidirectional, batch_sizes, dropout_state_);
   })();
-  std::tie(result0, result1, result2, result3, result4) = as_variable(std::move(tmp));
+  std::tie(result0, result1, result2, result3, result4) = std::move(tmp);
   #ifndef NDEBUG
   if (input__storage_saved.has_value())
     AT_ASSERT(input__storage_saved.value().is_alias_of(input_.storage()));
@@ -822,14 +378,6 @@ std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _cudnn_rnn(const Tensor & input, 
   if (grad_fn) {
       set_history(flatten_tensor_args( result0, result1, result2 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-    jit::tracer::addOutput(node, result3);
-    jit::tracer::addOutput(node, result4);
-  }
   if (grad_fn) {
     grad_fn->result0_ = SavedVariable(result0, true);
     grad_fn->result3_ = SavedVariable(result3, true);
@@ -837,8 +385,7 @@ std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _cudnn_rnn(const Tensor & input, 
   }
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2), std::move(result3), std::move(result4));
 }
-Tensor & _cumsum_out(Tensor & out, const Tensor & self, int64_t dim) {
-  RECORD_FUNCTION("_cumsum_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & _cumsum_out_out(Tensor & out, const Tensor & self, int64_t dim) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -847,25 +394,6 @@ Tensor & _cumsum_out(Tensor & out, const Tensor & self, int64_t dim) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("_cumsum");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_cumsum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("_cumsum_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -893,14 +421,9 @@ Tensor & _cumsum_out(Tensor & out, const Tensor & self, int64_t dim) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 int64_t _dimV(const Tensor & self) {
-  RECORD_FUNCTION("_dimV", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -920,8 +443,7 @@ int64_t _dimV(const Tensor & self) {
   #endif
   return result;
 }
-std::tuple<Tensor,Tensor,Tensor,Tensor> _embedding_bag(const Tensor & weight, const Tensor & indices, const Tensor & offsets, bool scale_grad_by_freq, int64_t mode, bool sparse, const Tensor & per_sample_weights) {
-  RECORD_FUNCTION("_embedding_bag", std::vector<c10::IValue>({weight, indices, offsets, per_sample_weights}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor,Tensor,Tensor,Tensor> _embedding_bag(const Tensor & weight, const Tensor & indices, const Tensor & offsets, bool scale_grad_by_freq, int64_t mode, bool sparse, const Tensor & per_sample_weights, bool include_last_offset) {
   auto& weight_ = unpack(weight, "weight", 0);
   auto& indices_ = unpack(indices, "indices", 1);
   auto& offsets_ = unpack(offsets, "offsets", 2);
@@ -947,25 +469,6 @@ std::tuple<Tensor,Tensor,Tensor,Tensor> _embedding_bag(const Tensor & weight, co
   Tensor result1;
   Tensor result2;
   Tensor result3;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_embedding_bag");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "offsets", offsets);
-    jit::tracer::addInputs(node, "scale_grad_by_freq", scale_grad_by_freq);
-    jit::tracer::addInputs(node, "mode", mode);
-    jit::tracer::addInputs(node, "sparse", sparse);
-    jit::tracer::addInputs(node, "per_sample_weights", per_sample_weights);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> weight__storage_saved =
     weight_.has_storage() ? c10::optional<Storage>(weight_.storage()) : c10::nullopt;
@@ -986,9 +489,9 @@ std::tuple<Tensor,Tensor,Tensor,Tensor> _embedding_bag(const Tensor & weight, co
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::_embedding_bag(weight_, indices_, offsets_, scale_grad_by_freq, mode, sparse, per_sample_weights_);
+    return at::_embedding_bag(weight_, indices_, offsets_, scale_grad_by_freq, mode, sparse, per_sample_weights_, include_last_offset);
   })();
-  std::tie(result0, result1, result2, result3) = as_variable(std::move(tmp));
+  std::tie(result0, result1, result2, result3) = std::move(tmp);
   #ifndef NDEBUG
   if (weight__storage_saved.has_value())
     AT_ASSERT(weight__storage_saved.value().is_alias_of(weight_.storage()));
@@ -1006,13 +509,6 @@ std::tuple<Tensor,Tensor,Tensor,Tensor> _embedding_bag(const Tensor & weight, co
   if (grad_fn) {
       set_history(flatten_tensor_args( result0 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-    jit::tracer::addOutput(node, result3);
-  }
   if (grad_fn) {
     grad_fn->result1_ = SavedVariable(result1, true);
     grad_fn->result2_ = SavedVariable(result2, true);
@@ -1021,62 +517,14 @@ std::tuple<Tensor,Tensor,Tensor,Tensor> _embedding_bag(const Tensor & weight, co
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2), std::move(result3));
 }
 Tensor _embedding_bag_sparse_backward(const Tensor & grad, const Tensor & indices, const Tensor & offsets, const Tensor & offset2bag, const Tensor & bag_size, int64_t num_weights, bool scale_grad_by_freq, int64_t mode, const Tensor & per_sample_weights) {
-  RECORD_FUNCTION("_embedding_bag_sparse_backward", std::vector<c10::IValue>({grad, indices, offsets, offset2bag, bag_size, per_sample_weights}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_embedding_bag_sparse_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad", grad);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "offsets", offsets);
-    jit::tracer::addInputs(node, "offset2bag", offset2bag);
-    jit::tracer::addInputs(node, "bag_size", bag_size);
-    jit::tracer::addInputs(node, "num_weights", num_weights);
-    jit::tracer::addInputs(node, "scale_grad_by_freq", scale_grad_by_freq);
-    jit::tracer::addInputs(node, "mode", mode);
-    jit::tracer::addInputs(node, "per_sample_weights", per_sample_weights);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::_embedding_bag_sparse_backward(grad, indices, offsets, offset2bag, bag_size, num_weights, scale_grad_by_freq, mode, per_sample_weights);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor _gather_sparse_backward(const Tensor & self, int64_t dim, const Tensor & index, const Tensor & grad) {
-  RECORD_FUNCTION("_gather_sparse_backward", std::vector<c10::IValue>({self, index, grad}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_gather_sparse_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    jit::tracer::addInputs(node, "grad", grad);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::_gather_sparse_backward(self, dim, index, grad);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & _index_put_impl_(Tensor & self, TensorList indices, const Tensor & values, bool accumulate, bool unsafe) {
-  RECORD_FUNCTION("_index_put_impl_", std::vector<c10::IValue>({self, values}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto indices_ = unpack(indices, "indices", 1);
   auto& values_ = unpack(values, "values", 2);
@@ -1090,34 +538,13 @@ Tensor & _index_put_impl_(Tensor & self, TensorList indices, const Tensor & valu
     grad_fn->values_info = values;
     grad_fn->accumulate = accumulate;
   }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::_index_put_impl");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::_index_put_impl_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "indices", indices, true);
-    jit::tracer::addInputs(node, "values", values);
-    jit::tracer::addInputs(node, "accumulate", accumulate);
-    jit::tracer::addInputs(node, "unsafe", unsafe);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("_index_put_impl_", self);
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
   c10::intrusive_ptr<TensorImpl> self__impl_saved;
   if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
   std::vector<c10::optional<Storage>> indices__storage_saved(indices_.size());
-  for (Tensor tensor : indices_)
+  for (const Tensor& tensor : indices_)
     indices__storage_saved.push_back(
       tensor.has_storage() ? c10::optional<Storage>(tensor.storage()) : c10::nullopt);
   std::vector<c10::intrusive_ptr<TensorImpl>> indices__impl_saved(indices_.size());
@@ -1152,28 +579,10 @@ Tensor & _index_put_impl_(Tensor & self, TensorList indices, const Tensor & valu
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor _indices(const Tensor & self) {
-  RECORD_FUNCTION("_indices", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_indices");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -1184,20 +593,15 @@ Tensor _indices(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return self_._indices();
   })();
-  auto result = as_view(self, tmp, false);
+  auto result = as_view(self, tmp, /* is_differentiable */ false);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Scalar _local_scalar_dense(const Tensor & self) {
-  RECORD_FUNCTION("_local_scalar_dense", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -1217,48 +621,21 @@ Scalar _local_scalar_dense(const Tensor & self) {
   #endif
   return result;
 }
-std::tuple<Tensor &,Tensor &> _max_out(Tensor & max, Tensor & max_indices, const Tensor & self, int64_t dim, bool keepdim) {
-  RECORD_FUNCTION("_max_out", std::vector<c10::IValue>({max, max_indices, self}), Node::peek_at_next_sequence_nr());
-  auto& max_ = unpack(max, "max", 0);
-  auto& max_indices_ = unpack(max_indices, "max_indices", 1);
-  auto& self_ = unpack(self, "self", 2);
+Tensor & _logcumsumexp_out_out(Tensor & out, const Tensor & self, int64_t dim) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
   if (compute_requires_grad( self )) {
-    throw_error_out_requires_grad("_max");
+    throw_error_out_requires_grad("_logcumsumexp");
   }
-  if (compute_requires_grad( max, max_indices )) {
-    throw_error_out_requires_grad("_max");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_max");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "max_indices", max_indices);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "max", max);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("_max_out", max);
-    jit::tracer::setTracingState(nullptr);
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("_logcumsumexp");
   }
   #ifndef NDEBUG
-  c10::optional<Storage> max__storage_saved =
-    max_.has_storage() ? c10::optional<Storage>(max_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> max__impl_saved;
-  if (max_.defined()) max__impl_saved = max_.getIntrusivePtr();
-  c10::optional<Storage> max_indices__storage_saved =
-    max_indices_.has_storage() ? c10::optional<Storage>(max_indices_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> max_indices__impl_saved;
-  if (max_indices_.defined()) max_indices__impl_saved = max_indices_.getIntrusivePtr();
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
   c10::intrusive_ptr<TensorImpl> self__impl_saved;
@@ -1266,53 +643,28 @@ std::tuple<Tensor &,Tensor &> _max_out(Tensor & max, Tensor & max_indices, const
   #endif
   {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    at::_max_out(max_, max_indices_, self_, dim, keepdim);
+    at::_logcumsumexp_out(out_, self_, dim);
   }
   #ifndef NDEBUG
-  if (max__storage_saved.has_value())
-    AT_ASSERT(max__storage_saved.value().is_alias_of(max_.storage()));
-  if (max__impl_saved) AT_ASSERT(max__impl_saved == max_.getIntrusivePtr());
-  if (max_indices__storage_saved.has_value())
-    AT_ASSERT(max_indices__storage_saved.value().is_alias_of(max_indices_.storage()));
-  if (max_indices__impl_saved) AT_ASSERT(max_indices__impl_saved == max_indices_.getIntrusivePtr());
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  increment_version(max);
-  increment_version(max_indices);
+  increment_version(out);
   if (grad_fn) {
-      rebase_history(flatten_tensor_args( max, max_indices ), grad_fn);
+      rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, max);
-    jit::tracer::addOutput(node, max_indices);
-  }
-  return std::forward_as_tuple(max, max_indices);
+  return out;
 }
 Tensor _mkldnn_transpose(const Tensor & self, int64_t dim0, int64_t dim1) {
-  RECORD_FUNCTION("_mkldnn_transpose", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("_mkldnn_transpose"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_mkldnn_transpose");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim0", dim0);
-    jit::tracer::addInputs(node, "dim1", dim1);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -1324,7 +676,7 @@ Tensor _mkldnn_transpose(const Tensor & self, int64_t dim0, int64_t dim1) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_mkldnn_transpose(self_, dim0, dim1);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -1333,39 +685,15 @@ Tensor _mkldnn_transpose(const Tensor & self, int64_t dim0, int64_t dim1) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & _mkldnn_transpose_(Tensor & self, int64_t dim0, int64_t dim1) {
-  RECORD_FUNCTION("_mkldnn_transpose_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("_mkldnn_transpose_"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::_mkldnn_transpose");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::_mkldnn_transpose_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim0", dim0);
-    jit::tracer::addInputs(node, "dim1", dim1);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("_mkldnn_transpose_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -1386,14 +714,9 @@ Tensor & _mkldnn_transpose_(Tensor & self, int64_t dim0, int64_t dim1) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-std::tuple<Tensor &,Tensor &> _mode_out(Tensor & values, Tensor & indices, const Tensor & self, int64_t dim, bool keepdim) {
-  RECORD_FUNCTION("_mode_out", std::vector<c10::IValue>({values, indices, self}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor &,Tensor &> _mode_out_values(Tensor & values, Tensor & indices, const Tensor & self, int64_t dim, bool keepdim) {
   auto& values_ = unpack(values, "values", 0);
   auto& indices_ = unpack(indices, "indices", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -1403,27 +726,6 @@ std::tuple<Tensor &,Tensor &> _mode_out(Tensor & values, Tensor & indices, const
   }
   if (compute_requires_grad( values, indices )) {
     throw_error_out_requires_grad("_mode");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_mode");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "values", values);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("_mode_out", values);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> values__storage_saved =
@@ -1459,40 +761,13 @@ std::tuple<Tensor &,Tensor &> _mode_out(Tensor & values, Tensor & indices, const
   if (grad_fn) {
       rebase_history(flatten_tensor_args( values, indices ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, values);
-    jit::tracer::addOutput(node, indices);
-  }
   return std::forward_as_tuple(values, indices);
 }
 Tensor _nnpack_spatial_convolution_backward_weight(const Tensor & input, IntArrayRef weightsize, const Tensor & grad_output, IntArrayRef padding) {
-  RECORD_FUNCTION("_nnpack_spatial_convolution_backward_weight", std::vector<c10::IValue>({input, grad_output}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_nnpack_spatial_convolution_backward_weight");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "weightsize", weightsize);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "padding", padding);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::_nnpack_spatial_convolution_backward_weight(input, weightsize, grad_output, padding);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor _pdist_forward(const Tensor & self, double p) {
-  RECORD_FUNCTION("_pdist_forward", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<PdistBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -1500,20 +775,6 @@ Tensor _pdist_forward(const Tensor & self, double p) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->p = p;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_pdist_forward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "p", p);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -1525,7 +786,7 @@ Tensor _pdist_forward(const Tensor & self, double p) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_pdist_forward(self_, p);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -1534,17 +795,12 @@ Tensor _pdist_forward(const Tensor & self, double p) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   if (grad_fn) {
     grad_fn->result_ = SavedVariable(result, true);
   }
   return result;
 }
 Tensor _softmax(const Tensor & self, int64_t dim, bool half_to_float) {
-  RECORD_FUNCTION("_softmax", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<SoftmaxBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -1552,21 +808,6 @@ Tensor _softmax(const Tensor & self, int64_t dim, bool half_to_float) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->dim = dim;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_softmax");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "half_to_float", half_to_float);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -1578,7 +819,7 @@ Tensor _softmax(const Tensor & self, int64_t dim, bool half_to_float) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_softmax(self_, dim, half_to_float);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -1587,92 +828,73 @@ Tensor _softmax(const Tensor & self, int64_t dim, bool half_to_float) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   if (grad_fn) {
     grad_fn->result_ = SavedVariable(result, true);
   }
   return result;
 }
 Tensor _sparse_coo_tensor_with_dims(int64_t sparse_dim, int64_t dense_dim, IntArrayRef size, const TensorOptions & options) {
-  RECORD_FUNCTION("_sparse_coo_tensor_with_dims", std::vector<c10::IValue>({}), Node::peek_at_next_sequence_nr());
-  auto options_ = TensorOptions(options).is_variable(false);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_sparse_coo_tensor_with_dims");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "sparse_dim", sparse_dim);
-    jit::tracer::addInputs(node, "dense_dim", dense_dim);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
+  auto options_ = TensorOptions(options);
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_sparse_coo_tensor_with_dims(sparse_dim, dense_dim, size, options_);
   })();
-  auto result = as_variable(std::move(tmp));
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
+  auto result = std::move(tmp);
+  return result;
+}
+Tensor _sparse_softmax_backward_data(const Tensor & grad_output, const Tensor & output, int64_t dim, const Tensor & self) {
+  auto& grad_output_ = unpack(grad_output, "grad_output", 0);
+  auto& output_ = unpack(output, "output", 1);
+  auto& self_ = unpack(self, "self", 3);
+  std::shared_ptr<NotImplemented> grad_fn;
+  if (compute_requires_grad( grad_output, output, self )) {
+    grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("_sparse_softmax_backward_data"), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( grad_output, output, self ));
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> grad_output__storage_saved =
+    grad_output_.has_storage() ? c10::optional<Storage>(grad_output_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> grad_output__impl_saved;
+  if (grad_output_.defined()) grad_output__impl_saved = grad_output_.getIntrusivePtr();
+  c10::optional<Storage> output__storage_saved =
+    output_.has_storage() ? c10::optional<Storage>(output_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> output__impl_saved;
+  if (output_.defined()) output__impl_saved = output_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::_sparse_softmax_backward_data(grad_output_, output_, dim, self_);
+  })();
+  auto result = std::move(tmp);
+  #ifndef NDEBUG
+  if (grad_output__storage_saved.has_value())
+    AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
+  if (grad_output__impl_saved) AT_ASSERT(grad_output__impl_saved == grad_output_.getIntrusivePtr());
+  if (output__storage_saved.has_value())
+    AT_ASSERT(output__storage_saved.value().is_alias_of(output_.storage()));
+  if (output__impl_saved) AT_ASSERT(output__impl_saved == output_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  if (grad_fn) {
+      set_history(flatten_tensor_args( result ), grad_fn);
   }
   return result;
 }
 Tensor _sparse_sum(const Tensor & self) {
-  RECORD_FUNCTION("_sparse_sum", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_sparse_sum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::_sparse_sum(self);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor _sparse_sum(const Tensor & self, ScalarType dtype) {
-  RECORD_FUNCTION("_sparse_sum", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_sparse_sum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::_sparse_sum(self, dtype);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor _sparse_sum_dtype(const Tensor & self, ScalarType dtype) {
+  auto result = TypeDefault::_sparse_sum_dtype(self, dtype);
   return result;
 }
-Tensor _sparse_sum(const Tensor & self, IntArrayRef dim) {
-  RECORD_FUNCTION("_sparse_sum", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+Tensor _sparse_sum_dim(const Tensor & self, IntArrayRef dim) {
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<SparseSumBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -1680,20 +902,6 @@ Tensor _sparse_sum(const Tensor & self, IntArrayRef dim) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->dim = dim.vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_sparse_sum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -1705,7 +913,7 @@ Tensor _sparse_sum(const Tensor & self, IntArrayRef dim) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_sparse_sum(self_, dim);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -1714,76 +922,22 @@ Tensor _sparse_sum(const Tensor & self, IntArrayRef dim) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor _sparse_sum(const Tensor & self, IntArrayRef dim, ScalarType dtype) {
-  RECORD_FUNCTION("_sparse_sum", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_sparse_sum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::_sparse_sum(self, dim, dtype);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor _sparse_sum_dim_dtype(const Tensor & self, IntArrayRef dim, ScalarType dtype) {
+  auto result = TypeDefault::_sparse_sum_dim_dtype(self, dim, dtype);
   return result;
 }
 std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _thnn_differentiable_lstm_cell_backward(const Tensor & grad_hy, const Tensor & grad_cy, const Tensor & input_gates, const Tensor & hidden_gates, const Tensor & input_bias, const Tensor & hidden_bias, const Tensor & cx, const Tensor & cy) {
-  RECORD_FUNCTION("_thnn_differentiable_lstm_cell_backward", std::vector<c10::IValue>({grad_hy, grad_cy, input_gates, hidden_gates, input_bias, hidden_bias, cx, cy}), Node::peek_at_next_sequence_nr());
   Tensor result0;
   Tensor result1;
   Tensor result2;
   Tensor result3;
   Tensor result4;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_thnn_differentiable_lstm_cell_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_hy", grad_hy);
-    jit::tracer::addInputs(node, "grad_cy", grad_cy);
-    jit::tracer::addInputs(node, "input_gates", input_gates);
-    jit::tracer::addInputs(node, "hidden_gates", hidden_gates);
-    jit::tracer::addInputs(node, "input_bias", input_bias);
-    jit::tracer::addInputs(node, "hidden_bias", hidden_bias);
-    jit::tracer::addInputs(node, "cx", cx);
-    jit::tracer::addInputs(node, "cy", cy);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   std::tie(result0, result1, result2, result3, result4) = TypeDefault::_thnn_differentiable_lstm_cell_backward(grad_hy, grad_cy, input_gates, hidden_gates, input_bias, hidden_bias, cx, cy);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-    jit::tracer::addOutput(node, result3);
-    jit::tracer::addOutput(node, result4);
-  }
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2), std::move(result3), std::move(result4));
 }
 std::tuple<Tensor,Tensor> _thnn_fused_gru_cell(const Tensor & input_gates, const Tensor & hidden_gates, const Tensor & hx, const Tensor & input_bias, const Tensor & hidden_bias) {
-  RECORD_FUNCTION("_thnn_fused_gru_cell", std::vector<c10::IValue>({input_gates, hidden_gates, hx, input_bias, hidden_bias}), Node::peek_at_next_sequence_nr());
   auto& input_gates_ = unpack(input_gates, "input_gates", 0);
   auto& hidden_gates_ = unpack(hidden_gates, "hidden_gates", 1);
   auto& hx_ = unpack(hx, "hx", 2);
@@ -1801,23 +955,6 @@ std::tuple<Tensor,Tensor> _thnn_fused_gru_cell(const Tensor & input_gates, const
   }
   Tensor result0;
   Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_thnn_fused_gru_cell");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input_gates", input_gates);
-    jit::tracer::addInputs(node, "hidden_gates", hidden_gates);
-    jit::tracer::addInputs(node, "hx", hx);
-    jit::tracer::addInputs(node, "input_bias", input_bias);
-    jit::tracer::addInputs(node, "hidden_bias", hidden_bias);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> input_gates__storage_saved =
     input_gates_.has_storage() ? c10::optional<Storage>(input_gates_.storage()) : c10::nullopt;
@@ -1844,7 +981,7 @@ std::tuple<Tensor,Tensor> _thnn_fused_gru_cell(const Tensor & input_gates, const
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_thnn_fused_gru_cell(input_gates_, hidden_gates_, hx_, input_bias_, hidden_bias_);
   })();
-  std::tie(result0, result1) = as_variable(std::move(tmp));
+  std::tie(result0, result1) = std::move(tmp);
   #ifndef NDEBUG
   if (input_gates__storage_saved.has_value())
     AT_ASSERT(input_gates__storage_saved.value().is_alias_of(input_gates_.storage()));
@@ -1865,18 +1002,12 @@ std::tuple<Tensor,Tensor> _thnn_fused_gru_cell(const Tensor & input_gates, const
   if (grad_fn) {
       set_history(flatten_tensor_args( result0 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-  }
   if (grad_fn) {
     grad_fn->result1_ = SavedVariable(result1, true);
   }
   return std::make_tuple(std::move(result0), std::move(result1));
 }
 std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _thnn_fused_lstm_cell_backward(const Tensor & grad_hy, const Tensor & grad_cy, const Tensor & cx, const Tensor & cy, const Tensor & workspace, bool has_bias) {
-  RECORD_FUNCTION("_thnn_fused_lstm_cell_backward", std::vector<c10::IValue>({grad_hy, grad_cy, cx, cy, workspace}), Node::peek_at_next_sequence_nr());
   auto grad_hy_ = unpack_opt(grad_hy, "grad_hy", 0);
   auto grad_cy_ = unpack_opt(grad_cy, "grad_cy", 1);
   auto& cx_ = unpack(cx, "cx", 2);
@@ -1892,24 +1023,6 @@ std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _thnn_fused_lstm_cell_backward(co
   Tensor result2;
   Tensor result3;
   Tensor result4;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_thnn_fused_lstm_cell_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_hy", grad_hy);
-    jit::tracer::addInputs(node, "grad_cy", grad_cy);
-    jit::tracer::addInputs(node, "cx", cx);
-    jit::tracer::addInputs(node, "cy", cy);
-    jit::tracer::addInputs(node, "workspace", workspace);
-    jit::tracer::addInputs(node, "has_bias", has_bias);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> grad_hy__storage_saved =
     grad_hy_.has_storage() ? c10::optional<Storage>(grad_hy_.storage()) : c10::nullopt;
@@ -1936,7 +1049,7 @@ std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _thnn_fused_lstm_cell_backward(co
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_thnn_fused_lstm_cell_backward(grad_hy_, grad_cy_, cx_, cy_, workspace_, has_bias);
   })();
-  std::tie(result0, result1, result2, result3, result4) = as_variable(std::move(tmp));
+  std::tie(result0, result1, result2, result3, result4) = std::move(tmp);
   #ifndef NDEBUG
   if (grad_hy__storage_saved.has_value())
     AT_ASSERT(grad_hy__storage_saved.value().is_alias_of(grad_hy_.storage()));
@@ -1957,18 +1070,9 @@ std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> _thnn_fused_lstm_cell_backward(co
   if (grad_fn) {
       set_history(flatten_tensor_args( result0, result1, result2, result3, result4 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-    jit::tracer::addOutput(node, result3);
-    jit::tracer::addOutput(node, result4);
-  }
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2), std::move(result3), std::move(result4));
 }
 Tensor _trilinear(const Tensor & i1, const Tensor & i2, const Tensor & i3, IntArrayRef expand1, IntArrayRef expand2, IntArrayRef expand3, IntArrayRef sumdim, int64_t unroll_dim) {
-  RECORD_FUNCTION("_trilinear", std::vector<c10::IValue>({i1, i2, i3}), Node::peek_at_next_sequence_nr());
   auto& i1_ = unpack(i1, "i1", 0);
   auto& i2_ = unpack(i2, "i2", 1);
   auto& i3_ = unpack(i3, "i3", 2);
@@ -1984,26 +1088,6 @@ Tensor _trilinear(const Tensor & i1, const Tensor & i2, const Tensor & i3, IntAr
     grad_fn->expand3 = expand3.vec();
     grad_fn->sumdim = sumdim.vec();
     grad_fn->unroll_dim = unroll_dim;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_trilinear");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "i1", i1);
-    jit::tracer::addInputs(node, "i2", i2);
-    jit::tracer::addInputs(node, "i3", i3);
-    jit::tracer::addInputs(node, "expand1", expand1);
-    jit::tracer::addInputs(node, "expand2", expand2);
-    jit::tracer::addInputs(node, "expand3", expand3);
-    jit::tracer::addInputs(node, "sumdim", sumdim);
-    jit::tracer::addInputs(node, "unroll_dim", unroll_dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> i1__storage_saved =
@@ -2023,7 +1107,7 @@ Tensor _trilinear(const Tensor & i1, const Tensor & i2, const Tensor & i3, IntAr
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_trilinear(i1_, i2_, i3_, expand1, expand2, expand3, sumdim, unroll_dim);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (i1__storage_saved.has_value())
     AT_ASSERT(i1__storage_saved.value().is_alias_of(i1_.storage()));
@@ -2038,34 +1122,15 @@ Tensor _trilinear(const Tensor & i1, const Tensor & i2, const Tensor & i3, IntAr
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor _unsafe_view(const Tensor & self, IntArrayRef size) {
-  RECORD_FUNCTION("_unsafe_view", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<UnsafeViewBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<UnsafeViewBackward>(new UnsafeViewBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_unsafe_view");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "size", size);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -2077,7 +1142,7 @@ Tensor _unsafe_view(const Tensor & self, IntArrayRef size) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_unsafe_view(self_, size);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -2086,14 +1151,9 @@ Tensor _unsafe_view(const Tensor & self, IntArrayRef size) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 std::tuple<Tensor,Tensor> _weight_norm_cuda_interface(const Tensor & v, const Tensor & g, int64_t dim) {
-  RECORD_FUNCTION("_weight_norm_cuda_interface", std::vector<c10::IValue>({v, g}), Node::peek_at_next_sequence_nr());
   auto& v_ = unpack(v, "v", 0);
   auto& g_ = unpack(g, "g", 1);
   std::shared_ptr<WeightNormCudaInterfaceBackward> grad_fn;
@@ -2106,21 +1166,6 @@ std::tuple<Tensor,Tensor> _weight_norm_cuda_interface(const Tensor & v, const Te
   }
   Tensor result0;
   Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::_weight_norm_cuda_interface");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "v", v);
-    jit::tracer::addInputs(node, "g", g);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> v__storage_saved =
     v_.has_storage() ? c10::optional<Storage>(v_.storage()) : c10::nullopt;
@@ -2135,7 +1180,7 @@ std::tuple<Tensor,Tensor> _weight_norm_cuda_interface(const Tensor & v, const Te
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::_weight_norm_cuda_interface(v_, g_, dim);
   })();
-  std::tie(result0, result1) = as_variable(std::move(tmp));
+  std::tie(result0, result1) = std::move(tmp);
   #ifndef NDEBUG
   if (v__storage_saved.has_value())
     AT_ASSERT(v__storage_saved.value().is_alias_of(v_.storage()));
@@ -2147,37 +1192,18 @@ std::tuple<Tensor,Tensor> _weight_norm_cuda_interface(const Tensor & v, const Te
   if (grad_fn) {
       set_history(flatten_tensor_args( result0 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-  }
   if (grad_fn) {
     grad_fn->result1_ = SavedVariable(result1, true);
   }
   return std::make_tuple(std::move(result0), std::move(result1));
 }
 Tensor abs(const Tensor & self) {
-  RECORD_FUNCTION("abs", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<AbsBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<AbsBackward>(new AbsBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::abs");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -2189,7 +1215,7 @@ Tensor abs(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::abs(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -2198,14 +1224,9 @@ Tensor abs(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & abs_(Tensor & self) {
-  RECORD_FUNCTION("abs_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<AbsBackward> grad_fn;
@@ -2213,23 +1234,6 @@ Tensor & abs_(Tensor & self) {
     grad_fn = std::shared_ptr<AbsBackward>(new AbsBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::abs");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::abs_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("abs_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -2250,37 +1254,51 @@ Tensor & abs_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
+Tensor & acosh_out_out(Tensor & out, const Tensor & self) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self )) {
+    throw_error_out_requires_grad("acosh");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("acosh");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::acosh_out(out_, self_);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
+  }
+  return out;
+}
 Tensor adaptive_avg_pool1d(const Tensor & self, IntArrayRef output_size) {
-  RECORD_FUNCTION("adaptive_avg_pool1d", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::adaptive_avg_pool1d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::adaptive_avg_pool1d(self, output_size);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & adaptive_avg_pool2d_out(Tensor & out, const Tensor & self, IntArrayRef output_size) {
-  RECORD_FUNCTION("adaptive_avg_pool2d_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & adaptive_avg_pool2d_out_out(Tensor & out, const Tensor & self, IntArrayRef output_size) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -2289,25 +1307,6 @@ Tensor & adaptive_avg_pool2d_out(Tensor & out, const Tensor & self, IntArrayRef 
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("adaptive_avg_pool2d");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::adaptive_avg_pool2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("adaptive_avg_pool2d_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -2335,14 +1334,9 @@ Tensor & adaptive_avg_pool2d_out(Tensor & out, const Tensor & self, IntArrayRef 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
-  RECORD_FUNCTION("adaptive_max_pool2d_backward", std::vector<c10::IValue>({grad_output, self, indices}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& indices_ = unpack(indices, "indices", 2);
@@ -2353,21 +1347,6 @@ Tensor adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & s
     grad_fn->set_next_edges(collect_next_edges( grad_output, self ));
     grad_fn->indices_ = SavedVariable(indices, false);
     grad_fn->self_info = self;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::adaptive_max_pool2d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "indices", indices);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -2387,7 +1366,7 @@ Tensor adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & s
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::adaptive_max_pool2d_backward(grad_output_, self_, indices_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -2402,14 +1381,9 @@ Tensor adaptive_max_pool2d_backward(const Tensor & grad_output, const Tensor & s
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 std::tuple<Tensor,Tensor> adaptive_max_pool3d(const Tensor & self, IntArrayRef output_size) {
-  RECORD_FUNCTION("adaptive_max_pool3d", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<AdaptiveMaxPool3DBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -2419,20 +1393,6 @@ std::tuple<Tensor,Tensor> adaptive_max_pool3d(const Tensor & self, IntArrayRef o
   }
   Tensor result0;
   Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::adaptive_max_pool3d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -2443,7 +1403,7 @@ std::tuple<Tensor,Tensor> adaptive_max_pool3d(const Tensor & self, IntArrayRef o
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::adaptive_max_pool3d(self_, output_size);
   })();
-  std::tie(result0, result1) = as_variable(std::move(tmp));
+  std::tie(result0, result1) = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -2452,18 +1412,12 @@ std::tuple<Tensor,Tensor> adaptive_max_pool3d(const Tensor & self, IntArrayRef o
   if (grad_fn) {
       set_history(flatten_tensor_args( result0 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-  }
   if (grad_fn) {
     grad_fn->result1_ = SavedVariable(result1, true);
   }
   return std::make_tuple(std::move(result0), std::move(result1));
 }
-Tensor & adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
-  RECORD_FUNCTION("adaptive_max_pool3d_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self, indices}), Node::peek_at_next_sequence_nr());
+Tensor & adaptive_max_pool3d_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -2474,26 +1428,6 @@ Tensor & adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & gr
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("adaptive_max_pool3d_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::adaptive_max_pool3d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "indices", indices);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("adaptive_max_pool3d_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -2535,14 +1469,9 @@ Tensor & adaptive_max_pool3d_backward_out(Tensor & grad_input, const Tensor & gr
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
 Tensor addcmul(const Tensor & self, const Tensor & tensor1, const Tensor & tensor2, Scalar value) {
-  RECORD_FUNCTION("addcmul", std::vector<c10::IValue>({self, tensor1, tensor2, value}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& tensor1_ = unpack(tensor1, "tensor1", 1);
   auto& tensor2_ = unpack(tensor2, "tensor2", 2);
@@ -2557,22 +1486,6 @@ Tensor addcmul(const Tensor & self, const Tensor & tensor1, const Tensor & tenso
     if (grad_fn->should_compute_output(2)) {
       grad_fn->tensor1_ = SavedVariable(tensor1, false);
     }
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::addcmul");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "tensor1", tensor1);
-    jit::tracer::addInputs(node, "tensor2", tensor2);
-    jit::tracer::addInputs(node, "value", value);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -2592,7 +1505,7 @@ Tensor addcmul(const Tensor & self, const Tensor & tensor1, const Tensor & tenso
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::addcmul(self_, tensor1_, tensor2_, value);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -2607,14 +1520,9 @@ Tensor addcmul(const Tensor & self, const Tensor & tensor1, const Tensor & tenso
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & addcmul_(Tensor & self, const Tensor & tensor1, const Tensor & tensor2, Scalar value) {
-  RECORD_FUNCTION("addcmul_", std::vector<c10::IValue>({self, tensor1, tensor2, value}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& tensor1_ = unpack(tensor1, "tensor1", 1);
   auto& tensor2_ = unpack(tensor2, "tensor2", 2);
@@ -2630,26 +1538,6 @@ Tensor & addcmul_(Tensor & self, const Tensor & tensor1, const Tensor & tensor2,
     if (grad_fn->should_compute_output(2)) {
       grad_fn->tensor1_ = SavedVariable(tensor1, false);
     }
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::addcmul");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::addcmul_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "tensor1", tensor1);
-    jit::tracer::addInputs(node, "tensor2", tensor2);
-    jit::tracer::addInputs(node, "value", value);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("addcmul_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -2684,14 +1572,9 @@ Tensor & addcmul_(Tensor & self, const Tensor & tensor1, const Tensor & tensor2,
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor addmm(const Tensor & self, const Tensor & mat1, const Tensor & mat2, Scalar beta, Scalar alpha) {
-  RECORD_FUNCTION("addmm", std::vector<c10::IValue>({self, mat1, mat2, beta, alpha}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& mat1_ = unpack(mat1, "mat1", 1);
   auto& mat2_ = unpack(mat2, "mat2", 2);
@@ -2704,23 +1587,6 @@ Tensor addmm(const Tensor & self, const Tensor & mat1, const Tensor & mat2, Scal
     grad_fn->alpha = alpha;
     grad_fn->mat2_sizes = mat2.sizes().vec();
     grad_fn->beta = beta;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::addmm");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "mat1", mat1);
-    jit::tracer::addInputs(node, "mat2", mat2);
-    jit::tracer::addInputs(node, "beta", beta);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -2740,7 +1606,7 @@ Tensor addmm(const Tensor & self, const Tensor & mat1, const Tensor & mat2, Scal
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::addmm(self_, mat1_, mat2_, beta, alpha);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -2755,14 +1621,9 @@ Tensor addmm(const Tensor & self, const Tensor & mat1, const Tensor & mat2, Scal
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & addmm_(Tensor & self, const Tensor & mat1, const Tensor & mat2, Scalar beta, Scalar alpha) {
-  RECORD_FUNCTION("addmm_", std::vector<c10::IValue>({self, mat1, mat2, beta, alpha}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& mat1_ = unpack(mat1, "mat1", 1);
   auto& mat2_ = unpack(mat2, "mat2", 2);
@@ -2776,27 +1637,6 @@ Tensor & addmm_(Tensor & self, const Tensor & mat1, const Tensor & mat2, Scalar 
     grad_fn->alpha = alpha;
     grad_fn->mat2_sizes = mat2.sizes().vec();
     grad_fn->beta = beta;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::addmm");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::addmm_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "mat1", mat1);
-    jit::tracer::addInputs(node, "mat2", mat2);
-    jit::tracer::addInputs(node, "beta", beta);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("addmm_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -2831,14 +1671,9 @@ Tensor & addmm_(Tensor & self, const Tensor & mat1, const Tensor & mat2, Scalar 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & addr_out(Tensor & out, const Tensor & self, const Tensor & vec1, const Tensor & vec2, Scalar beta, Scalar alpha) {
-  RECORD_FUNCTION("addr_out", std::vector<c10::IValue>({out, self, vec1, vec2, beta, alpha}), Node::peek_at_next_sequence_nr());
+Tensor & addr_out_out(Tensor & out, const Tensor & self, const Tensor & vec1, const Tensor & vec2, Scalar beta, Scalar alpha) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& vec1_ = unpack(vec1, "vec1", 2);
@@ -2849,28 +1684,6 @@ Tensor & addr_out(Tensor & out, const Tensor & self, const Tensor & vec1, const 
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("addr");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::addr");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "vec1", vec1);
-    jit::tracer::addInputs(node, "vec2", vec2);
-    jit::tracer::addInputs(node, "beta", beta);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("addr_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -2912,173 +1725,97 @@ Tensor & addr_out(Tensor & out, const Tensor & self, const Tensor & vec1, const 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor align_as(const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("align_as", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::align_as");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::align_as(self, other);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 std::vector<Tensor> align_tensors(TensorList tensors) {
-  RECORD_FUNCTION("align_tensors", std::vector<c10::IValue>({}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::align_tensors");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "tensors", tensors);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::align_tensors(tensors);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor align_to(const Tensor & self, DimnameList names) {
-  RECORD_FUNCTION("align_to", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::align_to");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "names", names);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::align_to(self, names);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+  return result;
+}
+Tensor align_to_ellipsis_idx(const Tensor & self, DimnameList order, int64_t ellipsis_idx) {
+  auto result = TypeDefault::align_to_ellipsis_idx(self, order, ellipsis_idx);
   return result;
 }
 Tensor argmax(const Tensor & self, c10::optional<int64_t> dim, bool keepdim) {
-  RECORD_FUNCTION("argmax", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::argmax");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::argmax(self, dim, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+  auto& self_ = unpack(self, "self", 0);
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::argmax(self_, dim, keepdim);
+  })();
+  auto result = std::move(tmp);
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
   return result;
 }
 Tensor argsort(const Tensor & self, int64_t dim, bool descending) {
-  RECORD_FUNCTION("argsort", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::argsort");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "descending", descending);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::argsort(self, dim, descending);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor argsort(const Tensor & self, Dimname dim, bool descending) {
-  RECORD_FUNCTION("argsort", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::argsort");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "descending", descending);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::argsort(self, dim, descending);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor argsort_dimname(const Tensor & self, Dimname dim, bool descending) {
+  auto result = TypeDefault::argsort_dimname(self, dim, descending);
   return result;
+}
+Tensor & asinh_out_out(Tensor & out, const Tensor & self) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self )) {
+    throw_error_out_requires_grad("asinh");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("asinh");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::asinh_out(out_, self_);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
+  }
+  return out;
 }
 Tensor atan(const Tensor & self) {
-  RECORD_FUNCTION("atan", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<AtanBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<AtanBackward>(new AtanBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::atan");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -3090,7 +1827,7 @@ Tensor atan(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::atan(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -3099,14 +1836,9 @@ Tensor atan(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor atan2(const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("atan2", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& other_ = unpack(other, "other", 1);
   std::shared_ptr<Atan2Backward> grad_fn;
@@ -3115,20 +1847,6 @@ Tensor atan2(const Tensor & self, const Tensor & other) {
     grad_fn->set_next_edges(collect_next_edges( self, other ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->other_ = SavedVariable(other, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::atan2");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -3144,7 +1862,7 @@ Tensor atan2(const Tensor & self, const Tensor & other) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::atan2(self_, other_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -3156,14 +1874,9 @@ Tensor atan2(const Tensor & self, const Tensor & other) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & atan2_(Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("atan2_", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& other_ = unpack(other, "other", 1);
   check_inplace(self);
@@ -3173,24 +1886,6 @@ Tensor & atan2_(Tensor & self, const Tensor & other) {
     grad_fn->set_next_edges(collect_next_edges( self, other ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
     grad_fn->other_ = SavedVariable(other, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::atan2");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::atan2_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("atan2_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -3218,14 +1913,9 @@ Tensor & atan2_(Tensor & self, const Tensor & other) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor & atan_(Tensor & self) {
-  RECORD_FUNCTION("atan_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<AtanBackward> grad_fn;
@@ -3233,23 +1923,6 @@ Tensor & atan_(Tensor & self) {
     grad_fn = std::shared_ptr<AtanBackward>(new AtanBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::atan");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::atan_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("atan_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -3270,14 +1943,9 @@ Tensor & atan_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor avg_pool2d(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad, c10::optional<int64_t> divisor_override) {
-  RECORD_FUNCTION("avg_pool2d", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<AvgPool2DBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -3291,25 +1959,6 @@ Tensor avg_pool2d(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stri
     grad_fn->count_include_pad = count_include_pad;
     grad_fn->divisor_override = divisor_override;
   }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::avg_pool2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "ceil_mode", ceil_mode);
-    jit::tracer::addInputs(node, "count_include_pad", count_include_pad);
-    jit::tracer::addInputs(node, "divisor_override", divisor_override);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -3320,7 +1969,7 @@ Tensor avg_pool2d(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stri
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::avg_pool2d(self_, kernel_size, stride, padding, ceil_mode, count_include_pad, divisor_override);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -3329,14 +1978,9 @@ Tensor avg_pool2d(const Tensor & self, IntArrayRef kernel_size, IntArrayRef stri
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & avg_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad, c10::optional<int64_t> divisor_override) {
-  RECORD_FUNCTION("avg_pool2d_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self}), Node::peek_at_next_sequence_nr());
+Tensor & avg_pool2d_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad, c10::optional<int64_t> divisor_override) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -3346,31 +1990,6 @@ Tensor & avg_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("avg_pool2d_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::avg_pool2d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "ceil_mode", ceil_mode);
-    jit::tracer::addInputs(node, "count_include_pad", count_include_pad);
-    jit::tracer::addInputs(node, "divisor_override", divisor_override);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("avg_pool2d_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -3405,14 +2024,9 @@ Tensor & avg_pool2d_backward_out(Tensor & grad_input, const Tensor & grad_output
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
-Tensor & avg_pool3d_out(Tensor & out, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad, c10::optional<int64_t> divisor_override) {
-  RECORD_FUNCTION("avg_pool3d_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & avg_pool3d_out_out(Tensor & out, const Tensor & self, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, bool ceil_mode, bool count_include_pad, c10::optional<int64_t> divisor_override) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -3421,30 +2035,6 @@ Tensor & avg_pool3d_out(Tensor & out, const Tensor & self, IntArrayRef kernel_si
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("avg_pool3d");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::avg_pool3d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "ceil_mode", ceil_mode);
-    jit::tracer::addInputs(node, "count_include_pad", count_include_pad);
-    jit::tracer::addInputs(node, "divisor_override", divisor_override);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("avg_pool3d_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -3472,14 +2062,9 @@ Tensor & avg_pool3d_out(Tensor & out, const Tensor & self, IntArrayRef kernel_si
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & baddbmm_out(Tensor & out, const Tensor & self, const Tensor & batch1, const Tensor & batch2, Scalar beta, Scalar alpha) {
-  RECORD_FUNCTION("baddbmm_out", std::vector<c10::IValue>({out, self, batch1, batch2, beta, alpha}), Node::peek_at_next_sequence_nr());
+Tensor & baddbmm_out_out(Tensor & out, const Tensor & self, const Tensor & batch1, const Tensor & batch2, Scalar beta, Scalar alpha) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& batch1_ = unpack(batch1, "batch1", 2);
@@ -3490,28 +2075,6 @@ Tensor & baddbmm_out(Tensor & out, const Tensor & self, const Tensor & batch1, c
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("baddbmm");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::baddbmm");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "batch1", batch1);
-    jit::tracer::addInputs(node, "batch2", batch2);
-    jit::tracer::addInputs(node, "beta", beta);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("baddbmm_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -3553,61 +2116,17 @@ Tensor & baddbmm_out(Tensor & out, const Tensor & self, const Tensor & batch1, c
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor bartlett_window(int64_t window_length, const TensorOptions & options) {
-  RECORD_FUNCTION("bartlett_window", std::vector<c10::IValue>({}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::bartlett_window");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "window_length", window_length);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::bartlett_window(window_length, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor bartlett_window(int64_t window_length, bool periodic, const TensorOptions & options) {
-  RECORD_FUNCTION("bartlett_window", std::vector<c10::IValue>({}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::bartlett_window");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "window_length", window_length);
-    jit::tracer::addInputs(node, "periodic", periodic);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::bartlett_window(window_length, periodic, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor bartlett_window_periodic(int64_t window_length, bool periodic, const TensorOptions & options) {
+  auto result = TypeDefault::bartlett_window_periodic(window_length, periodic, options);
   return result;
 }
 std::tuple<Tensor,Tensor> batch_norm_update_stats(const Tensor & input, const Tensor & running_mean, const Tensor & running_var, double momentum) {
-  RECORD_FUNCTION("batch_norm_update_stats", std::vector<c10::IValue>({input, running_mean, running_var}), Node::peek_at_next_sequence_nr());
   auto& input_ = unpack(input, "input", 0);
   auto running_mean_ = unpack_opt(running_mean, "running_mean", 1);
   auto running_var_ = unpack_opt(running_var, "running_var", 2);
@@ -3618,22 +2137,6 @@ std::tuple<Tensor,Tensor> batch_norm_update_stats(const Tensor & input, const Te
   }
   Tensor result0;
   Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::batch_norm_update_stats");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "running_mean", running_mean);
-    jit::tracer::addInputs(node, "running_var", running_var);
-    jit::tracer::addInputs(node, "momentum", momentum);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> input__storage_saved =
     input_.has_storage() ? c10::optional<Storage>(input_.storage()) : c10::nullopt;
@@ -3652,7 +2155,7 @@ std::tuple<Tensor,Tensor> batch_norm_update_stats(const Tensor & input, const Te
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::batch_norm_update_stats(input_, running_mean_, running_var_, momentum);
   })();
-  std::tie(result0, result1) = as_variable(std::move(tmp));
+  std::tie(result0, result1) = std::move(tmp);
   #ifndef NDEBUG
   if (input__storage_saved.has_value())
     AT_ASSERT(input__storage_saved.value().is_alias_of(input_.storage()));
@@ -3667,40 +2170,24 @@ std::tuple<Tensor,Tensor> batch_norm_update_stats(const Tensor & input, const Te
   if (grad_fn) {
       set_history(flatten_tensor_args( result0, result1 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-  }
   return std::make_tuple(std::move(result0), std::move(result1));
 }
 Tensor binary_cross_entropy_backward(const Tensor & grad_output, const Tensor & self, const Tensor & target, const Tensor & weight, int64_t reduction) {
-  RECORD_FUNCTION("binary_cross_entropy_backward", std::vector<c10::IValue>({grad_output, self, target, weight}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& target_ = unpack(target, "target", 2);
   auto weight_ = unpack_opt(weight, "weight", 3);
-  std::shared_ptr<NotImplemented> grad_fn;
-  if (compute_requires_grad( grad_output, self, target, weight )) {
-    grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("binary_cross_entropy_backward"), deleteNode);
-    grad_fn->set_next_edges(collect_next_edges( grad_output, self, target, weight ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::binary_cross_entropy_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+  check_no_requires_grad(target, "target");
+  check_no_requires_grad(weight, "weight");
+  std::shared_ptr<BinaryCrossEntropyBackwardBackward> grad_fn;
+  if (compute_requires_grad( grad_output, self )) {
+    grad_fn = std::shared_ptr<BinaryCrossEntropyBackwardBackward>(new BinaryCrossEntropyBackwardBackward(), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( grad_output, self ));
+    grad_fn->self_ = SavedVariable(self, false);
+    grad_fn->target_ = SavedVariable(target, false);
+    grad_fn->weight_ = SavedVariable(weight, false);
+    grad_fn->reduction = reduction;
+    grad_fn->grad_output_ = SavedVariable(grad_output, false);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -3724,7 +2211,7 @@ Tensor binary_cross_entropy_backward(const Tensor & grad_output, const Tensor & 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::binary_cross_entropy_backward(grad_output_, self_, target_, weight_, reduction);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -3742,14 +2229,93 @@ Tensor binary_cross_entropy_backward(const Tensor & grad_output, const Tensor & 
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & bitwise_not_out(Tensor & out, const Tensor & self) {
-  RECORD_FUNCTION("bitwise_not_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & bitwise_and_out_Tensor_out(Tensor & out, const Tensor & self, const Tensor & other) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  auto& other_ = unpack(other, "other", 2);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self, other )) {
+    throw_error_out_requires_grad("bitwise_and");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("bitwise_and");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  c10::optional<Storage> other__storage_saved =
+    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> other__impl_saved;
+  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::bitwise_and_out(out_, self_, other_);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  if (other__storage_saved.has_value())
+    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
+  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
+  }
+  return out;
+}
+Tensor & bitwise_and_out_Scalar_out(Tensor & out, const Tensor & self, Scalar other) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self )) {
+    throw_error_out_requires_grad("bitwise_and");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("bitwise_and");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::bitwise_and_out(out_, self_, other);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
+  }
+  return out;
+}
+Tensor & bitwise_not_out_out(Tensor & out, const Tensor & self) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -3758,24 +2324,6 @@ Tensor & bitwise_not_out(Tensor & out, const Tensor & self) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("bitwise_not");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::bitwise_not");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("bitwise_not_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -3803,14 +2351,9 @@ Tensor & bitwise_not_out(Tensor & out, const Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & bmm_out(Tensor & out, const Tensor & self, const Tensor & mat2) {
-  RECORD_FUNCTION("bmm_out", std::vector<c10::IValue>({out, self, mat2}), Node::peek_at_next_sequence_nr());
+Tensor & bmm_out_out(Tensor & out, const Tensor & self, const Tensor & mat2) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& mat2_ = unpack(mat2, "mat2", 2);
@@ -3820,25 +2363,6 @@ Tensor & bmm_out(Tensor & out, const Tensor & self, const Tensor & mat2) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("bmm");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::bmm");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "mat2", mat2);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("bmm_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -3873,126 +2397,67 @@ Tensor & bmm_out(Tensor & out, const Tensor & self, const Tensor & mat2) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
+  return out;
+}
+Tensor & bucketize_out_Tensor_out(Tensor & out, const Tensor & self, const Tensor & boundaries, bool out_int32, bool right) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  auto& boundaries_ = unpack(boundaries, "boundaries", 2);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self, boundaries )) {
+    throw_error_out_requires_grad("bucketize");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("bucketize");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  c10::optional<Storage> boundaries__storage_saved =
+    boundaries_.has_storage() ? c10::optional<Storage>(boundaries_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> boundaries__impl_saved;
+  if (boundaries_.defined()) boundaries__impl_saved = boundaries_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::bucketize_out(out_, self_, boundaries_, out_int32, right);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  if (boundaries__storage_saved.has_value())
+    AT_ASSERT(boundaries__storage_saved.value().is_alias_of(boundaries_.storage()));
+  if (boundaries__impl_saved) AT_ASSERT(boundaries__impl_saved == boundaries_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
   }
   return out;
 }
-Tensor cdist(const Tensor & x1, const Tensor & x2, double p) {
-  RECORD_FUNCTION("cdist", std::vector<c10::IValue>({x1, x2}), Node::peek_at_next_sequence_nr());
-  auto& x1_ = unpack(x1, "x1", 0);
-  auto& x2_ = unpack(x2, "x2", 1);
-  std::shared_ptr<CdistBackward> grad_fn;
-  if (compute_requires_grad( x1, x2 )) {
-    grad_fn = std::shared_ptr<CdistBackward>(new CdistBackward(), deleteNode);
-    grad_fn->set_next_edges(collect_next_edges( x1, x2 ));
-    grad_fn->x1_ = SavedVariable(x1, false);
-    grad_fn->x2_ = SavedVariable(x2, false);
-    grad_fn->p = p;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cdist");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "x1", x1);
-    jit::tracer::addInputs(node, "x2", x2);
-    jit::tracer::addInputs(node, "p", p);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> x1__storage_saved =
-    x1_.has_storage() ? c10::optional<Storage>(x1_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> x1__impl_saved;
-  if (x1_.defined()) x1__impl_saved = x1_.getIntrusivePtr();
-  c10::optional<Storage> x2__storage_saved =
-    x2_.has_storage() ? c10::optional<Storage>(x2_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> x2__impl_saved;
-  if (x2_.defined()) x2__impl_saved = x2_.getIntrusivePtr();
-  #endif
-  auto tmp = ([&]() {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::cdist(x1_, x2_, p);
-  })();
-  auto result = as_variable(std::move(tmp));
-  #ifndef NDEBUG
-  if (x1__storage_saved.has_value())
-    AT_ASSERT(x1__storage_saved.value().is_alias_of(x1_.storage()));
-  if (x1__impl_saved) AT_ASSERT(x1__impl_saved == x1_.getIntrusivePtr());
-  if (x2__storage_saved.has_value())
-    AT_ASSERT(x2__storage_saved.value().is_alias_of(x2_.storage()));
-  if (x2__impl_saved) AT_ASSERT(x2__impl_saved == x2_.getIntrusivePtr());
-  #endif
-  if (grad_fn) {
-      set_history(flatten_tensor_args( result ), grad_fn);
-  }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
-  if (grad_fn) {
-    grad_fn->result_ = SavedVariable(result, true);
-  }
+Tensor cdist(const Tensor & x1, const Tensor & x2, double p, c10::optional<int64_t> compute_mode) {
+  auto result = TypeDefault::cdist(x1, x2, p, compute_mode);
   return result;
 }
 Tensor celu(const Tensor & self, Scalar alpha) {
-  RECORD_FUNCTION("celu", std::vector<c10::IValue>({self, alpha}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::celu");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::celu(self, alpha);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & celu_(Tensor & self, Scalar alpha) {
-  RECORD_FUNCTION("celu_", std::vector<c10::IValue>({self, alpha}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::celu");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::celu_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("celu_", self);
-    jit::tracer::setTracingState(nullptr);
-  }
   TypeDefault::celu_(self, alpha);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor cholesky_inverse(const Tensor & self, bool upper) {
-  RECORD_FUNCTION("cholesky_inverse", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<CholeskyInverseBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -4000,20 +2465,6 @@ Tensor cholesky_inverse(const Tensor & self, bool upper) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->upper = upper;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cholesky_inverse");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "upper", upper);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4025,7 +2476,7 @@ Tensor cholesky_inverse(const Tensor & self, bool upper) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::cholesky_inverse(self_, upper);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -4034,17 +2485,12 @@ Tensor cholesky_inverse(const Tensor & self, bool upper) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   if (grad_fn) {
     grad_fn->result_ = SavedVariable(result, true);
   }
   return result;
 }
-Tensor & cholesky_out(Tensor & out, const Tensor & self, bool upper) {
-  RECORD_FUNCTION("cholesky_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & cholesky_out_out(Tensor & out, const Tensor & self, bool upper) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -4053,25 +2499,6 @@ Tensor & cholesky_out(Tensor & out, const Tensor & self, bool upper) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("cholesky");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cholesky");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "upper", upper);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("cholesky_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -4099,14 +2526,9 @@ Tensor & cholesky_out(Tensor & out, const Tensor & self, bool upper) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor clamp(const Tensor & self, c10::optional<Scalar> min, c10::optional<Scalar> max) {
-  RECORD_FUNCTION("clamp", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<ClampBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -4115,21 +2537,6 @@ Tensor clamp(const Tensor & self, c10::optional<Scalar> min, c10::optional<Scala
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->min = min;
     grad_fn->max = max;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::clamp");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "min", min);
-    jit::tracer::addInputs(node, "max", max);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4141,7 +2548,7 @@ Tensor clamp(const Tensor & self, c10::optional<Scalar> min, c10::optional<Scala
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::clamp(self_, min, max);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -4150,14 +2557,9 @@ Tensor clamp(const Tensor & self, c10::optional<Scalar> min, c10::optional<Scala
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & clamp_(Tensor & self, c10::optional<Scalar> min, c10::optional<Scalar> max) {
-  RECORD_FUNCTION("clamp_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<ClampBackward> grad_fn;
@@ -4167,25 +2569,6 @@ Tensor & clamp_(Tensor & self, c10::optional<Scalar> min, c10::optional<Scalar> 
     grad_fn->self_ = SavedVariable(self.clone(), false);
     grad_fn->min = min;
     grad_fn->max = max;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::clamp");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::clamp_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "min", min);
-    jit::tracer::addInputs(node, "max", max);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("clamp_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4206,14 +2589,9 @@ Tensor & clamp_(Tensor & self, c10::optional<Scalar> min, c10::optional<Scalar> 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & clamp_max_out(Tensor & out, const Tensor & self, Scalar max) {
-  RECORD_FUNCTION("clamp_max_out", std::vector<c10::IValue>({out, self, max}), Node::peek_at_next_sequence_nr());
+Tensor & clamp_max_out_out(Tensor & out, const Tensor & self, Scalar max) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -4222,25 +2600,6 @@ Tensor & clamp_max_out(Tensor & out, const Tensor & self, Scalar max) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("clamp_max");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::clamp_max");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "max", max);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("clamp_max_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -4268,19 +2627,51 @@ Tensor & clamp_max_out(Tensor & out, const Tensor & self, Scalar max) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
+  return out;
+}
+Tensor & conj_out_out(Tensor & out, const Tensor & self) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self )) {
+    throw_error_out_requires_grad("conj");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("conj");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::conj_out(out_, self_);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
   }
   return out;
 }
-Tensor conv_transpose3d(const Tensor & input, const Tensor & weight, const Tensor & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef output_padding, int64_t groups, IntArrayRef dilation) {
-  RECORD_FUNCTION("conv_transpose3d", std::vector<c10::IValue>({input, weight, bias}), Node::peek_at_next_sequence_nr());
-  auto result = TypeDefault::conv_transpose3d(input, weight, bias, stride, padding, output_padding, groups, dilation);
+Tensor conv_transpose3d_input(const Tensor & input, const Tensor & weight, const Tensor & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef output_padding, int64_t groups, IntArrayRef dilation) {
+  auto result = TypeDefault::conv_transpose3d_input(input, weight, bias, stride, padding, output_padding, groups, dilation);
   return result;
 }
 std::tuple<Tensor,Tensor,Tensor> convolution_backward_overrideable(const Tensor & grad_output, const Tensor & input, const Tensor & weight, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation, bool transposed, IntArrayRef output_padding, int64_t groups, std::array<bool,3> output_mask) {
-  RECORD_FUNCTION("convolution_backward_overrideable", std::vector<c10::IValue>({grad_output, input, weight}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& input_ = unpack(input, "input", 1);
   auto& weight_ = unpack(weight, "weight", 2);
@@ -4300,28 +2691,6 @@ std::tuple<Tensor,Tensor,Tensor> convolution_backward_overrideable(const Tensor 
   Tensor grad_input;
   Tensor grad_weight;
   Tensor grad_bias;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::convolution_backward_overrideable");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    jit::tracer::addInputs(node, "transposed", transposed);
-    jit::tracer::addInputs(node, "output_padding", output_padding);
-    jit::tracer::addInputs(node, "groups", groups);
-    jit::tracer::addInputs(node, "output_mask", output_mask);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
     grad_output_.has_storage() ? c10::optional<Storage>(grad_output_.storage()) : c10::nullopt;
@@ -4340,7 +2709,7 @@ std::tuple<Tensor,Tensor,Tensor> convolution_backward_overrideable(const Tensor 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::convolution_backward_overrideable(grad_output_, input_, weight_, stride, padding, dilation, transposed, output_padding, groups, output_mask);
   })();
-  std::tie(grad_input, grad_weight, grad_bias) = as_variable(std::move(tmp));
+  std::tie(grad_input, grad_weight, grad_bias) = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -4355,35 +2724,15 @@ std::tuple<Tensor,Tensor,Tensor> convolution_backward_overrideable(const Tensor 
   if (grad_fn) {
       set_history(flatten_tensor_args( grad_input, grad_weight, grad_bias ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-    jit::tracer::addOutput(node, grad_weight);
-    jit::tracer::addOutput(node, grad_bias);
-  }
   return std::make_tuple(std::move(grad_input), std::move(grad_weight), std::move(grad_bias));
 }
 Tensor cos(const Tensor & self) {
-  RECORD_FUNCTION("cos", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<CosBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<CosBackward>(new CosBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cos");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4395,7 +2744,7 @@ Tensor cos(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::cos(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -4404,14 +2753,9 @@ Tensor cos(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & cos_(Tensor & self) {
-  RECORD_FUNCTION("cos_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<CosBackward> grad_fn;
@@ -4419,23 +2763,6 @@ Tensor & cos_(Tensor & self) {
     grad_fn = std::shared_ptr<CosBackward>(new CosBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::cos");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::cos_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("cos_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4456,14 +2783,9 @@ Tensor & cos_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-std::tuple<Tensor,Tensor,Tensor> cudnn_batch_norm_backward(const Tensor & input, const Tensor & grad_output, const Tensor & weight, const Tensor & running_mean, const Tensor & running_var, const Tensor & save_mean, const Tensor & save_var, double epsilon) {
-  RECORD_FUNCTION("cudnn_batch_norm_backward", std::vector<c10::IValue>({input, grad_output, weight, running_mean, running_var, save_mean, save_var}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor,Tensor,Tensor> cudnn_batch_norm_backward(const Tensor & input, const Tensor & grad_output, const Tensor & weight, const Tensor & running_mean, const Tensor & running_var, const Tensor & save_mean, const Tensor & save_var, double epsilon, const Tensor & reserveSpace) {
   auto& input_ = unpack(input, "input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& weight_ = unpack(weight, "weight", 2);
@@ -4471,12 +2793,13 @@ std::tuple<Tensor,Tensor,Tensor> cudnn_batch_norm_backward(const Tensor & input,
   auto running_var_ = unpack_opt(running_var, "running_var", 4);
   auto save_mean_ = unpack_opt(save_mean, "save_mean", 5);
   auto save_var_ = unpack_opt(save_var, "save_var", 6);
+  auto& reserveSpace_ = unpack(reserveSpace, "reserveSpace", 8);
   check_no_requires_grad(running_mean, "running_mean");
   check_no_requires_grad(running_var, "running_var");
   std::shared_ptr<CudnnBatchNormBackwardBackward> grad_fn;
-  if (compute_requires_grad( input, grad_output, weight, save_mean, save_var )) {
+  if (compute_requires_grad( input, grad_output, weight, save_mean, save_var, reserveSpace )) {
     grad_fn = std::shared_ptr<CudnnBatchNormBackwardBackward>(new CudnnBatchNormBackwardBackward(), deleteNode);
-    grad_fn->set_next_edges(collect_next_edges( input, grad_output, weight, save_mean, save_var ));
+    grad_fn->set_next_edges(collect_next_edges( input, grad_output, weight, save_mean, save_var, reserveSpace ));
     grad_fn->input_ = SavedVariable(input, false);
     grad_fn->grad_output_ = SavedVariable(grad_output, false);
     grad_fn->weight_ = SavedVariable(weight, false);
@@ -4485,30 +2808,11 @@ std::tuple<Tensor,Tensor,Tensor> cudnn_batch_norm_backward(const Tensor & input,
     grad_fn->save_mean_ = SavedVariable(save_mean, false);
     grad_fn->save_var_ = SavedVariable(save_var, false);
     grad_fn->epsilon = epsilon;
+    grad_fn->reserveSpace_ = SavedVariable(reserveSpace, false);
   }
   Tensor result0;
   Tensor result1;
   Tensor result2;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cudnn_batch_norm_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "running_mean", running_mean);
-    jit::tracer::addInputs(node, "running_var", running_var);
-    jit::tracer::addInputs(node, "save_mean", save_mean);
-    jit::tracer::addInputs(node, "save_var", save_var);
-    jit::tracer::addInputs(node, "epsilon", epsilon);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> input__storage_saved =
     input_.has_storage() ? c10::optional<Storage>(input_.storage()) : c10::nullopt;
@@ -4538,12 +2842,16 @@ std::tuple<Tensor,Tensor,Tensor> cudnn_batch_norm_backward(const Tensor & input,
     save_var_.has_storage() ? c10::optional<Storage>(save_var_.storage()) : c10::nullopt;
   c10::intrusive_ptr<TensorImpl> save_var__impl_saved;
   if (save_var_.defined()) save_var__impl_saved = save_var_.getIntrusivePtr();
+  c10::optional<Storage> reserveSpace__storage_saved =
+    reserveSpace_.has_storage() ? c10::optional<Storage>(reserveSpace_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> reserveSpace__impl_saved;
+  if (reserveSpace_.defined()) reserveSpace__impl_saved = reserveSpace_.getIntrusivePtr();
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::cudnn_batch_norm_backward(input_, grad_output_, weight_, running_mean_, running_var_, save_mean_, save_var_, epsilon);
+    return at::cudnn_batch_norm_backward(input_, grad_output_, weight_, running_mean_, running_var_, save_mean_, save_var_, epsilon, reserveSpace_);
   })();
-  std::tie(result0, result1, result2) = as_variable(std::move(tmp));
+  std::tie(result0, result1, result2) = std::move(tmp);
   #ifndef NDEBUG
   if (input__storage_saved.has_value())
     AT_ASSERT(input__storage_saved.value().is_alias_of(input_.storage()));
@@ -4566,20 +2874,16 @@ std::tuple<Tensor,Tensor,Tensor> cudnn_batch_norm_backward(const Tensor & input,
   if (save_var__storage_saved.has_value())
     AT_ASSERT(save_var__storage_saved.value().is_alias_of(save_var_.storage()));
   if (save_var__impl_saved) AT_ASSERT(save_var__impl_saved == save_var_.getIntrusivePtr());
+  if (reserveSpace__storage_saved.has_value())
+    AT_ASSERT(reserveSpace__storage_saved.value().is_alias_of(reserveSpace_.storage()));
+  if (reserveSpace__impl_saved) AT_ASSERT(reserveSpace__impl_saved == reserveSpace_.getIntrusivePtr());
   #endif
   if (grad_fn) {
       set_history(flatten_tensor_args( result0, result1, result2 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-  }
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2));
 }
 std::tuple<Tensor,Tensor> cudnn_grid_sampler_backward(const Tensor & self, const Tensor & grid, const Tensor & grad_output) {
-  RECORD_FUNCTION("cudnn_grid_sampler_backward", std::vector<c10::IValue>({self, grid, grad_output}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& grid_ = unpack(grid, "grid", 1);
   auto& grad_output_ = unpack(grad_output, "grad_output", 2);
@@ -4590,21 +2894,6 @@ std::tuple<Tensor,Tensor> cudnn_grid_sampler_backward(const Tensor & self, const
   }
   Tensor grad_self;
   Tensor grad_grid;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cudnn_grid_sampler_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "grid", grid);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -4623,7 +2912,7 @@ std::tuple<Tensor,Tensor> cudnn_grid_sampler_backward(const Tensor & self, const
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::cudnn_grid_sampler_backward(self_, grid_, grad_output_);
   })();
-  std::tie(grad_self, grad_grid) = as_variable(std::move(tmp));
+  std::tie(grad_self, grad_grid) = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -4638,15 +2927,59 @@ std::tuple<Tensor,Tensor> cudnn_grid_sampler_backward(const Tensor & self, const
   if (grad_fn) {
       set_history(flatten_tensor_args( grad_self, grad_grid ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_self);
-    jit::tracer::addOutput(node, grad_grid);
-  }
   return std::make_tuple(std::move(grad_self), std::move(grad_grid));
 }
-Tensor & cumsum_out(Tensor & out, const Tensor & self, int64_t dim, c10::optional<ScalarType> dtype) {
-  RECORD_FUNCTION("cumsum_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor &,Tensor &> cummax_out_out(Tensor & values, Tensor & indices, const Tensor & self, int64_t dim) {
+  auto& values_ = unpack(values, "values", 0);
+  auto& indices_ = unpack(indices, "indices", 1);
+  auto& self_ = unpack(self, "self", 2);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self )) {
+    throw_error_out_requires_grad("cummax");
+  }
+  if (compute_requires_grad( values )) {
+    throw_error_out_requires_grad("cummax");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> values__storage_saved =
+    values_.has_storage() ? c10::optional<Storage>(values_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> values__impl_saved;
+  if (values_.defined()) values__impl_saved = values_.getIntrusivePtr();
+  c10::optional<Storage> indices__storage_saved =
+    indices_.has_storage() ? c10::optional<Storage>(indices_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> indices__impl_saved;
+  if (indices_.defined()) indices__impl_saved = indices_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::cummax_out(values_, indices_, self_, dim);
+  }
+  #ifndef NDEBUG
+  if (values__storage_saved.has_value())
+    AT_ASSERT(values__storage_saved.value().is_alias_of(values_.storage()));
+  if (values__impl_saved) AT_ASSERT(values__impl_saved == values_.getIntrusivePtr());
+  if (indices__storage_saved.has_value())
+    AT_ASSERT(indices__storage_saved.value().is_alias_of(indices_.storage()));
+  if (indices__impl_saved) AT_ASSERT(indices__impl_saved == indices_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(values);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( values ), grad_fn);
+  }
+  return std::forward_as_tuple(values, indices);
+}
+std::tuple<Tensor &,Tensor &> cummax_out_dimname_out(Tensor & values, Tensor & indices, const Tensor & self, Dimname dim) {
+  TypeDefault::cummax_out_dimname_out(values, indices, self, dim);
+  return std::forward_as_tuple(values, indices);
+}
+Tensor & cumsum_out_out(Tensor & out, const Tensor & self, int64_t dim, c10::optional<ScalarType> dtype) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -4655,26 +2988,6 @@ Tensor & cumsum_out(Tensor & out, const Tensor & self, int64_t dim, c10::optiona
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("cumsum");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cumsum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("cumsum_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -4702,43 +3015,70 @@ Tensor & cumsum_out(Tensor & out, const Tensor & self, int64_t dim, c10::optiona
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & cumsum_out(Tensor & out, const Tensor & self, Dimname dim, c10::optional<ScalarType> dtype) {
-  RECORD_FUNCTION("cumsum_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::cumsum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("cumsum_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::cumsum_out(out, self, dim, dtype);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & cumsum_out_dimname_out(Tensor & out, const Tensor & self, Dimname dim, c10::optional<ScalarType> dtype) {
+  TypeDefault::cumsum_out_dimname_out(out, self, dim, dtype);
   return out;
+}
+Tensor deg2rad(const Tensor & self) {
+  auto& self_ = unpack(self, "self", 0);
+  std::shared_ptr<Deg2RadBackward> grad_fn;
+  if (compute_requires_grad( self )) {
+    grad_fn = std::shared_ptr<Deg2RadBackward>(new Deg2RadBackward(), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self ));
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::deg2rad(self_);
+  })();
+  auto result = std::move(tmp);
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  if (grad_fn) {
+      set_history(flatten_tensor_args( result ), grad_fn);
+  }
+  return result;
+}
+Tensor & deg2rad_(Tensor & self) {
+  auto& self_ = unpack(self, "self", 0);
+  check_inplace(self);
+  std::shared_ptr<Deg2RadBackward> grad_fn;
+  if (compute_requires_grad( self )) {
+    grad_fn = std::shared_ptr<Deg2RadBackward>(new Deg2RadBackward(), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self ));
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::deg2rad_(self_);
+  }
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(self);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( self ), grad_fn);
+  }
+  return self;
 }
 Tensor diag(const Tensor & self, int64_t diagonal) {
-  RECORD_FUNCTION("diag", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<DiagBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -4746,20 +3086,6 @@ Tensor diag(const Tensor & self, int64_t diagonal) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
     grad_fn->diagonal = diagonal;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::diag");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "diagonal", diagonal);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4771,7 +3097,7 @@ Tensor diag(const Tensor & self, int64_t diagonal) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::diag(self_, diagonal);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -4780,33 +3106,15 @@ Tensor diag(const Tensor & self, int64_t diagonal) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor digamma(const Tensor & self) {
-  RECORD_FUNCTION("digamma", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<DigammaBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<DigammaBackward>(new DigammaBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::digamma");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4818,7 +3126,7 @@ Tensor digamma(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::digamma(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -4827,14 +3135,9 @@ Tensor digamma(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & digamma_(Tensor & self) {
-  RECORD_FUNCTION("digamma_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<DigammaBackward> grad_fn;
@@ -4842,23 +3145,6 @@ Tensor & digamma_(Tensor & self) {
     grad_fn = std::shared_ptr<DigammaBackward>(new DigammaBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::digamma");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::digamma_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("digamma_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -4879,14 +3165,9 @@ Tensor & digamma_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & elu_out(Tensor & out, const Tensor & self, Scalar alpha, Scalar scale, Scalar input_scale) {
-  RECORD_FUNCTION("elu_out", std::vector<c10::IValue>({out, self, alpha, scale, input_scale}), Node::peek_at_next_sequence_nr());
+Tensor & elu_out_out(Tensor & out, const Tensor & self, Scalar alpha, Scalar scale, Scalar input_scale) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -4895,27 +3176,6 @@ Tensor & elu_out(Tensor & out, const Tensor & self, Scalar alpha, Scalar scale, 
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("elu");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::elu");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    jit::tracer::addInputs(node, "scale", scale);
-    jit::tracer::addInputs(node, "input_scale", input_scale);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("elu_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -4943,49 +3203,17 @@ Tensor & elu_out(Tensor & out, const Tensor & self, Scalar alpha, Scalar scale, 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-std::tuple<Tensor,Tensor,Tensor,Tensor> embedding_bag(const Tensor & weight, const Tensor & indices, const Tensor & offsets, bool scale_grad_by_freq, int64_t mode, bool sparse, const Tensor & per_sample_weights) {
-  RECORD_FUNCTION("embedding_bag", std::vector<c10::IValue>({weight, indices, offsets, per_sample_weights}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor,Tensor,Tensor,Tensor> embedding_bag(const Tensor & weight, const Tensor & indices, const Tensor & offsets, bool scale_grad_by_freq, int64_t mode, bool sparse, const Tensor & per_sample_weights, bool include_last_offset) {
   Tensor result0;
   Tensor result1;
   Tensor result2;
   Tensor result3;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::embedding_bag");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "offsets", offsets);
-    jit::tracer::addInputs(node, "scale_grad_by_freq", scale_grad_by_freq);
-    jit::tracer::addInputs(node, "mode", mode);
-    jit::tracer::addInputs(node, "sparse", sparse);
-    jit::tracer::addInputs(node, "per_sample_weights", per_sample_weights);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  std::tie(result0, result1, result2, result3) = TypeDefault::embedding_bag(weight, indices, offsets, scale_grad_by_freq, mode, sparse, per_sample_weights);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-    jit::tracer::addOutput(node, result3);
-  }
+  std::tie(result0, result1, result2, result3) = TypeDefault::embedding_bag(weight, indices, offsets, scale_grad_by_freq, mode, sparse, per_sample_weights, include_last_offset);
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2), std::move(result3));
 }
 Tensor embedding_dense_backward(const Tensor & grad_output, const Tensor & indices, int64_t num_weights, int64_t padding_idx, bool scale_grad_by_freq) {
-  RECORD_FUNCTION("embedding_dense_backward", std::vector<c10::IValue>({grad_output, indices}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& indices_ = unpack(indices, "indices", 1);
   std::shared_ptr<EmbeddingDenseBackwardBackward> grad_fn;
@@ -4993,23 +3221,6 @@ Tensor embedding_dense_backward(const Tensor & grad_output, const Tensor & indic
     grad_fn = std::shared_ptr<EmbeddingDenseBackwardBackward>(new EmbeddingDenseBackwardBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( grad_output ));
     grad_fn->indices_ = SavedVariable(indices, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::embedding_dense_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "num_weights", num_weights);
-    jit::tracer::addInputs(node, "padding_idx", padding_idx);
-    jit::tracer::addInputs(node, "scale_grad_by_freq", scale_grad_by_freq);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -5025,7 +3236,7 @@ Tensor embedding_dense_backward(const Tensor & grad_output, const Tensor & indic
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::embedding_dense_backward(grad_output_, indices_, num_weights, padding_idx, scale_grad_by_freq);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -5037,89 +3248,50 @@ Tensor embedding_dense_backward(const Tensor & grad_output, const Tensor & indic
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
-  return result;
-}
-Tensor empty_like(const Tensor & self) {
-  RECORD_FUNCTION("empty_like", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::empty_like");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::empty_like(self);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor empty_like(const Tensor & self, const TensorOptions & options, c10::optional<MemoryFormat> memory_format) {
-  RECORD_FUNCTION("empty_like", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::empty_like");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "options", options);
-    jit::tracer::addInputs(node, "memory_format", memory_format);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::empty_like(self, options, memory_format);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
+  return result;
+}
+Tensor empty_quantized(IntArrayRef size, const Tensor & qtensor) {
+  auto& qtensor_ = unpack(qtensor, "qtensor", 1);
+  std::shared_ptr<NotImplemented> grad_fn;
+  if (compute_requires_grad( qtensor )) {
+    grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("empty_quantized"), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( qtensor ));
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> qtensor__storage_saved =
+    qtensor_.has_storage() ? c10::optional<Storage>(qtensor_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> qtensor__impl_saved;
+  if (qtensor_.defined()) qtensor__impl_saved = qtensor_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::empty_quantized(size, qtensor_);
+  })();
+  auto result = std::move(tmp);
+  #ifndef NDEBUG
+  if (qtensor__storage_saved.has_value())
+    AT_ASSERT(qtensor__storage_saved.value().is_alias_of(qtensor_.storage()));
+  if (qtensor__impl_saved) AT_ASSERT(qtensor__impl_saved == qtensor_.getIntrusivePtr());
+  #endif
+  if (grad_fn) {
+      set_history(flatten_tensor_args( result ), grad_fn);
   }
   return result;
 }
 Tensor empty_strided(IntArrayRef size, IntArrayRef stride, const TensorOptions & options) {
-  RECORD_FUNCTION("empty_strided", std::vector<c10::IValue>({}), Node::peek_at_next_sequence_nr());
-  auto options_ = TensorOptions(options).is_variable(false);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::empty_strided");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
+  auto options_ = TensorOptions(options);
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::empty_strided(size, stride, options_);
   })();
-  auto result = as_variable(std::move(tmp));
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+  auto result = std::move(tmp);
   return result;
 }
-Tensor & erfc_out(Tensor & out, const Tensor & self) {
-  RECORD_FUNCTION("erfc_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & erfc_out_out(Tensor & out, const Tensor & self) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -5128,24 +3300,6 @@ Tensor & erfc_out(Tensor & out, const Tensor & self) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("erfc");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::erfc");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("erfc_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -5173,33 +3327,15 @@ Tensor & erfc_out(Tensor & out, const Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor erfinv(const Tensor & self) {
-  RECORD_FUNCTION("erfinv", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<ErfinvBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<ErfinvBackward>(new ErfinvBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::erfinv");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -5211,7 +3347,7 @@ Tensor erfinv(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::erfinv(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -5220,14 +3356,9 @@ Tensor erfinv(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & erfinv_(Tensor & self) {
-  RECORD_FUNCTION("erfinv_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<ErfinvBackward> grad_fn;
@@ -5235,23 +3366,6 @@ Tensor & erfinv_(Tensor & self) {
     grad_fn = std::shared_ptr<ErfinvBackward>(new ErfinvBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::erfinv");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::erfinv_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("erfinv_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -5272,35 +3386,15 @@ Tensor & erfinv_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor expand(const Tensor & self, IntArrayRef size, bool implicit) {
-  RECORD_FUNCTION("expand", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<ExpandBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<ExpandBackward>(new ExpandBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::expand");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "implicit", implicit);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -5312,7 +3406,14 @@ Tensor expand(const Tensor & self, IntArrayRef size, bool implicit) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return self_.expand(size, implicit);
   })();
-  auto result = as_view(self, tmp, true);
+  c10::optional<std::function<at::Tensor(const at::Tensor&)>> func=c10::nullopt;
+  if (false || !self.unsafeGetTensorImpl()->support_as_strided()) {
+    auto size_vec = size.vec();
+    func = [=](const at::Tensor& input_base) {
+      return input_base.expand(size_vec, implicit);
+    };
+  }
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* view_func */ func, /* creation_meta */ GradMode::is_enabled() ? CreationMeta::DEFAULT: CreationMeta::NO_GRAD_MODE);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -5321,14 +3422,9 @@ Tensor expand(const Tensor & self, IntArrayRef size, bool implicit) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & expm1_out(Tensor & out, const Tensor & self) {
-  RECORD_FUNCTION("expm1_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & expm1_out_out(Tensor & out, const Tensor & self) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -5337,24 +3433,6 @@ Tensor & expm1_out(Tensor & out, const Tensor & self) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("expm1");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::expm1");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("expm1_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -5382,195 +3460,114 @@ Tensor & expm1_out(Tensor & out, const Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor fake_quantize_per_tensor_affine_backward(const Tensor & grad, const Tensor & self, double scale, int64_t zero_point, int64_t quant_min, int64_t quant_max) {
-  RECORD_FUNCTION("fake_quantize_per_tensor_affine_backward", std::vector<c10::IValue>({grad, self}), Node::peek_at_next_sequence_nr());
-  auto& grad_ = unpack(grad, "grad", 0);
-  auto& self_ = unpack(self, "self", 1);
+  auto result = TypeDefault::fake_quantize_per_tensor_affine_backward(grad, self, scale, zero_point, quant_min, quant_max);
+  return result;
+}
+Tensor fft(const Tensor & self, int64_t signal_ndim, bool normalized) {
+  auto result = TypeDefault::fft(self, signal_ndim, normalized);
+  return result;
+}
+Tensor flatten_using_ints(const Tensor & self, int64_t start_dim, int64_t end_dim) {
+  auto result = TypeDefault::flatten_using_ints(self, start_dim, end_dim);
+  return result;
+}
+Tensor flatten_named_out_dim(const Tensor & self, int64_t start_dim, int64_t end_dim, Dimname out_dim) {
+  auto result = TypeDefault::flatten_named_out_dim(self, start_dim, end_dim, out_dim);
+  return result;
+}
+Tensor flatten_using_names(const Tensor & self, Dimname start_dim, Dimname end_dim, Dimname out_dim) {
+  auto result = TypeDefault::flatten_using_names(self, start_dim, end_dim, out_dim);
+  return result;
+}
+Tensor flatten_DimnameList(const Tensor & self, DimnameList dims, Dimname out_dim) {
+  auto result = TypeDefault::flatten_DimnameList(self, dims, out_dim);
+  return result;
+}
+Tensor floor_divide(const Tensor & self, const Tensor & other) {
+  auto& self_ = unpack(self, "self", 0);
+  auto& other_ = unpack(other, "other", 1);
   std::shared_ptr<NotImplemented> grad_fn;
-  if (compute_requires_grad( grad, self )) {
-    grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("fake_quantize_per_tensor_affine_backward"), deleteNode);
-    grad_fn->set_next_edges(collect_next_edges( grad, self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::fake_quantize_per_tensor_affine_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad", grad);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "scale", scale);
-    jit::tracer::addInputs(node, "zero_point", zero_point);
-    jit::tracer::addInputs(node, "quant_min", quant_min);
-    jit::tracer::addInputs(node, "quant_max", quant_max);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+  if (compute_requires_grad( self, other )) {
+    grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("floor_divide"), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self, other ));
   }
   #ifndef NDEBUG
-  c10::optional<Storage> grad__storage_saved =
-    grad_.has_storage() ? c10::optional<Storage>(grad_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> grad__impl_saved;
-  if (grad_.defined()) grad__impl_saved = grad_.getIntrusivePtr();
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
   c10::intrusive_ptr<TensorImpl> self__impl_saved;
   if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  c10::optional<Storage> other__storage_saved =
+    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> other__impl_saved;
+  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::fake_quantize_per_tensor_affine_backward(grad_, self_, scale, zero_point, quant_min, quant_max);
+    return at::floor_divide(self_, other_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
-  if (grad__storage_saved.has_value())
-    AT_ASSERT(grad__storage_saved.value().is_alias_of(grad_.storage()));
-  if (grad__impl_saved) AT_ASSERT(grad__impl_saved == grad_.getIntrusivePtr());
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  if (other__storage_saved.has_value())
+    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
+  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
   #endif
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor fft(const Tensor & self, int64_t signal_ndim, bool normalized) {
-  RECORD_FUNCTION("fft", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::fft");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "signal_ndim", signal_ndim);
-    jit::tracer::addInputs(node, "normalized", normalized);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::fft(self, signal_ndim, normalized);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor floor_divide_Scalar(const Tensor & self, Scalar other) {
+  auto result = TypeDefault::floor_divide_Scalar(self, other);
   return result;
 }
-Tensor flatten(const Tensor & self, int64_t start_dim, int64_t end_dim) {
-  RECORD_FUNCTION("flatten", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::flatten");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "start_dim", start_dim);
-    jit::tracer::addInputs(node, "end_dim", end_dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+Tensor & floor_divide__Tensor(Tensor & self, const Tensor & other) {
+  auto& self_ = unpack(self, "self", 0);
+  auto& other_ = unpack(other, "other", 1);
+  check_inplace(self);
+  std::shared_ptr<NotImplemented> grad_fn;
+  if (compute_requires_grad( self, other )) {
+    grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("floor_divide_"), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self, other ));
   }
-  auto result = TypeDefault::flatten(self, start_dim, end_dim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  c10::optional<Storage> other__storage_saved =
+    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> other__impl_saved;
+  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    self_.floor_divide_(other_);
   }
-  return result;
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  if (other__storage_saved.has_value())
+    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
+  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
+  #endif
+  increment_version(self);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( self ), grad_fn);
+  }
+  return self;
 }
-Tensor flatten(const Tensor & self, int64_t start_dim, int64_t end_dim, Dimname out_dim) {
-  RECORD_FUNCTION("flatten", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::flatten");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "start_dim", start_dim);
-    jit::tracer::addInputs(node, "end_dim", end_dim);
-    jit::tracer::addInputs(node, "out_dim", out_dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::flatten(self, start_dim, end_dim, out_dim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
-  return result;
+Tensor & floor_divide__Scalar(Tensor & self, Scalar other) {
+  TypeDefault::floor_divide__Scalar(self, other);
+  return self;
 }
-Tensor flatten(const Tensor & self, Dimname start_dim, Dimname end_dim, Dimname out_dim) {
-  RECORD_FUNCTION("flatten", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::flatten");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "start_dim", start_dim);
-    jit::tracer::addInputs(node, "end_dim", end_dim);
-    jit::tracer::addInputs(node, "out_dim", out_dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::flatten(self, start_dim, end_dim, out_dim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
-  return result;
-}
-Tensor flatten(const Tensor & self, DimnameList dims, Dimname out_dim) {
-  RECORD_FUNCTION("flatten", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::flatten");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dims", dims);
-    jit::tracer::addInputs(node, "out_dim", out_dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::flatten(self, dims, out_dim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
-  return result;
-}
-Tensor & floor_out(Tensor & out, const Tensor & self) {
-  RECORD_FUNCTION("floor_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & floor_out_out(Tensor & out, const Tensor & self) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -5579,24 +3576,6 @@ Tensor & floor_out(Tensor & out, const Tensor & self) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("floor");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::floor");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("floor_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -5624,63 +3603,17 @@ Tensor & floor_out(Tensor & out, const Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor full(IntArrayRef size, Scalar fill_value, c10::optional<DimnameList> names, const TensorOptions & options) {
-  RECORD_FUNCTION("full", std::vector<c10::IValue>({fill_value}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::full");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "fill_value", fill_value);
-    jit::tracer::addInputs(node, "names", names);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::full(size, fill_value, names, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor full_names(IntArrayRef size, Scalar fill_value, c10::optional<DimnameList> names, const TensorOptions & options) {
+  auto result = TypeDefault::full_names(size, fill_value, names, options);
   return result;
 }
 Tensor full(IntArrayRef size, Scalar fill_value, const TensorOptions & options) {
-  RECORD_FUNCTION("full", std::vector<c10::IValue>({fill_value}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::full");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "fill_value", fill_value);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::full(size, fill_value, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor gather(const Tensor & self, int64_t dim, const Tensor & index, bool sparse_grad) {
-  RECORD_FUNCTION("gather", std::vector<c10::IValue>({self, index}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& index_ = unpack(index, "index", 2);
   std::shared_ptr<GatherBackward> grad_fn;
@@ -5692,22 +3625,6 @@ Tensor gather(const Tensor & self, int64_t dim, const Tensor & index, bool spars
     grad_fn->dim = dim;
     grad_fn->index_ = SavedVariable(index, false);
     grad_fn->sparse_grad = sparse_grad;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::gather");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    jit::tracer::addInputs(node, "sparse_grad", sparse_grad);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -5723,7 +3640,7 @@ Tensor gather(const Tensor & self, int64_t dim, const Tensor & index, bool spars
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::gather(self_, dim, index_, sparse_grad);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -5735,59 +3652,19 @@ Tensor gather(const Tensor & self, int64_t dim, const Tensor & index, bool spars
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor gather(const Tensor & self, Dimname dim, const Tensor & index, bool sparse_grad) {
-  RECORD_FUNCTION("gather", std::vector<c10::IValue>({self, index}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::gather");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    jit::tracer::addInputs(node, "sparse_grad", sparse_grad);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::gather(self, dim, index, sparse_grad);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor gather_dimname(const Tensor & self, Dimname dim, const Tensor & index, bool sparse_grad) {
+  auto result = TypeDefault::gather_dimname(self, dim, index, sparse_grad);
   return result;
 }
 Tensor gelu_backward(const Tensor & grad, const Tensor & self) {
-  RECORD_FUNCTION("gelu_backward", std::vector<c10::IValue>({grad, self}), Node::peek_at_next_sequence_nr());
   auto& grad_ = unpack(grad, "grad", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( grad, self )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("gelu_backward"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( grad, self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::gelu_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad", grad);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad__storage_saved =
@@ -5803,7 +3680,7 @@ Tensor gelu_backward(const Tensor & grad, const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::gelu_backward(grad_, self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad__storage_saved.has_value())
     AT_ASSERT(grad__storage_saved.value().is_alias_of(grad_.storage()));
@@ -5815,14 +3692,9 @@ Tensor gelu_backward(const Tensor & grad, const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 std::tuple<Tensor,Tensor> grid_sampler_3d_backward(const Tensor & grad_output, const Tensor & input, const Tensor & grid, int64_t interpolation_mode, int64_t padding_mode, bool align_corners) {
-  RECORD_FUNCTION("grid_sampler_3d_backward", std::vector<c10::IValue>({grad_output, input, grid}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& input_ = unpack(input, "input", 1);
   auto& grid_ = unpack(grid, "grid", 2);
@@ -5833,24 +3705,6 @@ std::tuple<Tensor,Tensor> grid_sampler_3d_backward(const Tensor & grad_output, c
   }
   Tensor result0;
   Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::grid_sampler_3d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "grid", grid);
-    jit::tracer::addInputs(node, "interpolation_mode", interpolation_mode);
-    jit::tracer::addInputs(node, "padding_mode", padding_mode);
-    jit::tracer::addInputs(node, "align_corners", align_corners);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
     grad_output_.has_storage() ? c10::optional<Storage>(grad_output_.storage()) : c10::nullopt;
@@ -5869,7 +3723,7 @@ std::tuple<Tensor,Tensor> grid_sampler_3d_backward(const Tensor & grad_output, c
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::grid_sampler_3d_backward(grad_output_, input_, grid_, interpolation_mode, padding_mode, align_corners);
   })();
-  std::tie(result0, result1) = as_variable(std::move(tmp));
+  std::tie(result0, result1) = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -5884,67 +3738,21 @@ std::tuple<Tensor,Tensor> grid_sampler_3d_backward(const Tensor & grad_output, c
   if (grad_fn) {
       set_history(flatten_tensor_args( result0, result1 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-  }
   return std::make_tuple(std::move(result0), std::move(result1));
 }
 Tensor gru_cell(const Tensor & input, const Tensor & hx, const Tensor & w_ih, const Tensor & w_hh, const Tensor & b_ih, const Tensor & b_hh) {
-  RECORD_FUNCTION("gru_cell", std::vector<c10::IValue>({input, hx, w_ih, w_hh, b_ih, b_hh}), Node::peek_at_next_sequence_nr());
   auto result = TypeDefault::gru_cell(input, hx, w_ih, w_hh, b_ih, b_hh);
   return result;
 }
 Tensor hann_window(int64_t window_length, const TensorOptions & options) {
-  RECORD_FUNCTION("hann_window", std::vector<c10::IValue>({}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::hann_window");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "window_length", window_length);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::hann_window(window_length, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor hann_window(int64_t window_length, bool periodic, const TensorOptions & options) {
-  RECORD_FUNCTION("hann_window", std::vector<c10::IValue>({}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::hann_window");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "window_length", window_length);
-    jit::tracer::addInputs(node, "periodic", periodic);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::hann_window(window_length, periodic, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor hann_window_periodic(int64_t window_length, bool periodic, const TensorOptions & options) {
+  auto result = TypeDefault::hann_window_periodic(window_length, periodic, options);
   return result;
 }
 Tensor hardshrink(const Tensor & self, Scalar lambd) {
-  RECORD_FUNCTION("hardshrink", std::vector<c10::IValue>({self, lambd}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<HardshrinkBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -5952,20 +3760,6 @@ Tensor hardshrink(const Tensor & self, Scalar lambd) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->lambd = lambd;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::hardshrink");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "lambd", lambd);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -5977,7 +3771,7 @@ Tensor hardshrink(const Tensor & self, Scalar lambd) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::hardshrink(self_, lambd);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -5986,38 +3780,13 @@ Tensor hardshrink(const Tensor & self, Scalar lambd) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor ifft(const Tensor & self, int64_t signal_ndim, bool normalized) {
-  RECORD_FUNCTION("ifft", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::ifft");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "signal_ndim", signal_ndim);
-    jit::tracer::addInputs(node, "normalized", normalized);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::ifft(self, signal_ndim, normalized);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & index_select_out(Tensor & out, const Tensor & self, int64_t dim, const Tensor & index) {
-  RECORD_FUNCTION("index_select_out", std::vector<c10::IValue>({out, self, index}), Node::peek_at_next_sequence_nr());
+Tensor & index_select_out_out(Tensor & out, const Tensor & self, int64_t dim, const Tensor & index) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& index_ = unpack(index, "index", 3);
@@ -6027,26 +3796,6 @@ Tensor & index_select_out(Tensor & out, const Tensor & self, int64_t dim, const 
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("index_select");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::index_select");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("index_select_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -6081,57 +3830,14 @@ Tensor & index_select_out(Tensor & out, const Tensor & self, int64_t dim, const 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & index_select_out(Tensor & out, const Tensor & self, Dimname dim, const Tensor & index) {
-  RECORD_FUNCTION("index_select_out", std::vector<c10::IValue>({out, self, index}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::index_select");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("index_select_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::index_select_out(out, self, dim, index);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & index_select_out_dimname_out(Tensor & out, const Tensor & self, Dimname dim, const Tensor & index) {
+  TypeDefault::index_select_out_dimname_out(out, self, dim, index);
   return out;
 }
 Tensor indices(const Tensor & self) {
-  RECORD_FUNCTION("indices", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::indices");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -6142,20 +3848,15 @@ Tensor indices(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return self_.indices();
   })();
-  auto result = as_view(self, tmp, false);
+  auto result = as_view(self, tmp, /* is_differentiable */ false);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 bool is_complex(const Tensor & self) {
-  RECORD_FUNCTION("is_complex", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto result = TypeDefault::is_complex(self);
   return result;
 }
@@ -6163,8 +3864,7 @@ bool is_same_size(const Tensor & self, const Tensor & other) {
   auto result = TypeDefault::is_same_size(self, other);
   return result;
 }
-Tensor & l1_loss_out(Tensor & out, const Tensor & self, const Tensor & target, int64_t reduction) {
-  RECORD_FUNCTION("l1_loss_out", std::vector<c10::IValue>({out, self, target}), Node::peek_at_next_sequence_nr());
+Tensor & l1_loss_out_out(Tensor & out, const Tensor & self, const Tensor & target, int64_t reduction) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& target_ = unpack(target, "target", 2);
@@ -6174,26 +3874,6 @@ Tensor & l1_loss_out(Tensor & out, const Tensor & self, const Tensor & target, i
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("l1_loss");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::l1_loss");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("l1_loss_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -6228,41 +3908,13 @@ Tensor & l1_loss_out(Tensor & out, const Tensor & self, const Tensor & target, i
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor layer_norm(const Tensor & input, IntArrayRef normalized_shape, const Tensor & weight, const Tensor & bias, double eps, bool cudnn_enable) {
-  RECORD_FUNCTION("layer_norm", std::vector<c10::IValue>({input, weight, bias}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::layer_norm");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "normalized_shape", normalized_shape);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "bias", bias);
-    jit::tracer::addInputs(node, "eps", eps);
-    jit::tracer::addInputs(node, "cudnn_enable", cudnn_enable);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::layer_norm(input, normalized_shape, weight, bias, eps, cudnn_enable);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor leaky_relu_backward(const Tensor & grad_output, const Tensor & self, Scalar negative_slope) {
-  RECORD_FUNCTION("leaky_relu_backward", std::vector<c10::IValue>({grad_output, self, negative_slope}), Node::peek_at_next_sequence_nr());
+Tensor leaky_relu_backward(const Tensor & grad_output, const Tensor & self, Scalar negative_slope, bool self_is_result) {
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<LeakyReluBackwardBackward> grad_fn;
@@ -6271,21 +3923,6 @@ Tensor leaky_relu_backward(const Tensor & grad_output, const Tensor & self, Scal
     grad_fn->set_next_edges(collect_next_edges( grad_output, self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->negative_slope = negative_slope;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::leaky_relu_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "negative_slope", negative_slope);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -6299,9 +3936,9 @@ Tensor leaky_relu_backward(const Tensor & grad_output, const Tensor & self, Scal
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::leaky_relu_backward(grad_output_, self_, negative_slope);
+    return at::leaky_relu_backward(grad_output_, self_, negative_slope, self_is_result);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -6313,14 +3950,9 @@ Tensor leaky_relu_backward(const Tensor & grad_output, const Tensor & self, Scal
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor lerp(const Tensor & self, const Tensor & end, Scalar weight) {
-  RECORD_FUNCTION("lerp", std::vector<c10::IValue>({self, end, weight}), Node::peek_at_next_sequence_nr());
+Tensor lerp_Scalar(const Tensor & self, const Tensor & end, Scalar weight) {
   auto& self_ = unpack(self, "self", 0);
   auto& end_ = unpack(end, "end", 1);
   std::shared_ptr<LerpBackward0> grad_fn;
@@ -6328,21 +3960,6 @@ Tensor lerp(const Tensor & self, const Tensor & end, Scalar weight) {
     grad_fn = std::shared_ptr<LerpBackward0>(new LerpBackward0(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self, end ));
     grad_fn->weight = weight;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::lerp");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "end", end);
-    jit::tracer::addInputs(node, "weight", weight);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -6358,7 +3975,7 @@ Tensor lerp(const Tensor & self, const Tensor & end, Scalar weight) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::lerp(self_, end_, weight);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -6370,38 +3987,23 @@ Tensor lerp(const Tensor & self, const Tensor & end, Scalar weight) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor lerp(const Tensor & self, const Tensor & end, const Tensor & weight) {
-  RECORD_FUNCTION("lerp", std::vector<c10::IValue>({self, end, weight}), Node::peek_at_next_sequence_nr());
+Tensor lerp_Tensor(const Tensor & self, const Tensor & end, const Tensor & weight) {
   auto& self_ = unpack(self, "self", 0);
   auto& end_ = unpack(end, "end", 1);
   auto& weight_ = unpack(weight, "weight", 2);
-  check_no_requires_grad(weight, "weight");
   std::shared_ptr<LerpBackward1> grad_fn;
-  if (compute_requires_grad( self, end )) {
+  if (compute_requires_grad( self, end, weight )) {
     grad_fn = std::shared_ptr<LerpBackward1>(new LerpBackward1(), deleteNode);
-    grad_fn->set_next_edges(collect_next_edges( self, end ));
+    grad_fn->set_next_edges(collect_next_edges( self, end, weight ));
     grad_fn->weight_ = SavedVariable(weight, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::lerp");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "end", end);
-    jit::tracer::addInputs(node, "weight", weight);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+    if (grad_fn->should_compute_output(2)) {
+      grad_fn->self_ = SavedVariable(self, false);
+    }
+    if (grad_fn->should_compute_output(2)) {
+      grad_fn->end_ = SavedVariable(end, false);
+    }
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -6421,7 +4023,7 @@ Tensor lerp(const Tensor & self, const Tensor & end, const Tensor & weight) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::lerp(self_, end_, weight_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -6436,14 +4038,9 @@ Tensor lerp(const Tensor & self, const Tensor & end, const Tensor & weight) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & lerp_(Tensor & self, const Tensor & end, Scalar weight) {
-  RECORD_FUNCTION("lerp_", std::vector<c10::IValue>({self, end, weight}), Node::peek_at_next_sequence_nr());
+Tensor & lerp__Scalar(Tensor & self, const Tensor & end, Scalar weight) {
   auto& self_ = unpack(self, "self", 0);
   auto& end_ = unpack(end, "end", 1);
   check_inplace(self);
@@ -6452,25 +4049,6 @@ Tensor & lerp_(Tensor & self, const Tensor & end, Scalar weight) {
     grad_fn = std::shared_ptr<LerpBackward0>(new LerpBackward0(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self, end ));
     grad_fn->weight = weight;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::lerp");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::lerp_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "end", end);
-    jit::tracer::addInputs(node, "weight", weight);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("lerp_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -6498,43 +4076,24 @@ Tensor & lerp_(Tensor & self, const Tensor & end, Scalar weight) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & lerp_(Tensor & self, const Tensor & end, const Tensor & weight) {
-  RECORD_FUNCTION("lerp_", std::vector<c10::IValue>({self, end, weight}), Node::peek_at_next_sequence_nr());
+Tensor & lerp__Tensor(Tensor & self, const Tensor & end, const Tensor & weight) {
   auto& self_ = unpack(self, "self", 0);
   auto& end_ = unpack(end, "end", 1);
   auto& weight_ = unpack(weight, "weight", 2);
   check_inplace(self);
-  check_no_requires_grad(weight, "weight");
   std::shared_ptr<LerpBackward1> grad_fn;
-  if (compute_requires_grad( self, end )) {
+  if (compute_requires_grad( self, end, weight )) {
     grad_fn = std::shared_ptr<LerpBackward1>(new LerpBackward1(), deleteNode);
-    grad_fn->set_next_edges(collect_next_edges( self, end ));
+    grad_fn->set_next_edges(collect_next_edges( self, end, weight ));
     grad_fn->weight_ = SavedVariable(weight, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::lerp");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::lerp_");
+    if (grad_fn->should_compute_output(2)) {
+      grad_fn->self_ = SavedVariable(self.clone(), false);
     }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "end", end);
-    jit::tracer::addInputs(node, "weight", weight);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("lerp_", self);
-    jit::tracer::setTracingState(nullptr);
+    if (grad_fn->should_compute_output(2)) {
+      grad_fn->end_ = SavedVariable(end, false);
+    }
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -6569,41 +4128,17 @@ Tensor & lerp_(Tensor & self, const Tensor & end, const Tensor & weight) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor linear(const Tensor & input, const Tensor & weight, const Tensor & bias) {
-  RECORD_FUNCTION("linear", std::vector<c10::IValue>({input, weight, bias}), Node::peek_at_next_sequence_nr());
   auto result = TypeDefault::linear(input, weight, bias);
   return result;
 }
 Tensor log_sigmoid(const Tensor & self) {
-  RECORD_FUNCTION("log_sigmoid", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::log_sigmoid");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::log_sigmoid(self);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & log_sigmoid_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & buffer) {
-  RECORD_FUNCTION("log_sigmoid_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self, buffer}), Node::peek_at_next_sequence_nr());
+Tensor & log_sigmoid_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & buffer) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -6614,26 +4149,6 @@ Tensor & log_sigmoid_backward_out(Tensor & grad_input, const Tensor & grad_outpu
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("log_sigmoid_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::log_sigmoid_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "buffer", buffer);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("log_sigmoid_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -6675,14 +4190,97 @@ Tensor & log_sigmoid_backward_out(Tensor & grad_input, const Tensor & grad_outpu
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
-Tensor & logical_xor_out(Tensor & out, const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("logical_xor_out", std::vector<c10::IValue>({out, self, other}), Node::peek_at_next_sequence_nr());
+Tensor & logcumsumexp_out_out(Tensor & out, const Tensor & self, int64_t dim) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self )) {
+    throw_error_out_requires_grad("logcumsumexp");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("logcumsumexp");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::logcumsumexp_out(out_, self_, dim);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
+  }
+  return out;
+}
+Tensor & logcumsumexp_out_dimname_out(Tensor & out, const Tensor & self, Dimname dim) {
+  TypeDefault::logcumsumexp_out_dimname_out(out, self, dim);
+  return out;
+}
+Tensor & logical_or_out_out(Tensor & out, const Tensor & self, const Tensor & other) {
+  auto& out_ = unpack(out, "out", 0);
+  auto& self_ = unpack(self, "self", 1);
+  auto& other_ = unpack(other, "other", 2);
+  std::shared_ptr<Node> grad_fn;
+  if (compute_requires_grad( self, other )) {
+    throw_error_out_requires_grad("logical_or");
+  }
+  if (compute_requires_grad( out )) {
+    throw_error_out_requires_grad("logical_or");
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> out__storage_saved =
+    out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> out__impl_saved;
+  if (out_.defined()) out__impl_saved = out_.getIntrusivePtr();
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  c10::optional<Storage> other__storage_saved =
+    other_.has_storage() ? c10::optional<Storage>(other_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> other__impl_saved;
+  if (other_.defined()) other__impl_saved = other_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::logical_or_out(out_, self_, other_);
+  }
+  #ifndef NDEBUG
+  if (out__storage_saved.has_value())
+    AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
+  if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  if (other__storage_saved.has_value())
+    AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
+  if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
+  #endif
+  increment_version(out);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( out ), grad_fn);
+  }
+  return out;
+}
+Tensor & logical_xor_out_out(Tensor & out, const Tensor & self, const Tensor & other) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& other_ = unpack(other, "other", 2);
@@ -6692,25 +4290,6 @@ Tensor & logical_xor_out(Tensor & out, const Tensor & self, const Tensor & other
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("logical_xor");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::logical_xor");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("logical_xor_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -6745,36 +4324,10 @@ Tensor & logical_xor_out(Tensor & out, const Tensor & self, const Tensor & other
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps, double base) {
-  RECORD_FUNCTION("logspace_out", std::vector<c10::IValue>({out, start, end}), Node::peek_at_next_sequence_nr());
+Tensor & logspace_out_out(Tensor & out, Scalar start, Scalar end, int64_t steps, double base) {
   auto& out_ = unpack(out, "out", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::logspace");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "start", start);
-    jit::tracer::addInputs(node, "end", end);
-    jit::tracer::addInputs(node, "steps", steps);
-    jit::tracer::addInputs(node, "base", base);
-    if (tracer_state->force_outplace) {
-      jit::tracer::addInputs(node, "out", out.options());
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("logspace_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
     out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
@@ -6790,14 +4343,9 @@ Tensor & logspace_out(Tensor & out, Scalar start, Scalar end, int64_t steps, dou
     AT_ASSERT(out__storage_saved.value().is_alias_of(out_.storage()));
   if (out__impl_saved) AT_ASSERT(out__impl_saved == out_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & logsumexp_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool keepdim) {
-  RECORD_FUNCTION("logsumexp_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & logsumexp_out_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool keepdim) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -6806,26 +4354,6 @@ Tensor & logsumexp_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool 
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("logsumexp");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::logsumexp");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("logsumexp_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -6853,71 +4381,17 @@ Tensor & logsumexp_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & logsumexp_out(Tensor & out, const Tensor & self, DimnameList dim, bool keepdim) {
-  RECORD_FUNCTION("logsumexp_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::logsumexp");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("logsumexp_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::logsumexp_out(out, self, dim, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & logsumexp_out_names_out(Tensor & out, const Tensor & self, DimnameList dim, bool keepdim) {
+  TypeDefault::logsumexp_out_names_out(out, self, dim, keepdim);
   return out;
 }
-Tensor & matmul_out(Tensor & out, const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("matmul_out", std::vector<c10::IValue>({out, self, other}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::matmul");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("matmul_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::matmul_out(out, self, other);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & matmul_out_out(Tensor & out, const Tensor & self, const Tensor & other) {
+  TypeDefault::matmul_out_out(out, self, other);
   return out;
 }
-std::tuple<Tensor &,Tensor &> max_out(Tensor & max, Tensor & max_values, const Tensor & self, int64_t dim, bool keepdim) {
-  RECORD_FUNCTION("max_out", std::vector<c10::IValue>({max, max_values, self}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor &,Tensor &> max_out_dim_max(Tensor & max, Tensor & max_values, const Tensor & self, int64_t dim, bool keepdim) {
   auto& max_ = unpack(max, "max", 0);
   auto& max_values_ = unpack(max_values, "max_values", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -6927,27 +4401,6 @@ std::tuple<Tensor &,Tensor &> max_out(Tensor & max, Tensor & max_values, const T
   }
   if (compute_requires_grad( max )) {
     throw_error_out_requires_grad("max");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::max");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "max_values", max_values);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "max", max);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("max_out", max);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> max__storage_saved =
@@ -6982,46 +4435,13 @@ std::tuple<Tensor &,Tensor &> max_out(Tensor & max, Tensor & max_values, const T
   if (grad_fn) {
       rebase_history(flatten_tensor_args( max ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, max);
-    jit::tracer::addOutput(node, max_values);
-  }
   return std::forward_as_tuple(max, max_values);
 }
-std::tuple<Tensor &,Tensor &> max_out(Tensor & max, Tensor & max_values, const Tensor & self, Dimname dim, bool keepdim) {
-  RECORD_FUNCTION("max_out", std::vector<c10::IValue>({max, max_values, self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::max");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "max_values", max_values);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "max", max);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("max_out", max);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::max_out(max, max_values, self, dim, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, max);
-    jit::tracer::addOutput(node, max_values);
-  }
+std::tuple<Tensor &,Tensor &> max_out_names_dim_max(Tensor & max, Tensor & max_values, const Tensor & self, Dimname dim, bool keepdim) {
+  TypeDefault::max_out_names_dim_max(max, max_values, self, dim, keepdim);
   return std::forward_as_tuple(max, max_values);
 }
-Tensor & max_out(Tensor & out, const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("max_out", std::vector<c10::IValue>({out, self, other}), Node::peek_at_next_sequence_nr());
+Tensor & max_out_out(Tensor & out, const Tensor & self, const Tensor & other) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& other_ = unpack(other, "other", 2);
@@ -7031,25 +4451,6 @@ Tensor & max_out(Tensor & out, const Tensor & self, const Tensor & other) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("max");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::max");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("max_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -7084,14 +4485,9 @@ Tensor & max_out(Tensor & out, const Tensor & self, const Tensor & other) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor max_unpool2d(const Tensor & self, const Tensor & indices, IntArrayRef output_size) {
-  RECORD_FUNCTION("max_unpool2d", std::vector<c10::IValue>({self, indices}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& indices_ = unpack(indices, "indices", 1);
   std::shared_ptr<MaxUnpool2DBackward> grad_fn;
@@ -7101,21 +4497,6 @@ Tensor max_unpool2d(const Tensor & self, const Tensor & indices, IntArrayRef out
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->indices_ = SavedVariable(indices, false);
     grad_fn->output_size = output_size.vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::max_unpool2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -7131,7 +4512,7 @@ Tensor max_unpool2d(const Tensor & self, const Tensor & indices, IntArrayRef out
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::max_unpool2d(self_, indices_, output_size);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -7143,14 +4524,9 @@ Tensor max_unpool2d(const Tensor & self, const Tensor & indices, IntArrayRef out
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & max_unpool2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices, IntArrayRef output_size) {
-  RECORD_FUNCTION("max_unpool2d_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self, indices}), Node::peek_at_next_sequence_nr());
+Tensor & max_unpool2d_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & indices, IntArrayRef output_size) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -7161,27 +4537,6 @@ Tensor & max_unpool2d_backward_out(Tensor & grad_input, const Tensor & grad_outp
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("max_unpool2d_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::max_unpool2d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("max_unpool2d_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -7223,14 +4578,9 @@ Tensor & max_unpool2d_backward_out(Tensor & grad_input, const Tensor & grad_outp
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
-Tensor & max_unpool3d_out(Tensor & out, const Tensor & self, const Tensor & indices, IntArrayRef output_size, IntArrayRef stride, IntArrayRef padding) {
-  RECORD_FUNCTION("max_unpool3d_out", std::vector<c10::IValue>({out, self, indices}), Node::peek_at_next_sequence_nr());
+Tensor & max_unpool3d_out_out(Tensor & out, const Tensor & self, const Tensor & indices, IntArrayRef output_size, IntArrayRef stride, IntArrayRef padding) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& indices_ = unpack(indices, "indices", 2);
@@ -7240,28 +4590,6 @@ Tensor & max_unpool3d_out(Tensor & out, const Tensor & self, const Tensor & indi
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("max_unpool3d");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::max_unpool3d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("max_unpool3d_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -7296,62 +4624,17 @@ Tensor & max_unpool3d_out(Tensor & out, const Tensor & self, const Tensor & indi
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor min_values(const Tensor & self, IntArrayRef dim, bool keepdim) {
-  RECORD_FUNCTION("min_values", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::min_values");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::min_values(self, dim, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor min_values(const Tensor & self, DimnameList dim, bool keepdim) {
-  RECORD_FUNCTION("min_values", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::min_values");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::min_values(self, dim, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor min_values_names(const Tensor & self, DimnameList dim, bool keepdim) {
+  auto result = TypeDefault::min_values_names(self, dim, keepdim);
   return result;
 }
 std::tuple<Tensor,Tensor,Tensor> miopen_convolution_backward(const Tensor & self, const Tensor & grad_output, const Tensor & weight, IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation, int64_t groups, bool benchmark, bool deterministic, std::array<bool,3> output_mask) {
-  RECORD_FUNCTION("miopen_convolution_backward", std::vector<c10::IValue>({self, grad_output, weight}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& weight_ = unpack(weight, "weight", 2);
@@ -7372,28 +4655,6 @@ std::tuple<Tensor,Tensor,Tensor> miopen_convolution_backward(const Tensor & self
   Tensor result0;
   Tensor result1;
   Tensor result2;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::miopen_convolution_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    jit::tracer::addInputs(node, "groups", groups);
-    jit::tracer::addInputs(node, "benchmark", benchmark);
-    jit::tracer::addInputs(node, "deterministic", deterministic);
-    jit::tracer::addInputs(node, "output_mask", output_mask);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -7412,7 +4673,7 @@ std::tuple<Tensor,Tensor,Tensor> miopen_convolution_backward(const Tensor & self
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::miopen_convolution_backward(self_, grad_output_, weight_, padding, stride, dilation, groups, benchmark, deterministic, output_mask);
   })();
-  std::tie(result0, result1, result2) = as_variable(std::move(tmp));
+  std::tie(result0, result1, result2) = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -7427,34 +4688,14 @@ std::tuple<Tensor,Tensor,Tensor> miopen_convolution_backward(const Tensor & self
   if (grad_fn) {
       set_history(flatten_tensor_args( result0, result1, result2 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-  }
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2));
 }
 Tensor miopen_convolution_backward_bias(const Tensor & grad_output) {
-  RECORD_FUNCTION("miopen_convolution_backward_bias", std::vector<c10::IValue>({grad_output}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( grad_output )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("miopen_convolution_backward_bias"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( grad_output ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::miopen_convolution_backward_bias");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -7466,7 +4707,7 @@ Tensor miopen_convolution_backward_bias(const Tensor & grad_output) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::miopen_convolution_backward_bias(grad_output_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -7475,41 +4716,15 @@ Tensor miopen_convolution_backward_bias(const Tensor & grad_output) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor miopen_convolution_backward_input(IntArrayRef self_size, const Tensor & grad_output, const Tensor & weight, IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation, int64_t groups, bool benchmark, bool deterministic) {
-  RECORD_FUNCTION("miopen_convolution_backward_input", std::vector<c10::IValue>({grad_output, weight}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& weight_ = unpack(weight, "weight", 2);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( grad_output, weight )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("miopen_convolution_backward_input"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( grad_output, weight ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::miopen_convolution_backward_input");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self_size", self_size);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    jit::tracer::addInputs(node, "groups", groups);
-    jit::tracer::addInputs(node, "benchmark", benchmark);
-    jit::tracer::addInputs(node, "deterministic", deterministic);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -7525,7 +4740,7 @@ Tensor miopen_convolution_backward_input(IntArrayRef self_size, const Tensor & g
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::miopen_convolution_backward_input(self_size, grad_output_, weight_, padding, stride, dilation, groups, benchmark, deterministic);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -7537,14 +4752,9 @@ Tensor miopen_convolution_backward_input(IntArrayRef self_size, const Tensor & g
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor miopen_convolution_transpose(const Tensor & self, const Tensor & weight, const Tensor & bias, IntArrayRef padding, IntArrayRef output_padding, IntArrayRef stride, IntArrayRef dilation, int64_t groups, bool benchmark, bool deterministic) {
-  RECORD_FUNCTION("miopen_convolution_transpose", std::vector<c10::IValue>({self, weight, bias}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& weight_ = unpack(weight, "weight", 1);
   auto bias_ = unpack_opt(bias, "bias", 2);
@@ -7561,28 +4771,6 @@ Tensor miopen_convolution_transpose(const Tensor & self, const Tensor & weight, 
     grad_fn->groups = groups;
     grad_fn->benchmark = benchmark;
     grad_fn->deterministic = deterministic;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::miopen_convolution_transpose");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "bias", bias);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "output_padding", output_padding);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    jit::tracer::addInputs(node, "groups", groups);
-    jit::tracer::addInputs(node, "benchmark", benchmark);
-    jit::tracer::addInputs(node, "deterministic", deterministic);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -7602,7 +4790,7 @@ Tensor miopen_convolution_transpose(const Tensor & self, const Tensor & weight, 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::miopen_convolution_transpose(self_, weight_, bias_, padding, output_padding, stride, dilation, groups, benchmark, deterministic);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -7617,33 +4805,14 @@ Tensor miopen_convolution_transpose(const Tensor & self, const Tensor & weight, 
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor mkldnn_adaptive_avg_pool2d(const Tensor & self, IntArrayRef output_size) {
-  RECORD_FUNCTION("mkldnn_adaptive_avg_pool2d", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("mkldnn_adaptive_avg_pool2d"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::mkldnn_adaptive_avg_pool2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -7655,7 +4824,7 @@ Tensor mkldnn_adaptive_avg_pool2d(const Tensor & self, IntArrayRef output_size) 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::mkldnn_adaptive_avg_pool2d(self_, output_size);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -7664,14 +4833,9 @@ Tensor mkldnn_adaptive_avg_pool2d(const Tensor & self, IntArrayRef output_size) 
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor mkldnn_convolution(const Tensor & self, const Tensor & weight, const Tensor & bias, IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation, int64_t groups) {
-  RECORD_FUNCTION("mkldnn_convolution", std::vector<c10::IValue>({self, weight, bias}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& weight_ = unpack(weight, "weight", 1);
   auto bias_ = unpack_opt(bias, "bias", 2);
@@ -7685,25 +4849,6 @@ Tensor mkldnn_convolution(const Tensor & self, const Tensor & weight, const Tens
     grad_fn->stride = stride.vec();
     grad_fn->dilation = dilation.vec();
     grad_fn->groups = groups;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::mkldnn_convolution");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "bias", bias);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    jit::tracer::addInputs(node, "groups", groups);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -7723,7 +4868,7 @@ Tensor mkldnn_convolution(const Tensor & self, const Tensor & weight, const Tens
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::mkldnn_convolution(self_, weight_, bias_, padding, stride, dilation, groups);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -7738,36 +4883,14 @@ Tensor mkldnn_convolution(const Tensor & self, const Tensor & weight, const Tens
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor mkldnn_reorder_conv2d_weight(const Tensor & self, IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation, int64_t groups) {
-  RECORD_FUNCTION("mkldnn_reorder_conv2d_weight", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("mkldnn_reorder_conv2d_weight"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::mkldnn_reorder_conv2d_weight");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    jit::tracer::addInputs(node, "groups", groups);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -7779,7 +4902,7 @@ Tensor mkldnn_reorder_conv2d_weight(const Tensor & self, IntArrayRef padding, In
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::mkldnn_reorder_conv2d_weight(self_, padding, stride, dilation, groups);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -7788,14 +4911,9 @@ Tensor mkldnn_reorder_conv2d_weight(const Tensor & self, IntArrayRef padding, In
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-std::tuple<Tensor &,Tensor &> mode_out(Tensor & values, Tensor & indices, const Tensor & self, int64_t dim, bool keepdim) {
-  RECORD_FUNCTION("mode_out", std::vector<c10::IValue>({values, indices, self}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor &,Tensor &> mode_out_values(Tensor & values, Tensor & indices, const Tensor & self, int64_t dim, bool keepdim) {
   auto& values_ = unpack(values, "values", 0);
   auto& indices_ = unpack(indices, "indices", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -7805,27 +4923,6 @@ std::tuple<Tensor &,Tensor &> mode_out(Tensor & values, Tensor & indices, const 
   }
   if (compute_requires_grad( values )) {
     throw_error_out_requires_grad("mode");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::mode");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "values", values);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("mode_out", values);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> values__storage_saved =
@@ -7860,46 +4957,13 @@ std::tuple<Tensor &,Tensor &> mode_out(Tensor & values, Tensor & indices, const 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( values ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, values);
-    jit::tracer::addOutput(node, indices);
-  }
   return std::forward_as_tuple(values, indices);
 }
-std::tuple<Tensor &,Tensor &> mode_out(Tensor & values, Tensor & indices, const Tensor & self, Dimname dim, bool keepdim) {
-  RECORD_FUNCTION("mode_out", std::vector<c10::IValue>({values, indices, self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::mode");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "values", values);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("mode_out", values);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::mode_out(values, indices, self, dim, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, values);
-    jit::tracer::addOutput(node, indices);
-  }
+std::tuple<Tensor &,Tensor &> mode_out_dimname_out(Tensor & values, Tensor & indices, const Tensor & self, Dimname dim, bool keepdim) {
+  TypeDefault::mode_out_dimname_out(values, indices, self, dim, keepdim);
   return std::forward_as_tuple(values, indices);
 }
 Tensor mse_loss_backward(const Tensor & grad_output, const Tensor & self, const Tensor & target, int64_t reduction) {
-  RECORD_FUNCTION("mse_loss_backward", std::vector<c10::IValue>({grad_output, self, target}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& target_ = unpack(target, "target", 2);
@@ -7912,22 +4976,6 @@ Tensor mse_loss_backward(const Tensor & grad_output, const Tensor & self, const 
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->target_ = SavedVariable(target, false);
     grad_fn->reduction = reduction;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::mse_loss_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -7947,7 +4995,7 @@ Tensor mse_loss_backward(const Tensor & grad_output, const Tensor & self, const 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::mse_loss_backward(grad_output_, self_, target_, reduction);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -7962,14 +5010,9 @@ Tensor mse_loss_backward(const Tensor & grad_output, const Tensor & self, const 
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor multilabel_margin_loss_backward(const Tensor & grad_output, const Tensor & self, const Tensor & target, int64_t reduction, const Tensor & is_target) {
-  RECORD_FUNCTION("multilabel_margin_loss_backward", std::vector<c10::IValue>({grad_output, self, target, is_target}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& target_ = unpack(target, "target", 2);
@@ -7978,23 +5021,6 @@ Tensor multilabel_margin_loss_backward(const Tensor & grad_output, const Tensor 
   if (compute_requires_grad( grad_output, self, target, is_target )) {
     grad_fn = std::shared_ptr<NotImplemented>(new NotImplemented("multilabel_margin_loss_backward"), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( grad_output, self, target, is_target ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::multilabel_margin_loss_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    jit::tracer::addInputs(node, "is_target", is_target);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -8018,7 +5044,7 @@ Tensor multilabel_margin_loss_backward(const Tensor & grad_output, const Tensor 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::multilabel_margin_loss_backward(grad_output_, self_, target_, reduction, is_target_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -8036,14 +5062,9 @@ Tensor multilabel_margin_loss_backward(const Tensor & grad_output, const Tensor 
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-std::tuple<Tensor &,Tensor &> multilabel_margin_loss_forward_out(Tensor & output, Tensor & is_target, const Tensor & self, const Tensor & target, int64_t reduction) {
-  RECORD_FUNCTION("multilabel_margin_loss_forward_out", std::vector<c10::IValue>({output, is_target, self, target}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor &,Tensor &> multilabel_margin_loss_forward_out_output(Tensor & output, Tensor & is_target, const Tensor & self, const Tensor & target, int64_t reduction) {
   auto& output_ = unpack(output, "output", 0);
   auto& is_target_ = unpack(is_target, "is_target", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -8054,27 +5075,6 @@ std::tuple<Tensor &,Tensor &> multilabel_margin_loss_forward_out(Tensor & output
   }
   if (compute_requires_grad( output )) {
     throw_error_out_requires_grad("multilabel_margin_loss_forward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::multilabel_margin_loss_forward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "is_target", is_target);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "output", output);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("multilabel_margin_loss_forward_out", output);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> output__storage_saved =
@@ -8116,32 +5116,10 @@ std::tuple<Tensor &,Tensor &> multilabel_margin_loss_forward_out(Tensor & output
   if (grad_fn) {
       rebase_history(flatten_tensor_args( output ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, output);
-    jit::tracer::addOutput(node, is_target);
-  }
   return std::forward_as_tuple(output, is_target);
 }
-Tensor multinomial(const Tensor & self, int64_t num_samples, bool replacement, Generator * generator) {
-  RECORD_FUNCTION("multinomial", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+Tensor multinomial(const Tensor & self, int64_t num_samples, bool replacement, c10::optional<Generator> generator) {
   auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::multinomial");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "num_samples", num_samples);
-    jit::tracer::addInputs(node, "replacement", replacement);
-    jit::tracer::addInputs(node, "generator", generator);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -8152,20 +5130,15 @@ Tensor multinomial(const Tensor & self, int64_t num_samples, bool replacement, G
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::multinomial(self_, num_samples, replacement, generator);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor mvlgamma(const Tensor & self, int64_t p) {
-  RECORD_FUNCTION("mvlgamma", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<MvlgammaBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -8173,20 +5146,6 @@ Tensor mvlgamma(const Tensor & self, int64_t p) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->p = p;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::mvlgamma");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "p", p);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -8198,7 +5157,7 @@ Tensor mvlgamma(const Tensor & self, int64_t p) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::mvlgamma(self_, p);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -8207,14 +5166,9 @@ Tensor mvlgamma(const Tensor & self, int64_t p) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & mvlgamma_(Tensor & self, int64_t p) {
-  RECORD_FUNCTION("mvlgamma_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<MvlgammaBackward> grad_fn;
@@ -8223,24 +5177,6 @@ Tensor & mvlgamma_(Tensor & self, int64_t p) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
     grad_fn->p = p;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::mvlgamma");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::mvlgamma_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "p", p);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("mvlgamma_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -8261,39 +5197,17 @@ Tensor & mvlgamma_(Tensor & self, int64_t p) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 Tensor narrow(const Tensor & self, int64_t dim, int64_t start, int64_t length) {
-  RECORD_FUNCTION("narrow", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::narrow");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "start", start);
-    jit::tracer::addInputs(node, "length", length);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::narrow(self, dim, start, length);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+  return result;
+}
+Tensor narrow_Tensor(const Tensor & self, int64_t dim, const Tensor & start, int64_t length) {
+  auto result = TypeDefault::narrow_Tensor(self, dim, start, length);
   return result;
 }
 std::tuple<Tensor,Tensor,Tensor> native_batch_norm(const Tensor & input, const Tensor & weight, const Tensor & bias, const Tensor & running_mean, const Tensor & running_var, bool training, double momentum, double eps) {
-  RECORD_FUNCTION("native_batch_norm", std::vector<c10::IValue>({input, weight, bias, running_mean, running_var}), Node::peek_at_next_sequence_nr());
   auto& input_ = unpack(input, "input", 0);
   auto weight_ = unpack_opt(weight, "weight", 1);
   auto bias_ = unpack_opt(bias, "bias", 2);
@@ -8315,26 +5229,6 @@ std::tuple<Tensor,Tensor,Tensor> native_batch_norm(const Tensor & input, const T
   Tensor result0;
   Tensor result1;
   Tensor result2;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::native_batch_norm");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "bias", bias);
-    jit::tracer::addInputs(node, "running_mean", running_mean);
-    jit::tracer::addInputs(node, "running_var", running_var);
-    jit::tracer::addInputs(node, "training", training);
-    jit::tracer::addInputs(node, "momentum", momentum);
-    jit::tracer::addInputs(node, "eps", eps);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> input__storage_saved =
     input_.has_storage() ? c10::optional<Storage>(input_.storage()) : c10::nullopt;
@@ -8361,7 +5255,7 @@ std::tuple<Tensor,Tensor,Tensor> native_batch_norm(const Tensor & input, const T
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::native_batch_norm(input_, weight_, bias_, running_mean_, running_var_, training, momentum, eps);
   })();
-  std::tie(result0, result1, result2) = as_variable(std::move(tmp));
+  std::tie(result0, result1, result2) = std::move(tmp);
   #ifndef NDEBUG
   if (input__storage_saved.has_value())
     AT_ASSERT(input__storage_saved.value().is_alias_of(input_.storage()));
@@ -8382,41 +5276,15 @@ std::tuple<Tensor,Tensor,Tensor> native_batch_norm(const Tensor & input, const T
   if (grad_fn) {
       set_history(flatten_tensor_args( result0 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-  }
   if (grad_fn) {
     grad_fn->result1_ = SavedVariable(result1, true);
     grad_fn->result2_ = SavedVariable(result2, true);
   }
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2));
 }
-Tensor & ne_out(Tensor & out, const Tensor & self, Scalar other) {
-  RECORD_FUNCTION("ne_out", std::vector<c10::IValue>({out, self, other}), Node::peek_at_next_sequence_nr());
+Tensor & ne_out_Scalar_out(Tensor & out, const Tensor & self, Scalar other) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::ne");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("ne_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
     out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
@@ -8439,36 +5307,12 @@ Tensor & ne_out(Tensor & out, const Tensor & self, Scalar other) {
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & ne_out(Tensor & out, const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("ne_out", std::vector<c10::IValue>({out, self, other}), Node::peek_at_next_sequence_nr());
+Tensor & ne_out_Tensor_out(Tensor & out, const Tensor & self, const Tensor & other) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& other_ = unpack(other, "other", 2);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::ne");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("ne_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
     out_.has_storage() ? c10::optional<Storage>(out_.storage()) : c10::nullopt;
@@ -8498,91 +5342,21 @@ Tensor & ne_out(Tensor & out, const Tensor & self, const Tensor & other) {
     AT_ASSERT(other__storage_saved.value().is_alias_of(other_.storage()));
   if (other__impl_saved) AT_ASSERT(other__impl_saved == other_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor new_full(const Tensor & self, IntArrayRef size, Scalar fill_value, const TensorOptions & options) {
-  RECORD_FUNCTION("new_full", std::vector<c10::IValue>({self, fill_value}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::new_full");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "fill_value", fill_value);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::new_full(self, size, fill_value, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor nll_loss(const Tensor & self, const Tensor & target, const Tensor & weight, int64_t reduction, int64_t ignore_index) {
-  RECORD_FUNCTION("nll_loss", std::vector<c10::IValue>({self, target, weight}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::nll_loss");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    jit::tracer::addInputs(node, "ignore_index", ignore_index);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::nll_loss(self, target, weight, reduction, ignore_index);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor nll_loss2d(const Tensor & self, const Tensor & target, const Tensor & weight, int64_t reduction, int64_t ignore_index) {
-  RECORD_FUNCTION("nll_loss2d", std::vector<c10::IValue>({self, target, weight}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::nll_loss2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    jit::tracer::addInputs(node, "ignore_index", ignore_index);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::nll_loss2d(self, target, weight, reduction, ignore_index);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & nll_loss2d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & target, const Tensor & weight, int64_t reduction, int64_t ignore_index, const Tensor & total_weight) {
-  RECORD_FUNCTION("nll_loss2d_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self, target, weight, total_weight}), Node::peek_at_next_sequence_nr());
+Tensor & nll_loss2d_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & target, const Tensor & weight, int64_t reduction, int64_t ignore_index, const Tensor & total_weight) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -8595,30 +5369,6 @@ Tensor & nll_loss2d_backward_out(Tensor & grad_input, const Tensor & grad_output
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("nll_loss2d_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::nll_loss2d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    jit::tracer::addInputs(node, "ignore_index", ignore_index);
-    jit::tracer::addInputs(node, "total_weight", total_weight);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("nll_loss2d_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -8674,14 +5424,9 @@ Tensor & nll_loss2d_backward_out(Tensor & grad_input, const Tensor & grad_output
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
-Tensor & nll_loss_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & target, const Tensor & weight, int64_t reduction, int64_t ignore_index, const Tensor & total_weight) {
-  RECORD_FUNCTION("nll_loss_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self, target, weight, total_weight}), Node::peek_at_next_sequence_nr());
+Tensor & nll_loss_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & target, const Tensor & weight, int64_t reduction, int64_t ignore_index, const Tensor & total_weight) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -8694,30 +5439,6 @@ Tensor & nll_loss_backward_out(Tensor & grad_input, const Tensor & grad_output, 
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("nll_loss_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::nll_loss_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    jit::tracer::addInputs(node, "ignore_index", ignore_index);
-    jit::tracer::addInputs(node, "total_weight", total_weight);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("nll_loss_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -8773,85 +5494,23 @@ Tensor & nll_loss_backward_out(Tensor & grad_input, const Tensor & grad_output, 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
 Tensor nuclear_norm(const Tensor & self, bool keepdim) {
-  RECORD_FUNCTION("nuclear_norm", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::nuclear_norm");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::nuclear_norm(self, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor nuclear_norm(const Tensor & self, IntArrayRef dim, bool keepdim) {
-  RECORD_FUNCTION("nuclear_norm", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::nuclear_norm");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::nuclear_norm(self, dim, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
-  return result;
-}
-int64_t numel(const Tensor & self) {
-  auto result = TypeDefault::numel(self);
+Tensor nuclear_norm_dim(const Tensor & self, IntArrayRef dim, bool keepdim) {
+  auto result = TypeDefault::nuclear_norm_dim(self, dim, keepdim);
   return result;
 }
 Tensor orgqr(const Tensor & self, const Tensor & input2) {
-  RECORD_FUNCTION("orgqr", std::vector<c10::IValue>({self, input2}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& input2_ = unpack(input2, "input2", 1);
   std::shared_ptr<OrgqrBackward> grad_fn;
   if (compute_requires_grad( self, input2 )) {
     grad_fn = std::shared_ptr<OrgqrBackward>(new OrgqrBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self, input2 ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::orgqr");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "input2", input2);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -8867,7 +5526,7 @@ Tensor orgqr(const Tensor & self, const Tensor & input2) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::orgqr(self_, input2_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -8879,14 +5538,9 @@ Tensor orgqr(const Tensor & self, const Tensor & input2) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & ormqr_out(Tensor & out, const Tensor & self, const Tensor & input2, const Tensor & input3, bool left, bool transpose) {
-  RECORD_FUNCTION("ormqr_out", std::vector<c10::IValue>({out, self, input2, input3}), Node::peek_at_next_sequence_nr());
+Tensor & ormqr_out_out(Tensor & out, const Tensor & self, const Tensor & input2, const Tensor & input3, bool left, bool transpose) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& input2_ = unpack(input2, "input2", 2);
@@ -8897,28 +5551,6 @@ Tensor & ormqr_out(Tensor & out, const Tensor & self, const Tensor & input2, con
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("ormqr");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::ormqr");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "input2", input2);
-    jit::tracer::addInputs(node, "input3", input3);
-    jit::tracer::addInputs(node, "left", left);
-    jit::tracer::addInputs(node, "transpose", transpose);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("ormqr_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -8960,34 +5592,15 @@ Tensor & ormqr_out(Tensor & out, const Tensor & self, const Tensor & input2, con
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor permute(const Tensor & self, IntArrayRef dims) {
-  RECORD_FUNCTION("permute", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<PermuteBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<PermuteBackward>(new PermuteBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->dims = dims.vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::permute");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dims", dims);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -8999,7 +5612,14 @@ Tensor permute(const Tensor & self, IntArrayRef dims) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return self_.permute(dims);
   })();
-  auto result = as_view(self, tmp, true);
+  c10::optional<std::function<at::Tensor(const at::Tensor&)>> func=c10::nullopt;
+  if (false || !self.unsafeGetTensorImpl()->support_as_strided()) {
+    auto dims_vec = dims.vec();
+    func = [=](const at::Tensor& input_base) {
+      return input_base.permute(dims_vec);
+    };
+  }
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* view_func */ func, /* creation_meta */ GradMode::is_enabled() ? CreationMeta::DEFAULT: CreationMeta::NO_GRAD_MODE);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -9008,37 +5628,13 @@ Tensor permute(const Tensor & self, IntArrayRef dims) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor pixel_shuffle(const Tensor & self, int64_t upscale_factor) {
-  RECORD_FUNCTION("pixel_shuffle", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::pixel_shuffle");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "upscale_factor", upscale_factor);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::pixel_shuffle(self, upscale_factor);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & put_(Tensor & self, const Tensor & index, const Tensor & source, bool accumulate) {
-  RECORD_FUNCTION("put_", std::vector<c10::IValue>({self, index, source}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& index_ = unpack(index, "index", 1);
   auto& source_ = unpack(source, "source", 2);
@@ -9048,28 +5644,10 @@ Tensor & put_(Tensor & self, const Tensor & index, const Tensor & source, bool a
     grad_fn = std::shared_ptr<PutBackward>(new PutBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self, source ));
     grad_fn->index_ = SavedVariable(index, false);
-    grad_fn->source_info = source;
-    grad_fn->accumulate = accumulate;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::put");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::put_");
+    if (grad_fn->should_compute_output(0)) {
+      grad_fn->source_ = SavedVariable(source, false);
     }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "index", index);
-    jit::tracer::addInputs(node, "source", source);
-    jit::tracer::addInputs(node, "accumulate", accumulate);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("put_", self);
-    jit::tracer::setTracingState(nullptr);
+    grad_fn->accumulate = accumulate;
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -9104,14 +5682,9 @@ Tensor & put_(Tensor & self, const Tensor & index, const Tensor & source, bool a
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 int64_t q_zero_point(const Tensor & self) {
-  RECORD_FUNCTION("q_zero_point", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -9132,24 +5705,7 @@ int64_t q_zero_point(const Tensor & self) {
   return result;
 }
 Tensor quantize_per_tensor(const Tensor & self, double scale, int64_t zero_point, ScalarType dtype) {
-  RECORD_FUNCTION("quantize_per_tensor", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::quantize_per_tensor");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "scale", scale);
-    jit::tracer::addInputs(node, "zero_point", zero_point);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -9160,301 +5716,155 @@ Tensor quantize_per_tensor(const Tensor & self, double scale, int64_t zero_point
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::quantize_per_tensor(self_, scale, zero_point, dtype);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
   if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
   #endif
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
+  return result;
+}
+std::vector<Tensor> quantize_per_tensor_tensors(TensorList tensors, const Tensor & scales, const Tensor & zero_points, ScalarType dtype) {
+  auto tensors_ = unpack(tensors, "tensors", 0);
+  auto& scales_ = unpack(scales, "scales", 1);
+  auto& zero_points_ = unpack(zero_points, "zero_points", 2);
+  #ifndef NDEBUG
+  std::vector<c10::optional<Storage>> tensors__storage_saved(tensors_.size());
+  for (const Tensor& tensor : tensors_)
+    tensors__storage_saved.push_back(
+      tensor.has_storage() ? c10::optional<Storage>(tensor.storage()) : c10::nullopt);
+  std::vector<c10::intrusive_ptr<TensorImpl>> tensors__impl_saved(tensors_.size());
+  for (size_t i=0; i<tensors_.size(); i++)
+    if (tensors_[i].defined()) tensors__impl_saved[i] = tensors_[i].getIntrusivePtr();
+  c10::optional<Storage> scales__storage_saved =
+    scales_.has_storage() ? c10::optional<Storage>(scales_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> scales__impl_saved;
+  if (scales_.defined()) scales__impl_saved = scales_.getIntrusivePtr();
+  c10::optional<Storage> zero_points__storage_saved =
+    zero_points_.has_storage() ? c10::optional<Storage>(zero_points_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> zero_points__impl_saved;
+  if (zero_points_.defined()) zero_points__impl_saved = zero_points_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::quantize_per_tensor(tensors_, scales_, zero_points_, dtype);
+  })();
+  auto result = std::move(tmp);
+  #ifndef NDEBUG
+  for (size_t i=0; i<tensors_.size(); i++) {
+    if (tensors__storage_saved[i].has_value())
+      AT_ASSERT(tensors__storage_saved[i].value().is_alias_of(tensors_[i].storage()));
+  }
+  for (size_t i=0; i<tensors_.size(); i++) {
+    if (tensors__impl_saved[i])
+      AT_ASSERT(tensors__impl_saved[i] == tensors_[i].getIntrusivePtr());
+  }
+  if (scales__storage_saved.has_value())
+    AT_ASSERT(scales__storage_saved.value().is_alias_of(scales_.storage()));
+  if (scales__impl_saved) AT_ASSERT(scales__impl_saved == scales_.getIntrusivePtr());
+  if (zero_points__storage_saved.has_value())
+    AT_ASSERT(zero_points__storage_saved.value().is_alias_of(zero_points_.storage()));
+  if (zero_points__impl_saved) AT_ASSERT(zero_points__impl_saved == zero_points_.getIntrusivePtr());
+  #endif
+  return result;
+}
+std::tuple<Tensor,Tensor> quantized_lstm_cell(const Tensor & input, TensorList hx, const Tensor & w_ih, const Tensor & w_hh, const Tensor & b_ih, const Tensor & b_hh, const Tensor & packed_ih, const Tensor & packed_hh, const Tensor & col_offsets_ih, const Tensor & col_offsets_hh, Scalar scale_ih, Scalar scale_hh, Scalar zero_point_ih, Scalar zero_point_hh) {
+  Tensor result0;
+  Tensor result1;
+  std::tie(result0, result1) = TypeDefault::quantized_lstm_cell(input, hx, w_ih, w_hh, b_ih, b_hh, packed_ih, packed_hh, col_offsets_ih, col_offsets_hh, scale_ih, scale_hh, zero_point_ih, zero_point_hh);
+  return std::make_tuple(std::move(result0), std::move(result1));
+}
+Tensor rad2deg(const Tensor & self) {
+  auto& self_ = unpack(self, "self", 0);
+  std::shared_ptr<Rad2DegBackward> grad_fn;
+  if (compute_requires_grad( self )) {
+    grad_fn = std::shared_ptr<Rad2DegBackward>(new Rad2DegBackward(), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self ));
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::rad2deg(self_);
+  })();
+  auto result = std::move(tmp);
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  if (grad_fn) {
+      set_history(flatten_tensor_args( result ), grad_fn);
   }
   return result;
 }
-std::tuple<Tensor,Tensor> quantized_gru(const Tensor & input, const Tensor & hx, TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional, bool batch_first) {
-  RECORD_FUNCTION("quantized_gru", std::vector<c10::IValue>({input, hx}), Node::peek_at_next_sequence_nr());
-  Tensor result0;
-  Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::quantized_gru");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "hx", hx);
-    jit::tracer::addInputs(node, "params", params);
-    jit::tracer::addInputs(node, "has_biases", has_biases);
-    jit::tracer::addInputs(node, "num_layers", num_layers);
-    jit::tracer::addInputs(node, "dropout", dropout);
-    jit::tracer::addInputs(node, "train", train);
-    jit::tracer::addInputs(node, "bidirectional", bidirectional);
-    jit::tracer::addInputs(node, "batch_first", batch_first);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+Tensor & rad2deg_(Tensor & self) {
+  auto& self_ = unpack(self, "self", 0);
+  check_inplace(self);
+  std::shared_ptr<Rad2DegBackward> grad_fn;
+  if (compute_requires_grad( self )) {
+    grad_fn = std::shared_ptr<Rad2DegBackward>(new Rad2DegBackward(), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self ));
   }
-  std::tie(result0, result1) = TypeDefault::quantized_gru(input, hx, params, has_biases, num_layers, dropout, train, bidirectional, batch_first);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    at::rad2deg_(self_);
   }
-  return std::make_tuple(std::move(result0), std::move(result1));
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  increment_version(self);
+  if (grad_fn) {
+      rebase_history(flatten_tensor_args( self ), grad_fn);
+  }
+  return self;
 }
-std::tuple<Tensor,Tensor> quantized_gru(const Tensor & data, const Tensor & batch_sizes, const Tensor & hx, TensorList params, bool has_biases, int64_t num_layers, double dropout, bool train, bool bidirectional) {
-  RECORD_FUNCTION("quantized_gru", std::vector<c10::IValue>({data, batch_sizes, hx}), Node::peek_at_next_sequence_nr());
-  Tensor result0;
-  Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::quantized_gru");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "data", data);
-    jit::tracer::addInputs(node, "batch_sizes", batch_sizes);
-    jit::tracer::addInputs(node, "hx", hx);
-    jit::tracer::addInputs(node, "params", params);
-    jit::tracer::addInputs(node, "has_biases", has_biases);
-    jit::tracer::addInputs(node, "num_layers", num_layers);
-    jit::tracer::addInputs(node, "dropout", dropout);
-    jit::tracer::addInputs(node, "train", train);
-    jit::tracer::addInputs(node, "bidirectional", bidirectional);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  std::tie(result0, result1) = TypeDefault::quantized_gru(data, batch_sizes, hx, params, has_biases, num_layers, dropout, train, bidirectional);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-  }
-  return std::make_tuple(std::move(result0), std::move(result1));
-}
-std::tuple<Tensor,Tensor> quantized_lstm_cell(const Tensor & input, TensorList hx, const Tensor & w_ih, const Tensor & w_hh, const Tensor & b_ih, const Tensor & b_hh, const Tensor & packed_ih, const Tensor & packed_hh, const Tensor & col_offsets_ih, const Tensor & col_offsets_hh, Scalar scale_ih, Scalar scale_hh, Scalar zero_point_ih, Scalar zero_point_hh) {
-  RECORD_FUNCTION("quantized_lstm_cell", std::vector<c10::IValue>({input, w_ih, w_hh, b_ih, b_hh, packed_ih, packed_hh, col_offsets_ih, col_offsets_hh, scale_ih, scale_hh, zero_point_ih, zero_point_hh}), Node::peek_at_next_sequence_nr());
-  Tensor result0;
-  Tensor result1;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::quantized_lstm_cell");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "input", input);
-    jit::tracer::addInputs(node, "hx", hx);
-    jit::tracer::addInputs(node, "w_ih", w_ih);
-    jit::tracer::addInputs(node, "w_hh", w_hh);
-    jit::tracer::addInputs(node, "b_ih", b_ih);
-    jit::tracer::addInputs(node, "b_hh", b_hh);
-    jit::tracer::addInputs(node, "packed_ih", packed_ih);
-    jit::tracer::addInputs(node, "packed_hh", packed_hh);
-    jit::tracer::addInputs(node, "col_offsets_ih", col_offsets_ih);
-    jit::tracer::addInputs(node, "col_offsets_hh", col_offsets_hh);
-    jit::tracer::addInputs(node, "scale_ih", scale_ih);
-    jit::tracer::addInputs(node, "scale_hh", scale_hh);
-    jit::tracer::addInputs(node, "zero_point_ih", zero_point_ih);
-    jit::tracer::addInputs(node, "zero_point_hh", zero_point_hh);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  std::tie(result0, result1) = TypeDefault::quantized_lstm_cell(input, hx, w_ih, w_hh, b_ih, b_hh, packed_ih, packed_hh, col_offsets_ih, col_offsets_hh, scale_ih, scale_hh, zero_point_ih, zero_point_hh);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-  }
-  return std::make_tuple(std::move(result0), std::move(result1));
-}
-Tensor & rand_out(Tensor & out, IntArrayRef size) {
-  RECORD_FUNCTION("rand_out", std::vector<c10::IValue>({out}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::rand");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "size", size);
-    if (tracer_state->force_outplace) {
-      jit::tracer::addInputs(node, "out", out.options());
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("rand_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::rand_out(out, size);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & rand_out_out(Tensor & out, IntArrayRef size) {
+  TypeDefault::rand_out_out(out, size);
   return out;
 }
-Tensor & rand_out(Tensor & out, IntArrayRef size, Generator * generator) {
-  RECORD_FUNCTION("rand_out", std::vector<c10::IValue>({out}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::rand");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "generator", generator);
-    if (tracer_state->force_outplace) {
-      jit::tracer::addInputs(node, "out", out.options());
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("rand_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::rand_out(out, size, generator);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & rand_out_generator_out(Tensor & out, IntArrayRef size, c10::optional<Generator> generator) {
+  TypeDefault::rand_out_generator_out(out, size, generator);
   return out;
 }
-Tensor & randn_out(Tensor & out, IntArrayRef size) {
-  RECORD_FUNCTION("randn_out", std::vector<c10::IValue>({out}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::randn");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "size", size);
-    if (tracer_state->force_outplace) {
-      jit::tracer::addInputs(node, "out", out.options());
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("randn_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::randn_out(out, size);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & randn_out_out(Tensor & out, IntArrayRef size) {
+  TypeDefault::randn_out_out(out, size);
   return out;
 }
-Tensor & randn_out(Tensor & out, IntArrayRef size, Generator * generator) {
-  RECORD_FUNCTION("randn_out", std::vector<c10::IValue>({out}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::randn");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "size", size);
-    jit::tracer::addInputs(node, "generator", generator);
-    if (tracer_state->force_outplace) {
-      jit::tracer::addInputs(node, "out", out.options());
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("randn_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::randn_out(out, size, generator);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & randn_out_generator_out(Tensor & out, IntArrayRef size, c10::optional<Generator> generator) {
+  TypeDefault::randn_out_generator_out(out, size, generator);
   return out;
 }
-Tensor range(Scalar start, Scalar end, Scalar step, const TensorOptions & options) {
-  RECORD_FUNCTION("range", std::vector<c10::IValue>({start, end, step}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::range");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "start", start);
-    jit::tracer::addInputs(node, "end", end);
-    jit::tracer::addInputs(node, "step", step);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::range(start, end, step, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor range_step(Scalar start, Scalar end, Scalar step, const TensorOptions & options) {
+  auto result = TypeDefault::range_step(start, end, step, options);
   return result;
 }
 Tensor range(Scalar start, Scalar end, const TensorOptions & options) {
-  RECORD_FUNCTION("range", std::vector<c10::IValue>({start, end}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::range");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "start", start);
-    jit::tracer::addInputs(node, "end", end);
-    jit::tracer::addInputs(node, "options", options);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::range(start, end, options);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+  return result;
+}
+Tensor real(const Tensor & self) {
+  auto result = TypeDefault::real(self);
   return result;
 }
 Tensor reciprocal(const Tensor & self) {
-  RECORD_FUNCTION("reciprocal", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<ReciprocalBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<ReciprocalBackward>(new ReciprocalBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::reciprocal");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -9466,7 +5876,7 @@ Tensor reciprocal(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::reciprocal(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -9475,40 +5885,18 @@ Tensor reciprocal(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   if (grad_fn) {
     grad_fn->result_ = SavedVariable(result, true);
   }
   return result;
 }
 Tensor & reciprocal_(Tensor & self) {
-  RECORD_FUNCTION("reciprocal_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<ReciprocalBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<ReciprocalBackward>(new ReciprocalBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::reciprocal");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::reciprocal_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("reciprocal_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -9529,40 +5917,16 @@ Tensor & reciprocal_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   if (grad_fn) {
-    grad_fn->result_ = SavedVariable(self, true, as_variable_ref(self).is_view());
+    grad_fn->result_ = SavedVariable(self, true, self.is_view());
   }
   return self;
 }
 Tensor refine_names(const Tensor & self, DimnameList names) {
-  RECORD_FUNCTION("refine_names", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::refine_names");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "names", names);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::refine_names(self, names);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor reflection_pad1d(const Tensor & self, IntArrayRef padding) {
-  RECORD_FUNCTION("reflection_pad1d", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<ReflectionPad1DBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -9570,20 +5934,6 @@ Tensor reflection_pad1d(const Tensor & self, IntArrayRef padding) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->padding = padding.vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::reflection_pad1d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "padding", padding);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -9595,7 +5945,7 @@ Tensor reflection_pad1d(const Tensor & self, IntArrayRef padding) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::reflection_pad1d(self_, padding);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -9604,14 +5954,9 @@ Tensor reflection_pad1d(const Tensor & self, IntArrayRef padding) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & reflection_pad1d_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, IntArrayRef padding) {
-  RECORD_FUNCTION("reflection_pad1d_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self}), Node::peek_at_next_sequence_nr());
+Tensor & reflection_pad1d_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, IntArrayRef padding) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -9621,26 +5966,6 @@ Tensor & reflection_pad1d_backward_out(Tensor & grad_input, const Tensor & grad_
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("reflection_pad1d_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::reflection_pad1d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "padding", padding);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("reflection_pad1d_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -9675,14 +6000,9 @@ Tensor & reflection_pad1d_backward_out(Tensor & grad_input, const Tensor & grad_
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
-Tensor & reflection_pad2d_out(Tensor & out, const Tensor & self, IntArrayRef padding) {
-  RECORD_FUNCTION("reflection_pad2d_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & reflection_pad2d_out_out(Tensor & out, const Tensor & self, IntArrayRef padding) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -9691,25 +6011,6 @@ Tensor & reflection_pad2d_out(Tensor & out, const Tensor & self, IntArrayRef pad
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("reflection_pad2d");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::reflection_pad2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "padding", padding);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("reflection_pad2d_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -9737,33 +6038,15 @@ Tensor & reflection_pad2d_out(Tensor & out, const Tensor & self, IntArrayRef pad
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor relu(const Tensor & self) {
-  RECORD_FUNCTION("relu", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<ReluBackward0> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<ReluBackward0>(new ReluBackward0(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::relu");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -9775,7 +6058,7 @@ Tensor relu(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::relu(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -9784,37 +6067,15 @@ Tensor relu(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & relu_(Tensor & self) {
-  RECORD_FUNCTION("relu_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<ReluBackward1> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<ReluBackward1>(new ReluBackward1(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::relu");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::relu_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("relu_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -9835,17 +6096,12 @@ Tensor & relu_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   if (grad_fn) {
-    grad_fn->result_ = SavedVariable(self, true, as_variable_ref(self).is_view());
+    grad_fn->result_ = SavedVariable(self, true, self.is_view());
   }
   return self;
 }
-Tensor & remainder_out(Tensor & out, const Tensor & self, Scalar other) {
-  RECORD_FUNCTION("remainder_out", std::vector<c10::IValue>({out, self, other}), Node::peek_at_next_sequence_nr());
+Tensor & remainder_out_Scalar_out(Tensor & out, const Tensor & self, Scalar other) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -9854,25 +6110,6 @@ Tensor & remainder_out(Tensor & out, const Tensor & self, Scalar other) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("remainder");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::remainder");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("remainder_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -9900,14 +6137,9 @@ Tensor & remainder_out(Tensor & out, const Tensor & self, Scalar other) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & remainder_out(Tensor & out, const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("remainder_out", std::vector<c10::IValue>({out, self, other}), Node::peek_at_next_sequence_nr());
+Tensor & remainder_out_Tensor_out(Tensor & out, const Tensor & self, const Tensor & other) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& other_ = unpack(other, "other", 2);
@@ -9917,25 +6149,6 @@ Tensor & remainder_out(Tensor & out, const Tensor & self, const Tensor & other) 
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("remainder");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::remainder");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("remainder_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -9970,14 +6183,9 @@ Tensor & remainder_out(Tensor & out, const Tensor & self, const Tensor & other) 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & replication_pad1d_out(Tensor & out, const Tensor & self, IntArrayRef padding) {
-  RECORD_FUNCTION("replication_pad1d_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & replication_pad1d_out_out(Tensor & out, const Tensor & self, IntArrayRef padding) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -9986,25 +6194,6 @@ Tensor & replication_pad1d_out(Tensor & out, const Tensor & self, IntArrayRef pa
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("replication_pad1d");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::replication_pad1d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "padding", padding);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("replication_pad1d_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -10032,19 +6221,13 @@ Tensor & replication_pad1d_out(Tensor & out, const Tensor & self, IntArrayRef pa
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor rnn_relu_cell(const Tensor & input, const Tensor & hx, const Tensor & w_ih, const Tensor & w_hh, const Tensor & b_ih, const Tensor & b_hh) {
-  RECORD_FUNCTION("rnn_relu_cell", std::vector<c10::IValue>({input, hx, w_ih, w_hh, b_ih, b_hh}), Node::peek_at_next_sequence_nr());
   auto result = TypeDefault::rnn_relu_cell(input, hx, w_ih, w_hh, b_ih, b_hh);
   return result;
 }
-Tensor rrelu_with_noise(const Tensor & self, const Tensor & noise, Scalar lower, Scalar upper, bool training, Generator * generator) {
-  RECORD_FUNCTION("rrelu_with_noise", std::vector<c10::IValue>({self, noise, lower, upper}), Node::peek_at_next_sequence_nr());
+Tensor rrelu_with_noise(const Tensor & self, const Tensor & noise, Scalar lower, Scalar upper, bool training, c10::optional<Generator> generator) {
   auto& self_ = unpack(self, "self", 0);
   auto& noise_ = unpack(noise, "noise", 1);
   check_no_requires_grad(noise, "noise");
@@ -10057,24 +6240,6 @@ Tensor rrelu_with_noise(const Tensor & self, const Tensor & noise, Scalar lower,
     grad_fn->lower = lower;
     grad_fn->upper = upper;
     grad_fn->training = training;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::rrelu_with_noise");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "noise", noise);
-    jit::tracer::addInputs(node, "lower", lower);
-    jit::tracer::addInputs(node, "upper", upper);
-    jit::tracer::addInputs(node, "training", training);
-    jit::tracer::addInputs(node, "generator", generator);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -10090,7 +6255,7 @@ Tensor rrelu_with_noise(const Tensor & self, const Tensor & noise, Scalar lower,
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::rrelu_with_noise(self_, noise_, lower, upper, training, generator);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -10102,14 +6267,9 @@ Tensor rrelu_with_noise(const Tensor & self, const Tensor & noise, Scalar lower,
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & rrelu_with_noise_(Tensor & self, const Tensor & noise, Scalar lower, Scalar upper, bool training, Generator * generator) {
-  RECORD_FUNCTION("rrelu_with_noise_", std::vector<c10::IValue>({self, noise, lower, upper}), Node::peek_at_next_sequence_nr());
+Tensor & rrelu_with_noise_(Tensor & self, const Tensor & noise, Scalar lower, Scalar upper, bool training, c10::optional<Generator> generator) {
   auto& self_ = unpack(self, "self", 0);
   auto& noise_ = unpack(noise, "noise", 1);
   check_inplace(self);
@@ -10122,28 +6282,6 @@ Tensor & rrelu_with_noise_(Tensor & self, const Tensor & noise, Scalar lower, Sc
     grad_fn->lower = lower;
     grad_fn->upper = upper;
     grad_fn->training = training;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::rrelu_with_noise");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::rrelu_with_noise_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "noise", noise);
-    jit::tracer::addInputs(node, "lower", lower);
-    jit::tracer::addInputs(node, "upper", upper);
-    jit::tracer::addInputs(node, "training", training);
-    jit::tracer::addInputs(node, "generator", generator);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("rrelu_with_noise_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -10171,149 +6309,20 @@ Tensor & rrelu_with_noise_(Tensor & self, const Tensor & noise, Scalar lower, Sc
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   if (grad_fn) {
-    grad_fn->result_ = SavedVariable(self, true, as_variable_ref(self).is_view());
+    grad_fn->result_ = SavedVariable(self, true, self.is_view());
   }
   return self;
 }
-Tensor & rrelu_with_noise_backward_out(Tensor & grad_input, const Tensor & grad_output, const Tensor & self, const Tensor & noise, Scalar lower, Scalar upper, bool training) {
-  RECORD_FUNCTION("rrelu_with_noise_backward_out", std::vector<c10::IValue>({grad_input, grad_output, self, noise, lower, upper}), Node::peek_at_next_sequence_nr());
-  auto& grad_input_ = unpack(grad_input, "grad_input", 0);
-  auto& grad_output_ = unpack(grad_output, "grad_output", 1);
-  auto& self_ = unpack(self, "self", 2);
-  auto& noise_ = unpack(noise, "noise", 3);
-  std::shared_ptr<Node> grad_fn;
-  if (compute_requires_grad( grad_output, self, noise )) {
-    throw_error_out_requires_grad("rrelu_with_noise_backward");
-  }
-  if (compute_requires_grad( grad_input )) {
-    throw_error_out_requires_grad("rrelu_with_noise_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::rrelu_with_noise_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "noise", noise);
-    jit::tracer::addInputs(node, "lower", lower);
-    jit::tracer::addInputs(node, "upper", upper);
-    jit::tracer::addInputs(node, "training", training);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("rrelu_with_noise_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> grad_input__storage_saved =
-    grad_input_.has_storage() ? c10::optional<Storage>(grad_input_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> grad_input__impl_saved;
-  if (grad_input_.defined()) grad_input__impl_saved = grad_input_.getIntrusivePtr();
-  c10::optional<Storage> grad_output__storage_saved =
-    grad_output_.has_storage() ? c10::optional<Storage>(grad_output_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> grad_output__impl_saved;
-  if (grad_output_.defined()) grad_output__impl_saved = grad_output_.getIntrusivePtr();
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  c10::optional<Storage> noise__storage_saved =
-    noise_.has_storage() ? c10::optional<Storage>(noise_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> noise__impl_saved;
-  if (noise_.defined()) noise__impl_saved = noise_.getIntrusivePtr();
-  #endif
-  {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    at::rrelu_with_noise_backward_out(grad_input_, grad_output_, self_, noise_, lower, upper, training);
-  }
-  #ifndef NDEBUG
-  if (grad_input__storage_saved.has_value())
-    AT_ASSERT(grad_input__storage_saved.value().is_alias_of(grad_input_.storage()));
-  if (grad_input__impl_saved) AT_ASSERT(grad_input__impl_saved == grad_input_.getIntrusivePtr());
-  if (grad_output__storage_saved.has_value())
-    AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
-  if (grad_output__impl_saved) AT_ASSERT(grad_output__impl_saved == grad_output_.getIntrusivePtr());
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  if (noise__storage_saved.has_value())
-    AT_ASSERT(noise__storage_saved.value().is_alias_of(noise_.storage()));
-  if (noise__impl_saved) AT_ASSERT(noise__impl_saved == noise_.getIntrusivePtr());
-  #endif
-  increment_version(grad_input);
-  if (grad_fn) {
-      rebase_history(flatten_tensor_args( grad_input ), grad_fn);
-  }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
-  return grad_input;
-}
 Tensor scatter_add(const Tensor & self, int64_t dim, const Tensor & index, const Tensor & src) {
-  RECORD_FUNCTION("scatter_add", std::vector<c10::IValue>({self, index, src}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::scatter_add");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    jit::tracer::addInputs(node, "src", src);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::scatter_add(self, dim, index, src);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor scatter_add(const Tensor & self, Dimname dim, const Tensor & index, const Tensor & src) {
-  RECORD_FUNCTION("scatter_add", std::vector<c10::IValue>({self, index, src}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::scatter_add");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    jit::tracer::addInputs(node, "src", src);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::scatter_add(self, dim, index, src);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor scatter_add_dimname(const Tensor & self, Dimname dim, const Tensor & index, const Tensor & src) {
+  auto result = TypeDefault::scatter_add_dimname(self, dim, index, src);
   return result;
 }
 Tensor & scatter_add_(Tensor & self, int64_t dim, const Tensor & index, const Tensor & src) {
-  RECORD_FUNCTION("scatter_add_", std::vector<c10::IValue>({self, index, src}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& index_ = unpack(index, "index", 2);
   auto& src_ = unpack(src, "src", 3);
@@ -10326,26 +6335,6 @@ Tensor & scatter_add_(Tensor & self, int64_t dim, const Tensor & index, const Te
     if (grad_fn->should_compute_output(1)) {
       grad_fn->index_ = SavedVariable(index, false);
     }
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::scatter_add");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::scatter_add_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    jit::tracer::addInputs(node, "src", src);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("scatter_add_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -10380,38 +6369,13 @@ Tensor & scatter_add_(Tensor & self, int64_t dim, const Tensor & index, const Te
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor select(const Tensor & self, Dimname dim, int64_t index) {
-  RECORD_FUNCTION("select", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::select");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::select(self, dim, index);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor select_Dimname(const Tensor & self, Dimname dim, int64_t index) {
+  auto result = TypeDefault::select_Dimname(self, dim, index);
   return result;
 }
-Tensor select(const Tensor & self, int64_t dim, int64_t index) {
-  RECORD_FUNCTION("select", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+Tensor select_int(const Tensor & self, int64_t dim, int64_t index) {
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<SelectBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -10420,21 +6384,6 @@ Tensor select(const Tensor & self, int64_t dim, int64_t index) {
     grad_fn->self_sizes = self.sizes().vec();
     grad_fn->dim = dim;
     grad_fn->index = index;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::select");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "index", index);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -10446,7 +6395,13 @@ Tensor select(const Tensor & self, int64_t dim, int64_t index) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::select(self_, dim, index);
   })();
-  auto result = as_view(self, tmp, true);
+  c10::optional<std::function<at::Tensor(const at::Tensor&)>> func=c10::nullopt;
+  if (false || !self.unsafeGetTensorImpl()->support_as_strided()) {
+    func = [=](const at::Tensor& input_base) {
+      return at::select(input_base, dim, index);
+    };
+  }
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* view_func */ func, /* creation_meta */ GradMode::is_enabled() ? CreationMeta::DEFAULT: CreationMeta::NO_GRAD_MODE);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -10455,33 +6410,15 @@ Tensor select(const Tensor & self, int64_t dim, int64_t index) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor sin(const Tensor & self) {
-  RECORD_FUNCTION("sin", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<SinBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<SinBackward>(new SinBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self, false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::sin");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -10493,7 +6430,7 @@ Tensor sin(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::sin(self_);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -10502,14 +6439,9 @@ Tensor sin(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
 Tensor & sin_(Tensor & self) {
-  RECORD_FUNCTION("sin_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<SinBackward> grad_fn;
@@ -10517,23 +6449,6 @@ Tensor & sin_(Tensor & self) {
     grad_fn = std::shared_ptr<SinBackward>(new SinBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_ = SavedVariable(self.clone(), false);
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::sin");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::sin_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("sin_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -10554,14 +6469,9 @@ Tensor & sin_(Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
 std::tuple<Tensor,Tensor,Tensor> slow_conv_dilated3d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & weight, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation, std::array<bool,3> output_mask) {
-  RECORD_FUNCTION("slow_conv_dilated3d_backward", std::vector<c10::IValue>({grad_output, self, weight}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& weight_ = unpack(weight, "weight", 2);
@@ -10579,26 +6489,6 @@ std::tuple<Tensor,Tensor,Tensor> slow_conv_dilated3d_backward(const Tensor & gra
   Tensor grad_input;
   Tensor grad_weight;
   Tensor grad_bias;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::slow_conv_dilated3d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    jit::tracer::addInputs(node, "output_mask", output_mask);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
     grad_output_.has_storage() ? c10::optional<Storage>(grad_output_.storage()) : c10::nullopt;
@@ -10617,7 +6507,7 @@ std::tuple<Tensor,Tensor,Tensor> slow_conv_dilated3d_backward(const Tensor & gra
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::slow_conv_dilated3d_backward(grad_output_, self_, weight_, kernel_size, stride, padding, dilation, output_mask);
   })();
-  std::tie(grad_input, grad_weight, grad_bias) = as_variable(std::move(tmp));
+  std::tie(grad_input, grad_weight, grad_bias) = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -10632,16 +6522,9 @@ std::tuple<Tensor,Tensor,Tensor> slow_conv_dilated3d_backward(const Tensor & gra
   if (grad_fn) {
       set_history(flatten_tensor_args( grad_input, grad_weight, grad_bias ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-    jit::tracer::addOutput(node, grad_weight);
-    jit::tracer::addOutput(node, grad_bias);
-  }
   return std::make_tuple(std::move(grad_input), std::move(grad_weight), std::move(grad_bias));
 }
-Tensor & soft_margin_loss_out(Tensor & out, const Tensor & self, const Tensor & target, int64_t reduction) {
-  RECORD_FUNCTION("soft_margin_loss_out", std::vector<c10::IValue>({out, self, target}), Node::peek_at_next_sequence_nr());
+Tensor & soft_margin_loss_out_out(Tensor & out, const Tensor & self, const Tensor & target, int64_t reduction) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& target_ = unpack(target, "target", 2);
@@ -10651,26 +6534,6 @@ Tensor & soft_margin_loss_out(Tensor & out, const Tensor & self, const Tensor & 
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("soft_margin_loss");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::soft_margin_loss");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "target", target);
-    jit::tracer::addInputs(node, "reduction", reduction);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("soft_margin_loss_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -10705,62 +6568,17 @@ Tensor & soft_margin_loss_out(Tensor & out, const Tensor & self, const Tensor & 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor softmax(const Tensor & self, int64_t dim, c10::optional<ScalarType> dtype) {
-  RECORD_FUNCTION("softmax", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::softmax");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::softmax(self, dim, dtype);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor softmax_int(const Tensor & self, int64_t dim, c10::optional<ScalarType> dtype) {
+  auto result = TypeDefault::softmax_int(self, dim, dtype);
   return result;
 }
-Tensor softmax(const Tensor & self, Dimname dim, c10::optional<ScalarType> dtype) {
-  RECORD_FUNCTION("softmax", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::softmax");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::softmax(self, dim, dtype);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor softmax_Dimname(const Tensor & self, Dimname dim, c10::optional<ScalarType> dtype) {
+  auto result = TypeDefault::softmax_Dimname(self, dim, dtype);
   return result;
 }
-Tensor & softplus_out(Tensor & out, const Tensor & self, Scalar beta, Scalar threshold) {
-  RECORD_FUNCTION("softplus_out", std::vector<c10::IValue>({out, self, beta, threshold}), Node::peek_at_next_sequence_nr());
+Tensor & softplus_out_out(Tensor & out, const Tensor & self, Scalar beta, Scalar threshold) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -10769,26 +6587,6 @@ Tensor & softplus_out(Tensor & out, const Tensor & self, Scalar beta, Scalar thr
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("softplus");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::softplus");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "beta", beta);
-    jit::tracer::addInputs(node, "threshold", threshold);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("softplus_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -10816,14 +6614,9 @@ Tensor & softplus_out(Tensor & out, const Tensor & self, Scalar beta, Scalar thr
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 Tensor softshrink_backward(const Tensor & grad_output, const Tensor & self, Scalar lambd) {
-  RECORD_FUNCTION("softshrink_backward", std::vector<c10::IValue>({grad_output, self, lambd}), Node::peek_at_next_sequence_nr());
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<SoftshrinkBackwardBackward> grad_fn;
@@ -10832,21 +6625,6 @@ Tensor softshrink_backward(const Tensor & grad_output, const Tensor & self, Scal
     grad_fn->set_next_edges(collect_next_edges( grad_output, self ));
     grad_fn->self_ = SavedVariable(self, false);
     grad_fn->lambd = lambd;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::softshrink_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "lambd", lambd);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -10862,7 +6640,7 @@ Tensor softshrink_backward(const Tensor & grad_output, const Tensor & self, Scal
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::softshrink_backward(grad_output_, self_, lambd);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -10874,14 +6652,9 @@ Tensor softshrink_backward(const Tensor & grad_output, const Tensor & self, Scal
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-std::tuple<Tensor &,Tensor &> sort_out(Tensor & values, Tensor & indices, const Tensor & self, int64_t dim, bool descending) {
-  RECORD_FUNCTION("sort_out", std::vector<c10::IValue>({values, indices, self}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor &,Tensor &> sort_out_values(Tensor & values, Tensor & indices, const Tensor & self, int64_t dim, bool descending) {
   auto& values_ = unpack(values, "values", 0);
   auto& indices_ = unpack(indices, "indices", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -10891,27 +6664,6 @@ std::tuple<Tensor &,Tensor &> sort_out(Tensor & values, Tensor & indices, const 
   }
   if (compute_requires_grad( values )) {
     throw_error_out_requires_grad("sort");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::sort");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "descending", descending);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "values", values);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("sort_out", values);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> values__storage_saved =
@@ -10946,65 +6698,19 @@ std::tuple<Tensor &,Tensor &> sort_out(Tensor & values, Tensor & indices, const 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( values ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, values);
-    jit::tracer::addOutput(node, indices);
-  }
   return std::forward_as_tuple(values, indices);
 }
-std::tuple<Tensor &,Tensor &> sort_out(Tensor & values, Tensor & indices, const Tensor & self, Dimname dim, bool descending) {
-  RECORD_FUNCTION("sort_out", std::vector<c10::IValue>({values, indices, self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::sort");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "descending", descending);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "values", values);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("sort_out", values);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::sort_out(values, indices, self, dim, descending);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, values);
-    jit::tracer::addOutput(node, indices);
-  }
+std::tuple<Tensor &,Tensor &> sort_out_dimname_values(Tensor & values, Tensor & indices, const Tensor & self, Dimname dim, bool descending) {
+  TypeDefault::sort_out_dimname_values(values, indices, self, dim, descending);
   return std::forward_as_tuple(values, indices);
 }
 Tensor squeeze(const Tensor & self) {
-  RECORD_FUNCTION("squeeze", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<SqueezeBackward0> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<SqueezeBackward0>(new SqueezeBackward0(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::squeeze");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11016,7 +6722,13 @@ Tensor squeeze(const Tensor & self) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::squeeze(self_);
   })();
-  auto result = as_view(self, tmp, true);
+  c10::optional<std::function<at::Tensor(const at::Tensor&)>> func=c10::nullopt;
+  if (false || !self.unsafeGetTensorImpl()->support_as_strided()) {
+    func = [=](const at::Tensor& input_base) {
+      return at::squeeze(input_base);
+    };
+  }
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* view_func */ func, /* creation_meta */ GradMode::is_enabled() ? CreationMeta::DEFAULT: CreationMeta::NO_GRAD_MODE);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -11025,14 +6737,9 @@ Tensor squeeze(const Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor squeeze(const Tensor & self, int64_t dim) {
-  RECORD_FUNCTION("squeeze", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+Tensor squeeze_dim(const Tensor & self, int64_t dim) {
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<SqueezeBackward1> grad_fn;
   if (compute_requires_grad( self )) {
@@ -11040,20 +6747,6 @@ Tensor squeeze(const Tensor & self, int64_t dim) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
     grad_fn->dim = dim;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::squeeze");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11065,7 +6758,13 @@ Tensor squeeze(const Tensor & self, int64_t dim) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::squeeze(self_, dim);
   })();
-  auto result = as_view(self, tmp, true);
+  c10::optional<std::function<at::Tensor(const at::Tensor&)>> func=c10::nullopt;
+  if (false || !self.unsafeGetTensorImpl()->support_as_strided()) {
+    func = [=](const at::Tensor& input_base) {
+      return at::squeeze(input_base, dim);
+    };
+  }
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* view_func */ func, /* creation_meta */ GradMode::is_enabled() ? CreationMeta::DEFAULT: CreationMeta::NO_GRAD_MODE);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -11074,37 +6773,13 @@ Tensor squeeze(const Tensor & self, int64_t dim) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor squeeze(const Tensor & self, Dimname dim) {
-  RECORD_FUNCTION("squeeze", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::squeeze");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::squeeze(self, dim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+Tensor squeeze_dimname(const Tensor & self, Dimname dim) {
+  auto result = TypeDefault::squeeze_dimname(self, dim);
   return result;
 }
 Tensor & squeeze_(Tensor & self) {
-  RECORD_FUNCTION("squeeze_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<SqueezeBackward2> grad_fn;
@@ -11112,23 +6787,6 @@ Tensor & squeeze_(Tensor & self) {
     grad_fn = std::shared_ptr<SqueezeBackward2>(new SqueezeBackward2(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::squeeze");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::squeeze_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("squeeze_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11149,14 +6807,9 @@ Tensor & squeeze_(Tensor & self) {
   if (grad_fn) {
       set_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & squeeze_(Tensor & self, int64_t dim) {
-  RECORD_FUNCTION("squeeze_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+Tensor & squeeze__dim(Tensor & self, int64_t dim) {
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<SqueezeBackward3> grad_fn;
@@ -11165,24 +6818,6 @@ Tensor & squeeze_(Tensor & self, int64_t dim) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
     grad_fn->dim = dim;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::squeeze");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::squeeze_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("squeeze_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11203,41 +6838,13 @@ Tensor & squeeze_(Tensor & self, int64_t dim) {
   if (grad_fn) {
       set_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & squeeze_(Tensor & self, Dimname dim) {
-  RECORD_FUNCTION("squeeze_", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::squeeze");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::squeeze_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("squeeze_", self);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::squeeze_(self, dim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
+Tensor & squeeze__dimname(Tensor & self, Dimname dim) {
+  TypeDefault::squeeze__dimname(self, dim);
   return self;
 }
-Tensor & std_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool unbiased, bool keepdim) {
-  RECORD_FUNCTION("std_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & std_out_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool unbiased, bool keepdim) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -11246,27 +6853,6 @@ Tensor & std_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool unbias
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("std");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::std");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "unbiased", unbiased);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("std_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -11294,44 +6880,13 @@ Tensor & std_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool unbias
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & std_out(Tensor & out, const Tensor & self, DimnameList dim, bool unbiased, bool keepdim) {
-  RECORD_FUNCTION("std_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::std");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "unbiased", unbiased);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("std_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::std_out(out, self, dim, unbiased, keepdim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & std_out_names_out(Tensor & out, const Tensor & self, DimnameList dim, bool unbiased, bool keepdim) {
+  TypeDefault::std_out_names_out(out, self, dim, unbiased, keepdim);
   return out;
 }
-Tensor sub(const Tensor & self, const Tensor & other, Scalar alpha) {
-  RECORD_FUNCTION("sub", std::vector<c10::IValue>({self, other, alpha}), Node::peek_at_next_sequence_nr());
+Tensor sub_Tensor(const Tensor & self, const Tensor & other, Scalar alpha) {
   auto& self_ = unpack(self, "self", 0);
   auto& other_ = unpack(other, "other", 1);
   std::shared_ptr<SubBackward0> grad_fn;
@@ -11339,21 +6894,6 @@ Tensor sub(const Tensor & self, const Tensor & other, Scalar alpha) {
     grad_fn = std::shared_ptr<SubBackward0>(new SubBackward0(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self, other ));
     grad_fn->alpha = alpha;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::sub");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11369,7 +6909,7 @@ Tensor sub(const Tensor & self, const Tensor & other, Scalar alpha) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::sub(self_, other_, alpha);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -11381,34 +6921,14 @@ Tensor sub(const Tensor & self, const Tensor & other, Scalar alpha) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor sub(const Tensor & self, Scalar other, Scalar alpha) {
-  RECORD_FUNCTION("sub", std::vector<c10::IValue>({self, other, alpha}), Node::peek_at_next_sequence_nr());
+Tensor sub_Scalar(const Tensor & self, Scalar other, Scalar alpha) {
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<SubBackward1> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<SubBackward1>(new SubBackward1(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::sub");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11420,7 +6940,7 @@ Tensor sub(const Tensor & self, Scalar other, Scalar alpha) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::sub(self_, other, alpha);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -11429,14 +6949,9 @@ Tensor sub(const Tensor & self, Scalar other, Scalar alpha) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & sub_(Tensor & self, const Tensor & other, Scalar alpha) {
-  RECORD_FUNCTION("sub_", std::vector<c10::IValue>({self, other, alpha}), Node::peek_at_next_sequence_nr());
+Tensor & sub__Tensor(Tensor & self, const Tensor & other, Scalar alpha) {
   auto& self_ = unpack(self, "self", 0);
   auto& other_ = unpack(other, "other", 1);
   check_inplace(self);
@@ -11445,25 +6960,6 @@ Tensor & sub_(Tensor & self, const Tensor & other, Scalar alpha) {
     grad_fn = std::shared_ptr<SubBackward0>(new SubBackward0(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self, other ));
     grad_fn->alpha = alpha;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::sub");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::sub_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("sub_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11491,39 +6987,15 @@ Tensor & sub_(Tensor & self, const Tensor & other, Scalar alpha) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & sub_(Tensor & self, Scalar other, Scalar alpha) {
-  RECORD_FUNCTION("sub_", std::vector<c10::IValue>({self, other, alpha}), Node::peek_at_next_sequence_nr());
+Tensor & sub__Scalar(Tensor & self, Scalar other, Scalar alpha) {
   auto& self_ = unpack(self, "self", 0);
   check_inplace(self);
   std::shared_ptr<SubBackward1> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<SubBackward1>(new SubBackward1(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    if (tracer_state->force_outplace) {
-      op_name = jit::Symbol::fromQualString("aten::sub");
-    } else {
-      op_name = jit::Symbol::fromQualString("aten::sub_");
-    }
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    jit::tracer::addInputs(node, "alpha", alpha);
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("sub_", self);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -11544,14 +7016,9 @@ Tensor & sub_(Tensor & self, Scalar other, Scalar alpha) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( self ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, self);
-  }
   return self;
 }
-Tensor & sum_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool keepdim, c10::optional<ScalarType> dtype) {
-  RECORD_FUNCTION("sum_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & sum_out_IntList_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool keepdim, c10::optional<ScalarType> dtype) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -11560,27 +7027,6 @@ Tensor & sum_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool keepdi
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("sum");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::sum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("sum_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -11608,44 +7054,13 @@ Tensor & sum_out(Tensor & out, const Tensor & self, IntArrayRef dim, bool keepdi
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-Tensor & sum_out(Tensor & out, const Tensor & self, DimnameList dim, bool keepdim, c10::optional<ScalarType> dtype) {
-  RECORD_FUNCTION("sum_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::sum");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "keepdim", keepdim);
-    jit::tracer::addInputs(node, "dtype", dtype);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("sum_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::sum_out(out, self, dim, keepdim, dtype);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & sum_out_DimnameList_out(Tensor & out, const Tensor & self, DimnameList dim, bool keepdim, c10::optional<ScalarType> dtype) {
+  TypeDefault::sum_out_DimnameList_out(out, self, dim, keepdim, dtype);
   return out;
 }
-Tensor & take_out(Tensor & out, const Tensor & self, const Tensor & index) {
-  RECORD_FUNCTION("take_out", std::vector<c10::IValue>({out, self, index}), Node::peek_at_next_sequence_nr());
+Tensor & take_out_out(Tensor & out, const Tensor & self, const Tensor & index) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   auto& index_ = unpack(index, "index", 2);
@@ -11655,25 +7070,6 @@ Tensor & take_out(Tensor & out, const Tensor & self, const Tensor & index) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("take");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::take");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "index", index);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("take_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -11708,14 +7104,9 @@ Tensor & take_out(Tensor & out, const Tensor & self, const Tensor & index) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
 std::tuple<Tensor,Tensor,Tensor> thnn_conv2d_forward(const Tensor & self, const Tensor & weight, IntArrayRef kernel_size, const Tensor & bias, IntArrayRef stride, IntArrayRef padding) {
-  RECORD_FUNCTION("thnn_conv2d_forward", std::vector<c10::IValue>({self, weight, bias}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   auto& weight_ = unpack(weight, "weight", 1);
   auto bias_ = unpack_opt(bias, "bias", 3);
@@ -11732,24 +7123,6 @@ std::tuple<Tensor,Tensor,Tensor> thnn_conv2d_forward(const Tensor & self, const 
   Tensor output;
   Tensor finput;
   Tensor fgrad_input;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::thnn_conv2d_forward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "bias", bias);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -11768,7 +7141,7 @@ std::tuple<Tensor,Tensor,Tensor> thnn_conv2d_forward(const Tensor & self, const 
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::thnn_conv2d_forward(self_, weight_, kernel_size, bias_, stride, padding);
   })();
-  std::tie(output, finput, fgrad_input) = as_variable(std::move(tmp));
+  std::tie(output, finput, fgrad_input) = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -11783,276 +7156,21 @@ std::tuple<Tensor,Tensor,Tensor> thnn_conv2d_forward(const Tensor & self, const 
   if (grad_fn) {
       set_history(flatten_tensor_args( output ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, output);
-    jit::tracer::addOutput(node, finput);
-    jit::tracer::addOutput(node, fgrad_input);
-  }
   if (grad_fn) {
     grad_fn->finput_ = SavedVariable(finput, true);
     grad_fn->fgrad_input_ = SavedVariable(fgrad_input, true);
   }
   return std::make_tuple(std::move(output), std::move(finput), std::move(fgrad_input));
 }
-std::tuple<Tensor,Tensor,Tensor> thnn_conv3d_backward(const Tensor & grad_output, const Tensor & self, const Tensor & weight, IntArrayRef kernel_size, IntArrayRef stride, IntArrayRef padding, const Tensor & finput, const Tensor & fgrad_input, std::array<bool,3> output_mask) {
-  RECORD_FUNCTION("thnn_conv3d_backward", std::vector<c10::IValue>({grad_output, self, weight, finput, fgrad_input}), Node::peek_at_next_sequence_nr());
-  auto& grad_output_ = unpack(grad_output, "grad_output", 0);
-  auto& self_ = unpack(self, "self", 1);
-  auto& weight_ = unpack(weight, "weight", 2);
-  auto& finput_ = unpack(finput, "finput", 6);
-  auto& fgrad_input_ = unpack(fgrad_input, "fgrad_input", 7);
-  check_no_requires_grad(finput, "finput");
-  check_no_requires_grad(fgrad_input, "fgrad_input");
-  std::shared_ptr<ThnnConv3DBackwardBackward> grad_fn;
-  if (compute_requires_grad( grad_output, self, weight )) {
-    grad_fn = std::shared_ptr<ThnnConv3DBackwardBackward>(new ThnnConv3DBackwardBackward(), deleteNode);
-    grad_fn->set_next_edges(collect_next_edges( grad_output, self, weight ));
-    grad_fn->grad_output_ = SavedVariable(grad_output, false);
-    grad_fn->self_ = SavedVariable(self, false);
-    grad_fn->weight_ = SavedVariable(weight, false);
-    grad_fn->stride = stride.vec();
-    grad_fn->padding = padding.vec();
-  }
-  Tensor grad_input_return;
-  Tensor grad_weight;
-  Tensor grad_bias;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::thnn_conv3d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "finput", finput);
-    jit::tracer::addInputs(node, "fgrad_input", fgrad_input);
-    jit::tracer::addInputs(node, "output_mask", output_mask);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> grad_output__storage_saved =
-    grad_output_.has_storage() ? c10::optional<Storage>(grad_output_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> grad_output__impl_saved;
-  if (grad_output_.defined()) grad_output__impl_saved = grad_output_.getIntrusivePtr();
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  c10::optional<Storage> weight__storage_saved =
-    weight_.has_storage() ? c10::optional<Storage>(weight_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> weight__impl_saved;
-  if (weight_.defined()) weight__impl_saved = weight_.getIntrusivePtr();
-  c10::optional<Storage> finput__storage_saved =
-    finput_.has_storage() ? c10::optional<Storage>(finput_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> finput__impl_saved;
-  if (finput_.defined()) finput__impl_saved = finput_.getIntrusivePtr();
-  c10::optional<Storage> fgrad_input__storage_saved =
-    fgrad_input_.has_storage() ? c10::optional<Storage>(fgrad_input_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> fgrad_input__impl_saved;
-  if (fgrad_input_.defined()) fgrad_input__impl_saved = fgrad_input_.getIntrusivePtr();
-  #endif
-  auto tmp = ([&]() {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::thnn_conv3d_backward(grad_output_, self_, weight_, kernel_size, stride, padding, finput_, fgrad_input_, output_mask);
-  })();
-  std::tie(grad_input_return, grad_weight, grad_bias) = as_variable(std::move(tmp));
-  #ifndef NDEBUG
-  if (grad_output__storage_saved.has_value())
-    AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
-  if (grad_output__impl_saved) AT_ASSERT(grad_output__impl_saved == grad_output_.getIntrusivePtr());
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  if (weight__storage_saved.has_value())
-    AT_ASSERT(weight__storage_saved.value().is_alias_of(weight_.storage()));
-  if (weight__impl_saved) AT_ASSERT(weight__impl_saved == weight_.getIntrusivePtr());
-  if (finput__storage_saved.has_value())
-    AT_ASSERT(finput__storage_saved.value().is_alias_of(finput_.storage()));
-  if (finput__impl_saved) AT_ASSERT(finput__impl_saved == finput_.getIntrusivePtr());
-  if (fgrad_input__storage_saved.has_value())
-    AT_ASSERT(fgrad_input__storage_saved.value().is_alias_of(fgrad_input_.storage()));
-  if (fgrad_input__impl_saved) AT_ASSERT(fgrad_input__impl_saved == fgrad_input_.getIntrusivePtr());
-  #endif
-  if (grad_fn) {
-      set_history(flatten_tensor_args( grad_input_return, grad_weight, grad_bias ), grad_fn);
-  }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input_return);
-    jit::tracer::addOutput(node, grad_weight);
-    jit::tracer::addOutput(node, grad_bias);
-  }
-  return std::make_tuple(std::move(grad_input_return), std::move(grad_weight), std::move(grad_bias));
-}
-std::tuple<Tensor &,Tensor &,Tensor &> thnn_conv3d_forward_out(Tensor & output, Tensor & finput, Tensor & fgrad_input, const Tensor & self, const Tensor & weight, IntArrayRef kernel_size, const Tensor & bias, IntArrayRef stride, IntArrayRef padding) {
-  RECORD_FUNCTION("thnn_conv3d_forward_out", std::vector<c10::IValue>({output, finput, fgrad_input, self, weight, bias}), Node::peek_at_next_sequence_nr());
-  auto& output_ = unpack(output, "output", 0);
-  auto& finput_ = unpack(finput, "finput", 1);
-  auto& fgrad_input_ = unpack(fgrad_input, "fgrad_input", 2);
-  auto& self_ = unpack(self, "self", 3);
-  auto& weight_ = unpack(weight, "weight", 4);
-  auto bias_ = unpack_opt(bias, "bias", 6);
-  std::shared_ptr<Node> grad_fn;
-  if (compute_requires_grad( self, weight, bias )) {
-    throw_error_out_requires_grad("thnn_conv3d_forward");
-  }
-  if (compute_requires_grad( output )) {
-    throw_error_out_requires_grad("thnn_conv3d_forward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::thnn_conv3d_forward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "finput", finput);
-    jit::tracer::addInputs(node, "fgrad_input", fgrad_input);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "bias", bias);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "output", output);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("thnn_conv3d_forward_out", output);
-    jit::tracer::setTracingState(nullptr);
-  }
-  #ifndef NDEBUG
-  c10::optional<Storage> output__storage_saved =
-    output_.has_storage() ? c10::optional<Storage>(output_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> output__impl_saved;
-  if (output_.defined()) output__impl_saved = output_.getIntrusivePtr();
-  c10::optional<Storage> finput__storage_saved =
-    finput_.has_storage() ? c10::optional<Storage>(finput_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> finput__impl_saved;
-  if (finput_.defined()) finput__impl_saved = finput_.getIntrusivePtr();
-  c10::optional<Storage> fgrad_input__storage_saved =
-    fgrad_input_.has_storage() ? c10::optional<Storage>(fgrad_input_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> fgrad_input__impl_saved;
-  if (fgrad_input_.defined()) fgrad_input__impl_saved = fgrad_input_.getIntrusivePtr();
-  c10::optional<Storage> self__storage_saved =
-    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> self__impl_saved;
-  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
-  c10::optional<Storage> weight__storage_saved =
-    weight_.has_storage() ? c10::optional<Storage>(weight_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> weight__impl_saved;
-  if (weight_.defined()) weight__impl_saved = weight_.getIntrusivePtr();
-  c10::optional<Storage> bias__storage_saved =
-    bias_.has_storage() ? c10::optional<Storage>(bias_.storage()) : c10::nullopt;
-  c10::intrusive_ptr<TensorImpl> bias__impl_saved;
-  if (bias_.defined()) bias__impl_saved = bias_.getIntrusivePtr();
-  #endif
-  {
-    at::AutoNonVariableTypeMode non_var_type_mode(true);
-    at::thnn_conv3d_forward_out(output_, finput_, fgrad_input_, self_, weight_, kernel_size, bias_, stride, padding);
-  }
-  #ifndef NDEBUG
-  if (output__storage_saved.has_value())
-    AT_ASSERT(output__storage_saved.value().is_alias_of(output_.storage()));
-  if (output__impl_saved) AT_ASSERT(output__impl_saved == output_.getIntrusivePtr());
-  if (finput__storage_saved.has_value())
-    AT_ASSERT(finput__storage_saved.value().is_alias_of(finput_.storage()));
-  if (finput__impl_saved) AT_ASSERT(finput__impl_saved == finput_.getIntrusivePtr());
-  if (fgrad_input__storage_saved.has_value())
-    AT_ASSERT(fgrad_input__storage_saved.value().is_alias_of(fgrad_input_.storage()));
-  if (fgrad_input__impl_saved) AT_ASSERT(fgrad_input__impl_saved == fgrad_input_.getIntrusivePtr());
-  if (self__storage_saved.has_value())
-    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
-  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
-  if (weight__storage_saved.has_value())
-    AT_ASSERT(weight__storage_saved.value().is_alias_of(weight_.storage()));
-  if (weight__impl_saved) AT_ASSERT(weight__impl_saved == weight_.getIntrusivePtr());
-  if (bias__storage_saved.has_value())
-    AT_ASSERT(bias__storage_saved.value().is_alias_of(bias_.storage()));
-  if (bias__impl_saved) AT_ASSERT(bias__impl_saved == bias_.getIntrusivePtr());
-  #endif
-  increment_version(output);
-  if (grad_fn) {
-      rebase_history(flatten_tensor_args( output ), grad_fn);
-  }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, output);
-    jit::tracer::addOutput(node, finput);
-    jit::tracer::addOutput(node, fgrad_input);
-  }
-  return std::forward_as_tuple(output, finput, fgrad_input);
-}
-Tensor & thnn_conv_depthwise2d_out(Tensor & out, const Tensor & self, const Tensor & weight, IntArrayRef kernel_size, const Tensor & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation) {
-  RECORD_FUNCTION("thnn_conv_depthwise2d_out", std::vector<c10::IValue>({out, self, weight, bias}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::thnn_conv_depthwise2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "weight", weight);
-    jit::tracer::addInputs(node, "kernel_size", kernel_size);
-    jit::tracer::addInputs(node, "bias", bias);
-    jit::tracer::addInputs(node, "stride", stride);
-    jit::tracer::addInputs(node, "padding", padding);
-    jit::tracer::addInputs(node, "dilation", dilation);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("thnn_conv_depthwise2d_out", out);
-    jit::tracer::setTracingState(nullptr);
-  }
-  TypeDefault::thnn_conv_depthwise2d_out(out, self, weight, kernel_size, bias, stride, padding, dilation);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
+Tensor & thnn_conv_depthwise2d_out_out(Tensor & out, const Tensor & self, const Tensor & weight, IntArrayRef kernel_size, const Tensor & bias, IntArrayRef stride, IntArrayRef padding, IntArrayRef dilation) {
+  TypeDefault::thnn_conv_depthwise2d_out_out(out, self, weight, kernel_size, bias, stride, padding, dilation);
   return out;
 }
 Tensor to_dense_backward(const Tensor & grad, const Tensor & input) {
-  RECORD_FUNCTION("to_dense_backward", std::vector<c10::IValue>({grad, input}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::to_dense_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad", grad);
-    jit::tracer::addInputs(node, "input", input);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::to_dense_backward(grad, input);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-std::tuple<Tensor &,Tensor &> topk_out(Tensor & values, Tensor & indices, const Tensor & self, int64_t k, int64_t dim, bool largest, bool sorted) {
-  RECORD_FUNCTION("topk_out", std::vector<c10::IValue>({values, indices, self}), Node::peek_at_next_sequence_nr());
+std::tuple<Tensor &,Tensor &> topk_out_values(Tensor & values, Tensor & indices, const Tensor & self, int64_t k, int64_t dim, bool largest, bool sorted) {
   auto& values_ = unpack(values, "values", 0);
   auto& indices_ = unpack(indices, "indices", 1);
   auto& self_ = unpack(self, "self", 2);
@@ -12062,29 +7180,6 @@ std::tuple<Tensor &,Tensor &> topk_out(Tensor & values, Tensor & indices, const 
   }
   if (compute_requires_grad( values )) {
     throw_error_out_requires_grad("topk");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::topk");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "indices", indices);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "k", k);
-    jit::tracer::addInputs(node, "dim", dim);
-    jit::tracer::addInputs(node, "largest", largest);
-    jit::tracer::addInputs(node, "sorted", sorted);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "values", values);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("topk_out", values);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> values__storage_saved =
@@ -12119,15 +7214,9 @@ std::tuple<Tensor &,Tensor &> topk_out(Tensor & values, Tensor & indices, const 
   if (grad_fn) {
       rebase_history(flatten_tensor_args( values ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, values);
-    jit::tracer::addOutput(node, indices);
-  }
   return std::forward_as_tuple(values, indices);
 }
-Tensor & trunc_out(Tensor & out, const Tensor & self) {
-  RECORD_FUNCTION("trunc_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & trunc_out_out(Tensor & out, const Tensor & self) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -12136,24 +7225,6 @@ Tensor & trunc_out(Tensor & out, const Tensor & self) {
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("trunc");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::trunc");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("trunc_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -12181,34 +7252,15 @@ Tensor & trunc_out(Tensor & out, const Tensor & self) {
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
-std::vector<Tensor> unbind(const Tensor & self, int64_t dim) {
-  RECORD_FUNCTION("unbind", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+std::vector<Tensor> unbind_int(const Tensor & self, int64_t dim) {
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<UnbindBackward> grad_fn;
   if (compute_requires_grad( self )) {
     grad_fn = std::shared_ptr<UnbindBackward>(new UnbindBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->dim = dim;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::unbind");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -12220,7 +7272,7 @@ std::vector<Tensor> unbind(const Tensor & self, int64_t dim) {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::unbind(self_, dim);
   })();
-  auto result = as_view(self, tmp, true);
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* creation_meta */ CreationMeta::MULTI_OUTPUT_NODE);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -12229,37 +7281,13 @@ std::vector<Tensor> unbind(const Tensor & self, int64_t dim) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-std::vector<Tensor> unbind(const Tensor & self, Dimname dim) {
-  RECORD_FUNCTION("unbind", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::unbind");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
-  auto result = TypeDefault::unbind(self, dim);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
+std::vector<Tensor> unbind_Dimname(const Tensor & self, Dimname dim) {
+  auto result = TypeDefault::unbind_Dimname(self, dim);
   return result;
 }
 std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor & self, bool return_inverse, bool return_counts, c10::optional<int64_t> dim) {
-  RECORD_FUNCTION("unique_consecutive", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<NotImplemented> grad_fn;
   if (compute_requires_grad( self )) {
@@ -12269,22 +7297,6 @@ std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor & self, bool re
   Tensor result0;
   Tensor result1;
   Tensor result2;
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::unique_consecutive");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "return_inverse", return_inverse);
-    jit::tracer::addInputs(node, "return_counts", return_counts);
-    jit::tracer::addInputs(node, "dim", dim);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
     self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
@@ -12295,7 +7307,7 @@ std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor & self, bool re
     at::AutoNonVariableTypeMode non_var_type_mode(true);
     return at::unique_consecutive(self_, return_inverse, return_counts, dim);
   })();
-  std::tie(result0, result1, result2) = as_variable(std::move(tmp));
+  std::tie(result0, result1, result2) = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -12304,16 +7316,9 @@ std::tuple<Tensor,Tensor,Tensor> unique_consecutive(const Tensor & self, bool re
   if (grad_fn) {
       set_history(flatten_tensor_args( result0, result1, result2 ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result0);
-    jit::tracer::addOutput(node, result1);
-    jit::tracer::addOutput(node, result2);
-  }
   return std::make_tuple(std::move(result0), std::move(result1), std::move(result2));
 }
-Tensor upsample_bilinear2d_backward(const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size, bool align_corners) {
-  RECORD_FUNCTION("upsample_bilinear2d_backward", std::vector<c10::IValue>({grad_output}), Node::peek_at_next_sequence_nr());
+Tensor upsample_bilinear2d_backward(const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size, bool align_corners, c10::optional<double> scales_h, c10::optional<double> scales_w) {
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   std::shared_ptr<UpsampleBilinear2DBackwardBackward> grad_fn;
   if (compute_requires_grad( grad_output )) {
@@ -12321,22 +7326,8 @@ Tensor upsample_bilinear2d_backward(const Tensor & grad_output, IntArrayRef outp
     grad_fn->set_next_edges(collect_next_edges( grad_output ));
     grad_fn->output_size = output_size.vec();
     grad_fn->align_corners = align_corners;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::upsample_bilinear2d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    jit::tracer::addInputs(node, "input_size", input_size);
-    jit::tracer::addInputs(node, "align_corners", align_corners);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+    grad_fn->scales_h = scales_h;
+    grad_fn->scales_w = scales_w;
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -12346,9 +7337,9 @@ Tensor upsample_bilinear2d_backward(const Tensor & grad_output, IntArrayRef outp
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::upsample_bilinear2d_backward(grad_output_, output_size, input_size, align_corners);
+    return at::upsample_bilinear2d_backward(grad_output_, output_size, input_size, align_corners, scales_h, scales_w);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -12357,14 +7348,9 @@ Tensor upsample_bilinear2d_backward(const Tensor & grad_output, IntArrayRef outp
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor upsample_linear1d(const Tensor & self, IntArrayRef output_size, bool align_corners) {
-  RECORD_FUNCTION("upsample_linear1d", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+Tensor upsample_linear1d(const Tensor & self, IntArrayRef output_size, bool align_corners, c10::optional<double> scales) {
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<UpsampleLinear1DBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -12373,21 +7359,7 @@ Tensor upsample_linear1d(const Tensor & self, IntArrayRef output_size, bool alig
     grad_fn->self_sizes = self.sizes().vec();
     grad_fn->output_size = output_size.vec();
     grad_fn->align_corners = align_corners;
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::upsample_linear1d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    jit::tracer::addInputs(node, "align_corners", align_corners);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+    grad_fn->scales = scales;
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -12397,9 +7369,9 @@ Tensor upsample_linear1d(const Tensor & self, IntArrayRef output_size, bool alig
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::upsample_linear1d(self_, output_size, align_corners);
+    return at::upsample_linear1d(self_, output_size, align_corners, scales);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -12408,14 +7380,9 @@ Tensor upsample_linear1d(const Tensor & self, IntArrayRef output_size, bool alig
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & upsample_linear1d_backward_out(Tensor & grad_input, const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size, bool align_corners) {
-  RECORD_FUNCTION("upsample_linear1d_backward_out", std::vector<c10::IValue>({grad_input, grad_output}), Node::peek_at_next_sequence_nr());
+Tensor & upsample_linear1d_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size, bool align_corners, c10::optional<double> scales) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   std::shared_ptr<Node> grad_fn;
@@ -12424,27 +7391,6 @@ Tensor & upsample_linear1d_backward_out(Tensor & grad_input, const Tensor & grad
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("upsample_linear1d_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::upsample_linear1d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    jit::tracer::addInputs(node, "input_size", input_size);
-    jit::tracer::addInputs(node, "align_corners", align_corners);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("upsample_linear1d_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -12458,7 +7404,7 @@ Tensor & upsample_linear1d_backward_out(Tensor & grad_input, const Tensor & grad
   #endif
   {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    at::upsample_linear1d_backward_out(grad_input_, grad_output_, output_size, input_size, align_corners);
+    at::upsample_linear1d_backward_out(grad_input_, grad_output_, output_size, input_size, align_corners, scales);
   }
   #ifndef NDEBUG
   if (grad_input__storage_saved.has_value())
@@ -12472,35 +7418,16 @@ Tensor & upsample_linear1d_backward_out(Tensor & grad_input, const Tensor & grad
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
-Tensor upsample_nearest1d_backward(const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size) {
-  RECORD_FUNCTION("upsample_nearest1d_backward", std::vector<c10::IValue>({grad_output}), Node::peek_at_next_sequence_nr());
+Tensor upsample_nearest1d_backward(const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size, c10::optional<double> scales) {
   auto& grad_output_ = unpack(grad_output, "grad_output", 0);
   std::shared_ptr<UpsampleNearest1DBackwardBackward> grad_fn;
   if (compute_requires_grad( grad_output )) {
     grad_fn = std::shared_ptr<UpsampleNearest1DBackwardBackward>(new UpsampleNearest1DBackwardBackward(), deleteNode);
     grad_fn->set_next_edges(collect_next_edges( grad_output ));
     grad_fn->output_size = output_size.vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::upsample_nearest1d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    jit::tracer::addInputs(node, "input_size", input_size);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+    grad_fn->scales = scales;
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_output__storage_saved =
@@ -12510,9 +7437,9 @@ Tensor upsample_nearest1d_backward(const Tensor & grad_output, IntArrayRef outpu
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::upsample_nearest1d_backward(grad_output_, output_size, input_size);
+    return at::upsample_nearest1d_backward(grad_output_, output_size, input_size, scales);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (grad_output__storage_saved.has_value())
     AT_ASSERT(grad_output__storage_saved.value().is_alias_of(grad_output_.storage()));
@@ -12521,14 +7448,9 @@ Tensor upsample_nearest1d_backward(const Tensor & grad_output, IntArrayRef outpu
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor upsample_nearest2d(const Tensor & self, IntArrayRef output_size) {
-  RECORD_FUNCTION("upsample_nearest2d", std::vector<c10::IValue>({self}), Node::peek_at_next_sequence_nr());
+Tensor upsample_nearest2d(const Tensor & self, IntArrayRef output_size, c10::optional<double> scales_h, c10::optional<double> scales_w) {
   auto& self_ = unpack(self, "self", 0);
   std::shared_ptr<UpsampleNearest2DBackward> grad_fn;
   if (compute_requires_grad( self )) {
@@ -12536,20 +7458,8 @@ Tensor upsample_nearest2d(const Tensor & self, IntArrayRef output_size) {
     grad_fn->set_next_edges(collect_next_edges( self ));
     grad_fn->self_sizes = self.sizes().vec();
     grad_fn->output_size = output_size.vec();
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::upsample_nearest2d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
+    grad_fn->scales_h = scales_h;
+    grad_fn->scales_w = scales_w;
   }
   #ifndef NDEBUG
   c10::optional<Storage> self__storage_saved =
@@ -12559,9 +7469,9 @@ Tensor upsample_nearest2d(const Tensor & self, IntArrayRef output_size) {
   #endif
   auto tmp = ([&]() {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    return at::upsample_nearest2d(self_, output_size);
+    return at::upsample_nearest2d(self_, output_size, scales_h, scales_w);
   })();
-  auto result = as_variable(std::move(tmp));
+  auto result = std::move(tmp);
   #ifndef NDEBUG
   if (self__storage_saved.has_value())
     AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
@@ -12570,14 +7480,9 @@ Tensor upsample_nearest2d(const Tensor & self, IntArrayRef output_size) {
   if (grad_fn) {
       set_history(flatten_tensor_args( result ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
-  }
   return result;
 }
-Tensor & upsample_nearest2d_backward_out(Tensor & grad_input, const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size) {
-  RECORD_FUNCTION("upsample_nearest2d_backward_out", std::vector<c10::IValue>({grad_input, grad_output}), Node::peek_at_next_sequence_nr());
+Tensor & upsample_nearest2d_backward_out_grad_input(Tensor & grad_input, const Tensor & grad_output, IntArrayRef output_size, IntArrayRef input_size, c10::optional<double> scales_h, c10::optional<double> scales_w) {
   auto& grad_input_ = unpack(grad_input, "grad_input", 0);
   auto& grad_output_ = unpack(grad_output, "grad_output", 1);
   std::shared_ptr<Node> grad_fn;
@@ -12586,26 +7491,6 @@ Tensor & upsample_nearest2d_backward_out(Tensor & grad_input, const Tensor & gra
   }
   if (compute_requires_grad( grad_input )) {
     throw_error_out_requires_grad("upsample_nearest2d_backward");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::upsample_nearest2d_backward");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "grad_output", grad_output);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    jit::tracer::addInputs(node, "input_size", input_size);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "grad_input", grad_input);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("upsample_nearest2d_backward_out", grad_input);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> grad_input__storage_saved =
@@ -12619,7 +7504,7 @@ Tensor & upsample_nearest2d_backward_out(Tensor & grad_input, const Tensor & gra
   #endif
   {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    at::upsample_nearest2d_backward_out(grad_input_, grad_output_, output_size, input_size);
+    at::upsample_nearest2d_backward_out(grad_input_, grad_output_, output_size, input_size, scales_h, scales_w);
   }
   #ifndef NDEBUG
   if (grad_input__storage_saved.has_value())
@@ -12633,14 +7518,9 @@ Tensor & upsample_nearest2d_backward_out(Tensor & grad_input, const Tensor & gra
   if (grad_fn) {
       rebase_history(flatten_tensor_args( grad_input ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, grad_input);
-  }
   return grad_input;
 }
-Tensor & upsample_nearest3d_out(Tensor & out, const Tensor & self, IntArrayRef output_size) {
-  RECORD_FUNCTION("upsample_nearest3d_out", std::vector<c10::IValue>({out, self}), Node::peek_at_next_sequence_nr());
+Tensor & upsample_nearest3d_out_out(Tensor & out, const Tensor & self, IntArrayRef output_size, c10::optional<double> scales_d, c10::optional<double> scales_h, c10::optional<double> scales_w) {
   auto& out_ = unpack(out, "out", 0);
   auto& self_ = unpack(self, "self", 1);
   std::shared_ptr<Node> grad_fn;
@@ -12649,25 +7529,6 @@ Tensor & upsample_nearest3d_out(Tensor & out, const Tensor & self, IntArrayRef o
   }
   if (compute_requires_grad( out )) {
     throw_error_out_requires_grad("upsample_nearest3d");
-  }
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::upsample_nearest3d");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "output_size", output_size);
-    if (tracer_state->force_outplace) {
-    
-    } else {
-      jit::tracer::addInputs(node, "out", out);
-    }
-    tracer_state->graph->insertNode(node);
-    jit::tracer::ensureUniqueIfOutOfPlaced("upsample_nearest3d_out", out);
-    jit::tracer::setTracingState(nullptr);
   }
   #ifndef NDEBUG
   c10::optional<Storage> out__storage_saved =
@@ -12681,7 +7542,7 @@ Tensor & upsample_nearest3d_out(Tensor & out, const Tensor & self, IntArrayRef o
   #endif
   {
     at::AutoNonVariableTypeMode non_var_type_mode(true);
-    at::upsample_nearest3d_out(out_, self_, output_size);
+    at::upsample_nearest3d_out(out_, self_, output_size, scales_d, scales_h, scales_w);
   }
   #ifndef NDEBUG
   if (out__storage_saved.has_value())
@@ -12695,1077 +7556,370 @@ Tensor & upsample_nearest3d_out(Tensor & out, const Tensor & self, IntArrayRef o
   if (grad_fn) {
       rebase_history(flatten_tensor_args( out ), grad_fn);
   }
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, out);
-  }
   return out;
 }
+Tensor vander(const Tensor & x, c10::optional<int64_t> N, bool increasing) {
+  auto result = TypeDefault::vander(x, N, increasing);
+  return result;
+}
 Tensor view_as(const Tensor & self, const Tensor & other) {
-  RECORD_FUNCTION("view_as", std::vector<c10::IValue>({self, other}), Node::peek_at_next_sequence_nr());
-  torch::jit::Node* node = nullptr;
-  std::shared_ptr<jit::tracer::TracingState> tracer_state;
-  if (jit::tracer::isTracing()) {
-    tracer_state = jit::tracer::getTracingState();
-    at::Symbol op_name;
-    op_name = jit::Symbol::fromQualString("aten::view_as");
-    node = tracer_state->graph->create(op_name, /*num_outputs=*/0);
-    jit::tracer::recordSourceLocation(node);
-    jit::tracer::addInputs(node, "self", self);
-    jit::tracer::addInputs(node, "other", other);
-    tracer_state->graph->insertNode(node);
-  
-    jit::tracer::setTracingState(nullptr);
-  }
   auto result = TypeDefault::view_as(self, other);
-  if (tracer_state) {
-    jit::tracer::setTracingState(std::move(tracer_state));
-    jit::tracer::addOutput(node, result);
+  return result;
+}
+Tensor view_as_complex(const Tensor & self) {
+  auto& self_ = unpack(self, "self", 0);
+  std::shared_ptr<ViewAsComplexBackward> grad_fn;
+  if (compute_requires_grad( self )) {
+    grad_fn = std::shared_ptr<ViewAsComplexBackward>(new ViewAsComplexBackward(), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self ));
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::view_as_complex(self_);
+  })();
+  c10::optional<std::function<at::Tensor(const at::Tensor&)>> func=c10::nullopt;
+  if (true || !self.unsafeGetTensorImpl()->support_as_strided()) {
+    func = [=](const at::Tensor& input_base) {
+      return at::view_as_complex(input_base);
+    };
+  }
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* view_func */ func, /* creation_meta */ GradMode::is_enabled() ? CreationMeta::DEFAULT: CreationMeta::NO_GRAD_MODE);
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  if (grad_fn) {
+      set_history(flatten_tensor_args( result ), grad_fn);
   }
   return result;
 }
+Tensor view_as_real(const Tensor & self) {
+  auto& self_ = unpack(self, "self", 0);
+  std::shared_ptr<ViewAsRealBackward> grad_fn;
+  if (compute_requires_grad( self )) {
+    grad_fn = std::shared_ptr<ViewAsRealBackward>(new ViewAsRealBackward(), deleteNode);
+    grad_fn->set_next_edges(collect_next_edges( self ));
+  }
+  #ifndef NDEBUG
+  c10::optional<Storage> self__storage_saved =
+    self_.has_storage() ? c10::optional<Storage>(self_.storage()) : c10::nullopt;
+  c10::intrusive_ptr<TensorImpl> self__impl_saved;
+  if (self_.defined()) self__impl_saved = self_.getIntrusivePtr();
+  #endif
+  auto tmp = ([&]() {
+    at::AutoNonVariableTypeMode non_var_type_mode(true);
+    return at::view_as_real(self_);
+  })();
+  c10::optional<std::function<at::Tensor(const at::Tensor&)>> func=c10::nullopt;
+  if (true || !self.unsafeGetTensorImpl()->support_as_strided()) {
+    func = [=](const at::Tensor& input_base) {
+      return at::view_as_real(input_base);
+    };
+  }
+  auto result = as_view(/* base */ self, /* output */ tmp, /* is_differentiable */ true, /* view_func */ func, /* creation_meta */ GradMode::is_enabled() ? CreationMeta::DEFAULT: CreationMeta::NO_GRAD_MODE);
+  #ifndef NDEBUG
+  if (self__storage_saved.has_value())
+    AT_ASSERT(self__storage_saved.value().is_alias_of(self_.storage()));
+  if (self__impl_saved) AT_ASSERT(self__impl_saved == self_.getIntrusivePtr());
+  #endif
+  if (grad_fn) {
+      set_history(flatten_tensor_args( result ), grad_fn);
+  }
+  return result;
 }
+// }
 }
 
 namespace {
 
-auto registerer = torch::RegisterOperators()
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__ilshift__.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, Scalar), &VariableType::__ilshift__>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__ilshift__.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &), &VariableType::__ilshift__>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__ior__.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, Scalar), &VariableType::__ior__>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__ior__.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &), &VariableType::__ior__>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__ixor__.Scalar(Tensor(a!) self, Scalar other) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, Scalar), &VariableType::__ixor__>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__ixor__.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &), &VariableType::__ixor__>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__lshift__.Scalar(Tensor self, Scalar other) -> Tensor")
-    .kernel<Tensor (const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::__lshift__)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__lshift__.Tensor(Tensor self, Tensor other) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::__lshift__)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__or__.Scalar(Tensor self, Scalar other) -> Tensor")
-    .kernel<Tensor (const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::__or__)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__or__.Tensor(Tensor self, Tensor other) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::__or__)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__xor__.Scalar(Tensor self, Scalar other) -> Tensor")
-    .kernel<Tensor (const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::__xor__)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::__xor__.Tensor(Tensor self, Tensor other) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::__xor__)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_addr.out(Tensor self, Tensor vec1, Tensor vec2, *, Scalar beta=1, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, Scalar, Scalar), &VariableType::_addr_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_baddbmm_mkl_(Tensor(a!) self, Tensor batch1, Tensor batch2, *, Scalar beta=1, Scalar alpha=1) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, const Tensor &, Scalar, Scalar), &VariableType::_baddbmm_mkl_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_cast_Double(Tensor self, bool non_blocking=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, bool)>(TensorTypeId::VariableTensorId, &VariableType::_cast_Double)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_cast_Short(Tensor self, bool non_blocking=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, bool)>(TensorTypeId::VariableTensorId, &VariableType::_cast_Short)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_cudnn_rnn(Tensor input, Tensor[] weight, int weight_stride0, Tensor? weight_buf, Tensor hx, Tensor? cx, int mode, int hidden_size, int num_layers, bool batch_first, float dropout, bool train, bool bidirectional, int[] batch_sizes, Tensor? dropout_state) -> (Tensor, Tensor, Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> (const Tensor &, TensorList, int64_t, const Tensor &, const Tensor &, const Tensor &, int64_t, int64_t, int64_t, bool, double, bool, bool, IntArrayRef, const Tensor &), &VariableType::_cudnn_rnn>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_cumsum.out(Tensor self, int dim, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, int64_t), &VariableType::_cumsum_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_dimV(Tensor self) -> int")
-    .kernel<int64_t (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::_dimV)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_embedding_bag(Tensor weight, Tensor indices, Tensor offsets, bool scale_grad_by_freq=False, int mode=0, bool sparse=False, Tensor? per_sample_weights=None) -> (Tensor, Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, bool, int64_t, bool, const Tensor &), &VariableType::_embedding_bag>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_embedding_bag_sparse_backward(Tensor grad, Tensor indices, Tensor offsets, Tensor offset2bag, Tensor bag_size, int num_weights, bool scale_grad_by_freq, int mode, Tensor? per_sample_weights) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, int64_t, bool, int64_t, const Tensor &), &VariableType::_embedding_bag_sparse_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_gather_sparse_backward(Tensor self, int dim, Tensor index, Tensor grad) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::_gather_sparse_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_index_put_impl_(Tensor(a!) self, Tensor?[] indices, Tensor values, bool accumulate=False, bool unsafe=False) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, TensorList, const Tensor &, bool, bool), &VariableType::_index_put_impl_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_indices(Tensor(a) self) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &), &VariableType::_indices>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_local_scalar_dense(Tensor self) -> Scalar")
-    .kernel<Scalar (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::_local_scalar_dense)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_max.max(Tensor self, int dim, bool keepdim=False, *, Tensor(a!) max, Tensor(b!) max_indices) -> (Tensor(a!), Tensor(b!))")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, int64_t, bool), &VariableType::_max_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_mkldnn_transpose(Tensor self, int dim0, int dim1) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, int64_t)>(TensorTypeId::VariableTensorId, &VariableType::_mkldnn_transpose)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_mkldnn_transpose_(Tensor(a!) self, int dim0, int dim1) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, int64_t, int64_t), &VariableType::_mkldnn_transpose_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_mode.values(Tensor self, int dim=-1, bool keepdim=False, *, Tensor(a!) values, Tensor(b!) indices) -> (Tensor(a!), Tensor(b!))")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, int64_t, bool), &VariableType::_mode_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_nnpack_spatial_convolution_backward_weight(Tensor input, int[] weightsize, Tensor grad_output, int[2] padding) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, const Tensor &, IntArrayRef), &VariableType::_nnpack_spatial_convolution_backward_weight>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_pdist_forward(Tensor self, float p=2) -> Tensor")
-    .kernel<Tensor (const Tensor &, double)>(TensorTypeId::VariableTensorId, &VariableType::_pdist_forward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_softmax(Tensor self, int dim, bool half_to_float) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, bool)>(TensorTypeId::VariableTensorId, &VariableType::_softmax)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_sparse_coo_tensor_with_dims(int sparse_dim, int dense_dim, int[] size, *, ScalarType dtype, Layout layout, Device device, bool pin_memory=False) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (int64_t, int64_t, IntArrayRef, const TensorOptions &), &VariableType::_sparse_coo_tensor_with_dims>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_sparse_sum(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::_sparse_sum)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_sparse_sum.dtype(Tensor self, *, ScalarType dtype) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, ScalarType), &VariableType::_sparse_sum>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_sparse_sum.dim(Tensor self, int[1] dim) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef), &VariableType::_sparse_sum>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_sparse_sum.dim_dtype(Tensor self, int[1] dim, *, ScalarType dtype) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, IntArrayRef, ScalarType), &VariableType::_sparse_sum>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_thnn_differentiable_lstm_cell_backward(Tensor? grad_hy, Tensor? grad_cy, Tensor input_gates, Tensor hidden_gates, Tensor? input_bias, Tensor? hidden_bias, Tensor cx, Tensor cy) -> (Tensor, Tensor, Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &), &VariableType::_thnn_differentiable_lstm_cell_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_thnn_fused_gru_cell(Tensor input_gates, Tensor hidden_gates, Tensor hx, Tensor? input_bias=None, Tensor? hidden_bias=None) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &), &VariableType::_thnn_fused_gru_cell>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_thnn_fused_lstm_cell_backward(Tensor? grad_hy, Tensor? grad_cy, Tensor cx, Tensor cy, Tensor workspace, bool has_bias) -> (Tensor, Tensor, Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, bool), &VariableType::_thnn_fused_lstm_cell_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_trilinear(Tensor i1, Tensor i2, Tensor i3, int[] expand1, int[] expand2, int[] expand3, int[] sumdim, int unroll_dim=1) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, IntArrayRef, int64_t), &VariableType::_trilinear>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_unsafe_view(Tensor self, int[] size) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef), &VariableType::_unsafe_view>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::_weight_norm_cuda_interface(Tensor v, Tensor g, int dim=0) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor> (const Tensor &, const Tensor &, int64_t), &VariableType::_weight_norm_cuda_interface>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::abs(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::abs)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::abs_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::abs_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::adaptive_avg_pool1d(Tensor self, int[1] output_size) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef), &VariableType::adaptive_avg_pool1d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::adaptive_avg_pool2d.out(Tensor self, int[2] output_size, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef), &VariableType::adaptive_avg_pool2d_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::adaptive_max_pool2d_backward(Tensor grad_output, Tensor self, Tensor indices) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::adaptive_max_pool2d_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::adaptive_max_pool3d(Tensor self, int[3] output_size) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor> (const Tensor &, IntArrayRef), &VariableType::adaptive_max_pool3d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::adaptive_max_pool3d_backward.grad_input(Tensor grad_output, Tensor self, Tensor indices, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &), &VariableType::adaptive_max_pool3d_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::addcmul(Tensor self, Tensor tensor1, Tensor tensor2, *, Scalar value=1) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::addcmul)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::addcmul_(Tensor(a!) self, Tensor tensor1, Tensor tensor2, *, Scalar value=1) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, const Tensor &, Scalar), &VariableType::addcmul_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::addmm(Tensor self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, const Tensor &, Scalar, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::addmm)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::addmm_(Tensor(a!) self, Tensor mat1, Tensor mat2, *, Scalar beta=1, Scalar alpha=1) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, const Tensor &, Scalar, Scalar), &VariableType::addmm_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::addr.out(Tensor self, Tensor vec1, Tensor vec2, *, Scalar beta=1, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, Scalar, Scalar), &VariableType::addr_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::align_as(Tensor self, Tensor other) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, const Tensor &), &VariableType::align_as>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::align_tensors(Tensor[] tensors) -> Tensor[]")
-    .impl_unboxedOnlyC10Kernel<std::vector<Tensor> (TensorList), &VariableType::align_tensors>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::align_to(Tensor(a) self, DimnameList names) -> Tensor(a)")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, DimnameList), &VariableType::align_to>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::argmax(Tensor self, int? dim=None, bool keepdim=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, c10::optional<int64_t>, bool)>(TensorTypeId::VariableTensorId, &VariableType::argmax)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::argsort(Tensor self, int dim=-1, bool descending=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, bool)>(TensorTypeId::VariableTensorId, &VariableType::argsort)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::argsort.dimname(Tensor self, Dimname dim, bool descending=False) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, Dimname, bool), &VariableType::argsort>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::atan(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::atan)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::atan2(Tensor self, Tensor other) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::atan2)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::atan2_(Tensor(a!) self, Tensor other) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &), &VariableType::atan2_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::atan_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::atan_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::avg_pool2d(Tensor self, int[2] kernel_size, int[2] stride=[], int[2] padding=0, bool ceil_mode=False, bool count_include_pad=True, int? divisor_override=None) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, bool, bool, c10::optional<int64_t>), &VariableType::avg_pool2d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::avg_pool2d_backward.grad_input(Tensor grad_output, Tensor self, int[2] kernel_size, int[2] stride, int[2] padding, bool ceil_mode, bool count_include_pad, int? divisor_override, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, bool, bool, c10::optional<int64_t>), &VariableType::avg_pool2d_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::avg_pool3d.out(Tensor self, int[3] kernel_size, int[3] stride=[], int[3] padding=0, bool ceil_mode=False, bool count_include_pad=True, int? divisor_override=None, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, bool, bool, c10::optional<int64_t>), &VariableType::avg_pool3d_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::baddbmm.out(Tensor self, Tensor batch1, Tensor batch2, *, Scalar beta=1, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, Scalar, Scalar), &VariableType::baddbmm_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::bartlett_window(int window_length, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (int64_t, const TensorOptions &), &VariableType::bartlett_window>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::bartlett_window.periodic(int window_length, bool periodic, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (int64_t, bool, const TensorOptions &), &VariableType::bartlett_window>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::batch_norm_update_stats(Tensor input, Tensor? running_mean, Tensor? running_var, float momentum) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, double), &VariableType::batch_norm_update_stats>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::binary_cross_entropy_backward(Tensor grad_output, Tensor self, Tensor target, Tensor? weight=None, int reduction=Mean) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, const Tensor &, int64_t), &VariableType::binary_cross_entropy_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::bitwise_not.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &), &VariableType::bitwise_not_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::bmm.out(Tensor self, Tensor mat2, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::bmm_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cdist(Tensor x1, Tensor x2, float p=2) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, double)>(TensorTypeId::VariableTensorId, &VariableType::cdist)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::celu(Tensor self, Scalar alpha=1.0) -> Tensor")
-    .kernel<Tensor (const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::celu)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::celu_(Tensor(a!) self, Scalar alpha=1.0) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, Scalar), &VariableType::celu_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cholesky_inverse(Tensor self, bool upper=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, bool)>(TensorTypeId::VariableTensorId, &VariableType::cholesky_inverse)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cholesky.out(Tensor self, bool upper=False, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, bool), &VariableType::cholesky_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::clamp(Tensor self, Scalar? min=None, Scalar? max=None) -> Tensor")
-    .kernel<Tensor (const Tensor &, c10::optional<Scalar>, c10::optional<Scalar>)>(TensorTypeId::VariableTensorId, &VariableType::clamp)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::clamp_(Tensor(a!) self, Scalar? min=None, Scalar? max=None) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, c10::optional<Scalar>, c10::optional<Scalar>), &VariableType::clamp_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::clamp_max.out(Tensor self, Scalar max, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, Scalar), &VariableType::clamp_max_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::conv_transpose3d.input(Tensor input, Tensor weight, Tensor? bias=None, int[3] stride=1, int[3] padding=0, int[3] output_padding=0, int groups=1, int[3] dilation=1) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, int64_t, IntArrayRef), &VariableType::conv_transpose3d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::convolution_backward_overrideable(Tensor grad_output, Tensor input, Tensor weight, int[] stride, int[] padding, int[] dilation, bool transposed, int[] output_padding, int groups, bool[3] output_mask) -> (Tensor grad_input, Tensor grad_weight, Tensor grad_bias)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, bool, IntArrayRef, int64_t, std::array<bool,3>), &VariableType::convolution_backward_overrideable>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cos(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::cos)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cos_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::cos_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cudnn_batch_norm_backward(Tensor input, Tensor grad_output, Tensor weight, Tensor? running_mean, Tensor? running_var, Tensor? save_mean, Tensor? save_var, float epsilon) -> (Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, double), &VariableType::cudnn_batch_norm_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cudnn_grid_sampler_backward(Tensor self, Tensor grid, Tensor grad_output) -> (Tensor grad_self, Tensor grad_grid)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &), &VariableType::cudnn_grid_sampler_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cumsum.out(Tensor self, int dim, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, int64_t, c10::optional<ScalarType>), &VariableType::cumsum_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::cumsum.dimname_out(Tensor self, Dimname dim, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, Dimname, c10::optional<ScalarType>), &VariableType::cumsum_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::data(Tensor self) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &), &VariableType::data>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::diag(Tensor self, int diagonal=0) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t)>(TensorTypeId::VariableTensorId, &VariableType::diag)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::digamma(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::digamma)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::digamma_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::digamma_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::elu.out(Tensor self, Scalar alpha=1, Scalar scale=1, Scalar input_scale=1, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, Scalar, Scalar, Scalar), &VariableType::elu_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::embedding_bag(Tensor weight, Tensor indices, Tensor offsets, bool scale_grad_by_freq=False, int mode=0, bool sparse=False, Tensor? per_sample_weights=None) -> (Tensor, Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, bool, int64_t, bool, const Tensor &), &VariableType::embedding_bag>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::embedding_dense_backward(Tensor grad_output, Tensor indices, int num_weights, int padding_idx, bool scale_grad_by_freq) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, int64_t, int64_t, bool)>(TensorTypeId::VariableTensorId, &VariableType::embedding_dense_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::empty_like(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::empty_like)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::empty_like.dtype(Tensor self, *, ScalarType dtype, Layout layout, Device device, bool pin_memory=False, MemoryFormat? memory_format=contiguous_format) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const TensorOptions &, c10::optional<MemoryFormat>), &VariableType::empty_like>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::empty_strided(int[] size, int[] stride, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (IntArrayRef, IntArrayRef, const TensorOptions &), &VariableType::empty_strided>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::erfc.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &), &VariableType::erfc_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::erfinv(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::erfinv)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::erfinv_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::erfinv_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::expand(Tensor(a) self, int[] size, *, bool implicit=False) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, bool), &VariableType::expand>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::expm1.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &), &VariableType::expm1_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::fake_quantize_per_tensor_affine_backward(Tensor grad, Tensor self, float scale, int zero_point, int quant_min, int quant_max) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, double, int64_t, int64_t, int64_t)>(TensorTypeId::VariableTensorId, &VariableType::fake_quantize_per_tensor_affine_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::fft(Tensor self, int signal_ndim, bool normalized=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, bool)>(TensorTypeId::VariableTensorId, &VariableType::fft)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::flatten.using_ints(Tensor self, int start_dim=0, int end_dim=-1) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, int64_t)>(TensorTypeId::VariableTensorId, &VariableType::flatten)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::flatten.named_out_dim(Tensor self, int start_dim, int end_dim, Dimname out_dim) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, int64_t, int64_t, Dimname), &VariableType::flatten>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::flatten.using_names(Tensor self, Dimname start_dim, Dimname end_dim, Dimname out_dim) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, Dimname, Dimname, Dimname), &VariableType::flatten>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::flatten.DimnameList(Tensor self, DimnameList dims, Dimname out_dim) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, DimnameList, Dimname), &VariableType::flatten>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::floor.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &), &VariableType::floor_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::full.names(int[] size, Scalar fill_value, *, Dimname[]? names, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (IntArrayRef, Scalar, c10::optional<DimnameList>, const TensorOptions &), &VariableType::full>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::full(int[] size, Scalar fill_value, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (IntArrayRef, Scalar, const TensorOptions &), &VariableType::full>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::gather(Tensor self, int dim, Tensor index, *, bool sparse_grad=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, const Tensor &, bool)>(TensorTypeId::VariableTensorId, &VariableType::gather)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::gather.dimname(Tensor self, Dimname dim, Tensor index, *, bool sparse_grad=False) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, Dimname, const Tensor &, bool), &VariableType::gather>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::gelu_backward(Tensor grad, Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::gelu_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::grid_sampler_3d_backward(Tensor grad_output, Tensor input, Tensor grid, int interpolation_mode, int padding_mode, bool align_corners) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, int64_t, int64_t, bool), &VariableType::grid_sampler_3d_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::gru_cell(Tensor input, Tensor hx, Tensor w_ih, Tensor w_hh, Tensor? b_ih=None, Tensor? b_hh=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &), &VariableType::gru_cell>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::hann_window(int window_length, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (int64_t, const TensorOptions &), &VariableType::hann_window>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::hann_window.periodic(int window_length, bool periodic, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (int64_t, bool, const TensorOptions &), &VariableType::hann_window>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::hardshrink(Tensor self, Scalar lambd=0.5) -> Tensor")
-    .kernel<Tensor (const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::hardshrink)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::ifft(Tensor self, int signal_ndim, bool normalized=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, bool)>(TensorTypeId::VariableTensorId, &VariableType::ifft)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::index_select.out(Tensor self, int dim, Tensor index, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, int64_t, const Tensor &), &VariableType::index_select_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::index_select.dimname_out(Tensor self, Dimname dim, Tensor index, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, Dimname, const Tensor &), &VariableType::index_select_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::indices(Tensor(a) self) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &), &VariableType::indices>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::is_complex(Tensor self) -> bool")
-    .kernel<bool (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::is_complex)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::is_same_size(Tensor self, Tensor other) -> bool")
-    .kernel<bool (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::is_same_size)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::l1_loss.out(Tensor self, Tensor target, int reduction=Mean, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, int64_t), &VariableType::l1_loss_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::layer_norm(Tensor input, int[] normalized_shape, Tensor? weight=None, Tensor? bias=None, float eps=1e-05, bool cudnn_enable=True) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, IntArrayRef, const Tensor &, const Tensor &, double, bool), &VariableType::layer_norm>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::leaky_relu_backward(Tensor grad_output, Tensor self, Scalar negative_slope) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::leaky_relu_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::lerp.Scalar(Tensor self, Tensor end, Scalar weight) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::lerp)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::lerp.Tensor(Tensor self, Tensor end, Tensor weight) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::lerp)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::lerp_.Scalar(Tensor(a!) self, Tensor end, Scalar weight) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, Scalar), &VariableType::lerp_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::lerp_.Tensor(Tensor(a!) self, Tensor end, Tensor weight) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::lerp_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::linear(Tensor input, Tensor weight, Tensor? bias=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &), &VariableType::linear>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::log_sigmoid(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::log_sigmoid)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::log_sigmoid_backward.grad_input(Tensor grad_output, Tensor self, Tensor buffer, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &), &VariableType::log_sigmoid_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::logical_xor.out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::logical_xor_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::logspace.out(Scalar start, Scalar end, int steps=100, float base=10.0, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, Scalar, Scalar, int64_t, double), &VariableType::logspace_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::logsumexp.out(Tensor self, int[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef, bool), &VariableType::logsumexp_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::logsumexp.names_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, DimnameList, bool), &VariableType::logsumexp_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::matmul.out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::matmul_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::max.dim_max(Tensor self, int dim, bool keepdim=False, *, Tensor(a!) max, Tensor(b!) max_values) -> (Tensor(a!) values, Tensor(b!) indices)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, int64_t, bool), &VariableType::max_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::max.names_dim_max(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) max, Tensor(b!) max_values) -> (Tensor(a!) values, Tensor(b!) indices)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, Dimname, bool), &VariableType::max_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::max.out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::max_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::max_unpool2d(Tensor self, Tensor indices, int[2] output_size) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, const Tensor &, IntArrayRef), &VariableType::max_unpool2d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::max_unpool2d_backward.grad_input(Tensor grad_output, Tensor self, Tensor indices, int[2] output_size, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, IntArrayRef), &VariableType::max_unpool2d_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::max_unpool3d.out(Tensor self, Tensor indices, int[3] output_size, int[3] stride, int[3] padding, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef), &VariableType::max_unpool3d_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::min_values(Tensor self, int[1] dim, bool keepdim=False) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, bool), &VariableType::min_values>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::min_values.names(Tensor self, Dimname[1] dim, bool keepdim=False) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, DimnameList, bool), &VariableType::min_values>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::miopen_convolution_backward(Tensor self, Tensor grad_output, Tensor weight, int[] padding, int[] stride, int[] dilation, int groups, bool benchmark, bool deterministic, bool[3] output_mask) -> (Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, int64_t, bool, bool, std::array<bool,3>), &VariableType::miopen_convolution_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::miopen_convolution_backward_bias(Tensor grad_output) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::miopen_convolution_backward_bias)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::miopen_convolution_backward_input(int[] self_size, Tensor grad_output, Tensor weight, int[] padding, int[] stride, int[] dilation, int groups, bool benchmark, bool deterministic) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (IntArrayRef, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, int64_t, bool, bool), &VariableType::miopen_convolution_backward_input>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::miopen_convolution_transpose(Tensor self, Tensor weight, Tensor? bias, int[] padding, int[] output_padding, int[] stride, int[] dilation, int groups, bool benchmark, bool deterministic) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, IntArrayRef, int64_t, bool, bool), &VariableType::miopen_convolution_transpose>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mkldnn_adaptive_avg_pool2d(Tensor self, int[2] output_size) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef), &VariableType::mkldnn_adaptive_avg_pool2d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mkldnn_convolution(Tensor self, Tensor weight, Tensor? bias, int[] padding, int[] stride, int[] dilation, int groups) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, int64_t), &VariableType::mkldnn_convolution>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mkldnn_reorder_conv2d_weight(Tensor self, int[2] padding=0, int[2] stride=1, int[2] dilation=1, int groups=1) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, int64_t), &VariableType::mkldnn_reorder_conv2d_weight>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mode.values(Tensor self, int dim=-1, bool keepdim=False, *, Tensor(a!) values, Tensor(b!) indices) -> (Tensor(a!) values, Tensor(b!) indices)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, int64_t, bool), &VariableType::mode_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mode.dimname_out(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) values, Tensor(b!) indices) -> (Tensor(a!) values, Tensor(b!) indices)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, Dimname, bool), &VariableType::mode_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mse_loss_backward(Tensor grad_output, Tensor self, Tensor target, int reduction) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, const Tensor &, int64_t)>(TensorTypeId::VariableTensorId, &VariableType::mse_loss_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::multilabel_margin_loss_backward(Tensor grad_output, Tensor self, Tensor target, int reduction, Tensor is_target) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, const Tensor &, int64_t, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::multilabel_margin_loss_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::multilabel_margin_loss_forward.output(Tensor self, Tensor target, int reduction, *, Tensor(a!) output, Tensor(b!) is_target) -> (Tensor(a!), Tensor(b!))")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, const Tensor &, int64_t), &VariableType::multilabel_margin_loss_forward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::multinomial(Tensor self, int num_samples, bool replacement=False, *, Generator? generator=None) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, int64_t, bool, Generator *), &VariableType::multinomial>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mvlgamma(Tensor self, int p) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t)>(TensorTypeId::VariableTensorId, &VariableType::mvlgamma)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::mvlgamma_(Tensor(a!) self, int p) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, int64_t), &VariableType::mvlgamma_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::narrow(Tensor(a) self, int dim, int start, int length) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, int64_t, int64_t, int64_t), &VariableType::narrow>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::native_batch_norm(Tensor input, Tensor? weight, Tensor? bias, Tensor? running_mean, Tensor? running_var, bool training, float momentum, float eps) -> (Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, bool, double, double), &VariableType::native_batch_norm>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::ne.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, Scalar), &VariableType::ne_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::ne.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::ne_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::new_full(Tensor self, int[] size, Scalar fill_value, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, IntArrayRef, Scalar, const TensorOptions &), &VariableType::new_full>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::nll_loss(Tensor self, Tensor target, Tensor? weight=None, int reduction=Mean, int ignore_index=-100) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, int64_t, int64_t), &VariableType::nll_loss>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::nll_loss2d(Tensor self, Tensor target, Tensor? weight=None, int reduction=Mean, int ignore_index=-100) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, int64_t, int64_t), &VariableType::nll_loss2d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::nll_loss2d_backward.grad_input(Tensor grad_output, Tensor self, Tensor target, Tensor? weight, int reduction, int ignore_index, Tensor total_weight, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, int64_t, int64_t, const Tensor &), &VariableType::nll_loss2d_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::nll_loss_backward.grad_input(Tensor grad_output, Tensor self, Tensor target, Tensor? weight, int reduction, int ignore_index, Tensor total_weight, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, int64_t, int64_t, const Tensor &), &VariableType::nll_loss_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::nuclear_norm(Tensor self, bool keepdim=False) -> Tensor")
-    .kernel<Tensor (const Tensor &, bool)>(TensorTypeId::VariableTensorId, &VariableType::nuclear_norm)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::nuclear_norm.dim(Tensor self, int[2] dim, bool keepdim=False) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, bool), &VariableType::nuclear_norm>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::numel(Tensor self) -> int")
-    .kernel<int64_t (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::numel)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::orgqr(Tensor self, Tensor input2) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::orgqr)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::ormqr.out(Tensor self, Tensor input2, Tensor input3, bool left=True, bool transpose=False, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, bool, bool), &VariableType::ormqr_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::permute(Tensor(a) self, int[] dims) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef), &VariableType::permute>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::pixel_shuffle(Tensor self, int upscale_factor) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t)>(TensorTypeId::VariableTensorId, &VariableType::pixel_shuffle)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::put_(Tensor(a!) self, Tensor index, Tensor source, bool accumulate=False) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, const Tensor &, bool), &VariableType::put_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::q_zero_point(Tensor self) -> int")
-    .kernel<int64_t (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::q_zero_point)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::quantize_per_tensor(Tensor self, float scale, int zero_point, ScalarType dtype) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, double, int64_t, ScalarType), &VariableType::quantize_per_tensor>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::quantized_gru.input(Tensor input, Tensor hx, Tensor[] params, bool has_biases, int num_layers, float dropout, bool train, bool bidirectional, bool batch_first) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor> (const Tensor &, const Tensor &, TensorList, bool, int64_t, double, bool, bool, bool), &VariableType::quantized_gru>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::quantized_gru.data(Tensor data, Tensor batch_sizes, Tensor hx, Tensor[] params, bool has_biases, int num_layers, float dropout, bool train, bool bidirectional) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, TensorList, bool, int64_t, double, bool, bool), &VariableType::quantized_gru>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::quantized_lstm_cell(Tensor input, Tensor[] hx, Tensor w_ih, Tensor w_hh, Tensor b_ih, Tensor b_hh, Tensor packed_ih, Tensor packed_hh, Tensor col_offsets_ih, Tensor col_offsets_hh, Scalar scale_ih, Scalar scale_hh, Scalar zero_point_ih, Scalar zero_point_hh) -> (Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor> (const Tensor &, TensorList, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, Scalar, Scalar, Scalar, Scalar), &VariableType::quantized_lstm_cell>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::rand.out(int[] size, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, IntArrayRef), &VariableType::rand_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::rand.generator_out(int[] size, *, Generator? generator, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, IntArrayRef, Generator *), &VariableType::rand_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::randn.out(int[] size, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, IntArrayRef), &VariableType::randn_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::randn.generator_out(int[] size, *, Generator? generator, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, IntArrayRef, Generator *), &VariableType::randn_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::range.step(Scalar start, Scalar end, Scalar step=1, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (Scalar, Scalar, Scalar, const TensorOptions &), &VariableType::range>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::range(Scalar start, Scalar end, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (Scalar, Scalar, const TensorOptions &), &VariableType::range>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::reciprocal(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::reciprocal)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::reciprocal_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::reciprocal_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::refine_names(Tensor(a) self, DimnameList names) -> Tensor(a)")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, DimnameList), &VariableType::refine_names>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::reflection_pad1d(Tensor self, int[2] padding) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef), &VariableType::reflection_pad1d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::reflection_pad1d_backward.grad_input(Tensor grad_output, Tensor self, int[2] padding, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, IntArrayRef), &VariableType::reflection_pad1d_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::reflection_pad2d.out(Tensor self, int[4] padding, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef), &VariableType::reflection_pad2d_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::relu(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::relu)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::relu_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::relu_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::remainder.Scalar_out(Tensor self, Scalar other, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, Scalar), &VariableType::remainder_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::remainder.Tensor_out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::remainder_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::replication_pad1d.out(Tensor self, int[2] padding, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef), &VariableType::replication_pad1d_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::resize_as_(Tensor(a!) self, Tensor the_template) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &), &VariableType::resize_as_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::rnn_relu_cell(Tensor input, Tensor hx, Tensor w_ih, Tensor w_hh, Tensor? b_ih=None, Tensor? b_hh=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &, const Tensor &), &VariableType::rnn_relu_cell>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::rrelu_with_noise(Tensor self, Tensor noise, Scalar lower=0.125, Scalar upper=0.3333333333333333, bool training=False, Generator? generator=None) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, const Tensor &, Scalar, Scalar, bool, Generator *), &VariableType::rrelu_with_noise>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::rrelu_with_noise_(Tensor(a!) self, Tensor noise, Scalar lower=0.125, Scalar upper=0.3333333333333333, bool training=False, Generator? generator=None) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, Scalar, Scalar, bool, Generator *), &VariableType::rrelu_with_noise_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::rrelu_with_noise_backward.grad_input(Tensor grad_output, Tensor self, Tensor noise, Scalar lower, Scalar upper, bool training, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, const Tensor &, Scalar, Scalar, bool), &VariableType::rrelu_with_noise_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::scatter_add(Tensor self, int dim, Tensor index, Tensor src) -> Tensor")
-    .kernel<Tensor (const Tensor &, int64_t, const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::scatter_add)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::scatter_add.dimname(Tensor self, Dimname dim, Tensor index, Tensor src) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, Dimname, const Tensor &, const Tensor &), &VariableType::scatter_add>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::scatter_add_(Tensor(a!) self, int dim, Tensor index, Tensor src) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, int64_t, const Tensor &, const Tensor &), &VariableType::scatter_add_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::select.Dimname(Tensor(a) self, Dimname dim, int index) -> Tensor(a)")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, Dimname, int64_t), &VariableType::select>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::select.int(Tensor(a) self, int dim, int index) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, int64_t, int64_t), &VariableType::select>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sin(Tensor self) -> Tensor")
-    .kernel<Tensor (const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::sin)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sin_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::sin_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::slow_conv_dilated3d_backward(Tensor grad_output, Tensor self, Tensor weight, int[3] kernel_size, int[3] stride, int[3] padding, int[3] dilation, bool[3] output_mask) -> (Tensor grad_input, Tensor grad_weight, Tensor grad_bias)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, IntArrayRef, std::array<bool,3>), &VariableType::slow_conv_dilated3d_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::soft_margin_loss.out(Tensor self, Tensor target, int reduction=Mean, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, int64_t), &VariableType::soft_margin_loss_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::softmax(Tensor self, int dim, ScalarType? dtype=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, int64_t, c10::optional<ScalarType>), &VariableType::softmax>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::softmax(Tensor self, Dimname dim, *, ScalarType? dtype=None) -> Tensor")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, Dimname, c10::optional<ScalarType>), &VariableType::softmax>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::softplus.out(Tensor self, Scalar beta=1, Scalar threshold=20, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, Scalar, Scalar), &VariableType::softplus_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::softshrink_backward(Tensor grad_output, Tensor self, Scalar lambd) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::softshrink_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sort.values(Tensor self, int dim=-1, bool descending=False, *, Tensor(a!) values, Tensor(b!) indices) -> (Tensor(a!) values, Tensor(b!) indices)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, int64_t, bool), &VariableType::sort_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sort.dimname_values(Tensor self, Dimname dim, bool descending=False, *, Tensor(a!) values, Tensor(b!) indices) -> (Tensor(a!) values, Tensor(b!) indices)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, Dimname, bool), &VariableType::sort_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::squeeze(Tensor(a) self) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &), &VariableType::squeeze>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::squeeze.dim(Tensor(a) self, int dim) -> Tensor(a)")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, int64_t), &VariableType::squeeze>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::squeeze.dimname(Tensor(a) self, Dimname dim) -> Tensor(a)")
-    .impl_unboxedOnlyATenKernel<Tensor (const Tensor &, Dimname), &VariableType::squeeze>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::squeeze_(Tensor(a!) self) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &), &VariableType::squeeze_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::squeeze_.dim(Tensor(a!) self, int dim) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, int64_t), &VariableType::squeeze_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::squeeze_.dimname(Tensor(a!) self, Dimname dim) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, Dimname), &VariableType::squeeze_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::std.out(Tensor self, int[1] dim, bool unbiased=True, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef, bool, bool), &VariableType::std_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::std.names_out(Tensor self, Dimname[1] dim, bool unbiased=True, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, DimnameList, bool, bool), &VariableType::std_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sub.Tensor(Tensor self, Tensor other, *, Scalar alpha=1) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::sub)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sub.Scalar(Tensor self, Scalar other, Scalar alpha=1) -> Tensor")
-    .kernel<Tensor (const Tensor &, Scalar, Scalar)>(TensorTypeId::VariableTensorId, &VariableType::sub)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sub_.Tensor(Tensor(a!) self, Tensor other, *, Scalar alpha=1) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, const Tensor &, Scalar), &VariableType::sub_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sub_.Scalar(Tensor(a!) self, Scalar other, Scalar alpha=1) -> Tensor(a!)")
-    .impl_unboxedOnlyC10Kernel<Tensor & (Tensor &, Scalar, Scalar), &VariableType::sub_>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sum.IntList_out(Tensor self, int[1] dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef, bool, c10::optional<ScalarType>), &VariableType::sum_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::sum.DimnameList_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, DimnameList, bool, c10::optional<ScalarType>), &VariableType::sum_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::take.out(Tensor self, Tensor index, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &), &VariableType::take_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::thnn_conv2d_forward(Tensor self, Tensor weight, int[2] kernel_size, Tensor? bias, int[2] stride, int[2] padding) -> (Tensor output, Tensor finput, Tensor fgrad_input)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, IntArrayRef, const Tensor &, IntArrayRef, IntArrayRef), &VariableType::thnn_conv2d_forward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::thnn_conv3d_backward.output_mask(Tensor grad_output, Tensor self, Tensor weight, int[3] kernel_size, int[3] stride, int[3] padding, Tensor finput, Tensor fgrad_input, bool[3] output_mask) -> (Tensor grad_input, Tensor grad_weight, Tensor grad_bias)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, const Tensor &, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef, const Tensor &, const Tensor &, std::array<bool,3>), &VariableType::thnn_conv3d_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::thnn_conv3d_forward.output(Tensor self, Tensor weight, int[3] kernel_size, Tensor? bias, int[3] stride, int[3] padding, *, Tensor(a!) output, Tensor(b!) finput, Tensor(c!) fgrad_input) -> (Tensor(a!), Tensor(b!), Tensor(c!))")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &,Tensor &> (Tensor &, Tensor &, Tensor &, const Tensor &, const Tensor &, IntArrayRef, const Tensor &, IntArrayRef, IntArrayRef), &VariableType::thnn_conv3d_forward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::thnn_conv_depthwise2d.out(Tensor self, Tensor weight, int[2] kernel_size, Tensor? bias=None, int[2] stride=1, int[2] padding=0, int[2] dilation=1, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, const Tensor &, IntArrayRef, const Tensor &, IntArrayRef, IntArrayRef, IntArrayRef), &VariableType::thnn_conv_depthwise2d_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::to_dense_backward(Tensor grad, Tensor input) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::to_dense_backward)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::topk.values(Tensor self, int k, int dim=-1, bool largest=True, bool sorted=True, *, Tensor(a!) values, Tensor(b!) indices) ->(Tensor(a!) values, Tensor(b!) indices)")
-    .impl_unboxedOnlyATenKernel<std::tuple<Tensor &,Tensor &> (Tensor &, Tensor &, const Tensor &, int64_t, int64_t, bool, bool), &VariableType::topk_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::trunc.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &), &VariableType::trunc_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::unbind.int(Tensor(a) self, int dim=0) -> Tensor(a)[]")
-    .impl_unboxedOnlyC10Kernel<std::vector<Tensor> (const Tensor &, int64_t), &VariableType::unbind>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::unbind.Dimname(Tensor(a) self, Dimname dim) -> Tensor(a)[]")
-    .impl_unboxedOnlyATenKernel<std::vector<Tensor> (const Tensor &, Dimname), &VariableType::unbind>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::unique_consecutive(Tensor self, bool return_inverse=False, bool return_counts=False, int? dim=None) -> (Tensor, Tensor, Tensor)")
-    .impl_unboxedOnlyC10Kernel<std::tuple<Tensor,Tensor,Tensor> (const Tensor &, bool, bool, c10::optional<int64_t>), &VariableType::unique_consecutive>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::upsample_bilinear2d_backward(Tensor grad_output, int[2] output_size, int[4] input_size, bool align_corners) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, IntArrayRef, bool), &VariableType::upsample_bilinear2d_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::upsample_linear1d(Tensor self, int[1] output_size, bool align_corners) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, bool), &VariableType::upsample_linear1d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::upsample_linear1d_backward.grad_input(Tensor grad_output, int[1] output_size, int[3] input_size, bool align_corners, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef, IntArrayRef, bool), &VariableType::upsample_linear1d_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::upsample_nearest1d_backward(Tensor grad_output, int[1] output_size, int[3] input_size) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef, IntArrayRef), &VariableType::upsample_nearest1d_backward>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::upsample_nearest2d(Tensor self, int[2] output_size) -> Tensor")
-    .impl_unboxedOnlyC10Kernel<Tensor (const Tensor &, IntArrayRef), &VariableType::upsample_nearest2d>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::upsample_nearest2d_backward.grad_input(Tensor grad_output, int[2] output_size, int[4] input_size, *, Tensor(a!) grad_input) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef, IntArrayRef), &VariableType::upsample_nearest2d_backward_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::upsample_nearest3d.out(Tensor self, int[3] output_size, *, Tensor(a!) out) -> Tensor(a!)")
-    .impl_unboxedOnlyATenKernel<Tensor & (Tensor &, const Tensor &, IntArrayRef), &VariableType::upsample_nearest3d_out>(TensorTypeId::VariableTensorId)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA))
-  .op(torch::RegisterOperators::options()
-    .schema("aten::view_as(Tensor self, Tensor other) -> Tensor")
-    .kernel<Tensor (const Tensor &, const Tensor &)>(TensorTypeId::VariableTensorId, &VariableType::view_as)
-    .aliasAnalysis(c10::AliasAnalysisKind::FROM_SCHEMA));
+TORCH_LIBRARY_IMPL(aten, Autograd, m) {
+  m.impl_UNBOXED("__ilshift__.Scalar", &VariableType::__ilshift___Scalar);
+  m.impl_UNBOXED("__ilshift__.Tensor", &VariableType::__ilshift___Tensor);
+  m.impl_UNBOXED("__ior__.Scalar", &VariableType::__ior___Scalar);
+  m.impl_UNBOXED("__ior__.Tensor", &VariableType::__ior___Tensor);
+  m.impl_UNBOXED("__ixor__.Scalar", &VariableType::__ixor___Scalar);
+  m.impl_UNBOXED("__ixor__.Tensor", &VariableType::__ixor___Tensor);
+  m.impl("__lshift__.Scalar", TORCH_FN(VariableType::__lshift___Scalar));
+  m.impl("__lshift__.Tensor", TORCH_FN(VariableType::__lshift___Tensor));
+  m.impl("__or__.Scalar", TORCH_FN(VariableType::__or___Scalar));
+  m.impl("__or__.Tensor", TORCH_FN(VariableType::__or___Tensor));
+  m.impl("__xor__.Scalar", TORCH_FN(VariableType::__xor___Scalar));
+  m.impl("__xor__.Tensor", TORCH_FN(VariableType::__xor___Tensor));
+  m.impl_UNBOXED("_addr.out", &VariableType::_addr_out_out);
+  m.impl_UNBOXED("_baddbmm_mkl_", &VariableType::_baddbmm_mkl_);
+  m.impl_UNBOXED("_bmm.out", &VariableType::_bmm_out_out);
+  m.impl("_cast_Double", TORCH_FN(VariableType::_cast_Double));
+  m.impl("_cast_Short", TORCH_FN(VariableType::_cast_Short));
+  m.impl_UNBOXED("_cudnn_rnn", &VariableType::_cudnn_rnn);
+  m.impl_UNBOXED("_cumsum.out", &VariableType::_cumsum_out_out);
+  m.impl("_dimV", TORCH_FN(VariableType::_dimV));
+  m.impl_UNBOXED("_embedding_bag", &VariableType::_embedding_bag);
+  m.impl_UNBOXED("_embedding_bag_sparse_backward", &VariableType::_embedding_bag_sparse_backward);
+  m.impl("_gather_sparse_backward", TORCH_FN(VariableType::_gather_sparse_backward));
+  m.impl_UNBOXED("_index_put_impl_", &VariableType::_index_put_impl_);
+  m.impl("_indices", TORCH_FN(VariableType::_indices));
+  m.impl("_local_scalar_dense", TORCH_FN(VariableType::_local_scalar_dense));
+  m.impl_UNBOXED("_logcumsumexp.out", &VariableType::_logcumsumexp_out_out);
+  m.impl("_mkldnn_transpose", TORCH_FN(VariableType::_mkldnn_transpose));
+  m.impl_UNBOXED("_mkldnn_transpose_", &VariableType::_mkldnn_transpose_);
+  m.impl_UNBOXED("_mode.values", &VariableType::_mode_out_values);
+  m.impl("_nnpack_spatial_convolution_backward_weight", TORCH_FN(VariableType::_nnpack_spatial_convolution_backward_weight));
+  m.impl("_pdist_forward", TORCH_FN(VariableType::_pdist_forward));
+  m.impl("_softmax", TORCH_FN(VariableType::_softmax));
+  m.impl_UNBOXED("_sparse_coo_tensor_with_dims", &VariableType::_sparse_coo_tensor_with_dims);
+  m.impl_UNBOXED("_sparse_softmax_backward_data", &VariableType::_sparse_softmax_backward_data);
+  m.impl("_sparse_sum", TORCH_FN(VariableType::_sparse_sum));
+  m.impl_UNBOXED("_sparse_sum.dtype", &VariableType::_sparse_sum_dtype);
+  m.impl("_sparse_sum.dim", TORCH_FN(VariableType::_sparse_sum_dim));
+  m.impl_UNBOXED("_sparse_sum.dim_dtype", &VariableType::_sparse_sum_dim_dtype);
+  m.impl_UNBOXED("_thnn_differentiable_lstm_cell_backward", &VariableType::_thnn_differentiable_lstm_cell_backward);
+  m.impl_UNBOXED("_thnn_fused_gru_cell", &VariableType::_thnn_fused_gru_cell);
+  m.impl_UNBOXED("_thnn_fused_lstm_cell_backward", &VariableType::_thnn_fused_lstm_cell_backward);
+  m.impl("_trilinear", TORCH_FN(VariableType::_trilinear));
+  m.impl("_unsafe_view", TORCH_FN(VariableType::_unsafe_view));
+  m.impl("_weight_norm_cuda_interface", TORCH_FN(VariableType::_weight_norm_cuda_interface));
+  m.impl("abs", TORCH_FN(VariableType::abs));
+  m.impl_UNBOXED("abs_", &VariableType::abs_);
+  m.impl_UNBOXED("acosh.out", &VariableType::acosh_out_out);
+  m.impl("adaptive_avg_pool1d", TORCH_FN(VariableType::adaptive_avg_pool1d));
+  m.impl_UNBOXED("adaptive_avg_pool2d.out", &VariableType::adaptive_avg_pool2d_out_out);
+  m.impl("adaptive_max_pool2d_backward", TORCH_FN(VariableType::adaptive_max_pool2d_backward));
+  m.impl("adaptive_max_pool3d", TORCH_FN(VariableType::adaptive_max_pool3d));
+  m.impl_UNBOXED("adaptive_max_pool3d_backward.grad_input", &VariableType::adaptive_max_pool3d_backward_out_grad_input);
+  m.impl("addcmul", TORCH_FN(VariableType::addcmul));
+  m.impl_UNBOXED("addcmul_", &VariableType::addcmul_);
+  m.impl("addmm", TORCH_FN(VariableType::addmm));
+  m.impl_UNBOXED("addmm_", &VariableType::addmm_);
+  m.impl_UNBOXED("addr.out", &VariableType::addr_out_out);
+  m.impl("align_as", TORCH_FN(VariableType::align_as));
+  m.impl("align_tensors", TORCH_FN(VariableType::align_tensors));
+  m.impl_UNBOXED("align_to", &VariableType::align_to);
+  m.impl_UNBOXED("align_to.ellipsis_idx", &VariableType::align_to_ellipsis_idx);
+  m.impl("argmax", TORCH_FN(VariableType::argmax));
+  m.impl("argsort", TORCH_FN(VariableType::argsort));
+  m.impl_UNBOXED("argsort.dimname", &VariableType::argsort_dimname);
+  m.impl_UNBOXED("asinh.out", &VariableType::asinh_out_out);
+  m.impl("atan", TORCH_FN(VariableType::atan));
+  m.impl("atan2", TORCH_FN(VariableType::atan2));
+  m.impl_UNBOXED("atan2_", &VariableType::atan2_);
+  m.impl_UNBOXED("atan_", &VariableType::atan_);
+  m.impl("avg_pool2d", TORCH_FN(VariableType::avg_pool2d));
+  m.impl_UNBOXED("avg_pool2d_backward.grad_input", &VariableType::avg_pool2d_backward_out_grad_input);
+  m.impl_UNBOXED("avg_pool3d.out", &VariableType::avg_pool3d_out_out);
+  m.impl_UNBOXED("baddbmm.out", &VariableType::baddbmm_out_out);
+  m.impl_UNBOXED("bartlett_window", &VariableType::bartlett_window);
+  m.impl_UNBOXED("bartlett_window.periodic", &VariableType::bartlett_window_periodic);
+  m.impl_UNBOXED("batch_norm_update_stats", &VariableType::batch_norm_update_stats);
+  m.impl_UNBOXED("binary_cross_entropy_backward", &VariableType::binary_cross_entropy_backward);
+  m.impl_UNBOXED("bitwise_and.Tensor_out", &VariableType::bitwise_and_out_Tensor_out);
+  m.impl_UNBOXED("bitwise_and.Scalar_out", &VariableType::bitwise_and_out_Scalar_out);
+  m.impl_UNBOXED("bitwise_not.out", &VariableType::bitwise_not_out_out);
+  m.impl_UNBOXED("bmm.out", &VariableType::bmm_out_out);
+  m.impl_UNBOXED("bucketize.Tensor_out", &VariableType::bucketize_out_Tensor_out);
+  m.impl("cdist", TORCH_FN(VariableType::cdist));
+  m.impl("celu", TORCH_FN(VariableType::celu));
+  m.impl_UNBOXED("celu_", &VariableType::celu_);
+  m.impl("cholesky_inverse", TORCH_FN(VariableType::cholesky_inverse));
+  m.impl_UNBOXED("cholesky.out", &VariableType::cholesky_out_out);
+  m.impl("clamp", TORCH_FN(VariableType::clamp));
+  m.impl_UNBOXED("clamp_", &VariableType::clamp_);
+  m.impl_UNBOXED("clamp_max.out", &VariableType::clamp_max_out_out);
+  m.impl_UNBOXED("conj.out", &VariableType::conj_out_out);
+  m.impl_UNBOXED("conv_transpose3d.input", &VariableType::conv_transpose3d_input);
+  m.impl("convolution_backward_overrideable", TORCH_FN(VariableType::convolution_backward_overrideable));
+  m.impl("cos", TORCH_FN(VariableType::cos));
+  m.impl_UNBOXED("cos_", &VariableType::cos_);
+  m.impl_UNBOXED("cudnn_batch_norm_backward", &VariableType::cudnn_batch_norm_backward);
+  m.impl("cudnn_grid_sampler_backward", TORCH_FN(VariableType::cudnn_grid_sampler_backward));
+  m.impl_UNBOXED("cummax.out", &VariableType::cummax_out_out);
+  m.impl_UNBOXED("cummax.dimname_out", &VariableType::cummax_out_dimname_out);
+  m.impl_UNBOXED("cumsum.out", &VariableType::cumsum_out_out);
+  m.impl_UNBOXED("cumsum.dimname_out", &VariableType::cumsum_out_dimname_out);
+  m.impl("deg2rad", TORCH_FN(VariableType::deg2rad));
+  m.impl_UNBOXED("deg2rad_", &VariableType::deg2rad_);
+  m.impl("diag", TORCH_FN(VariableType::diag));
+  m.impl("digamma", TORCH_FN(VariableType::digamma));
+  m.impl_UNBOXED("digamma_", &VariableType::digamma_);
+  m.impl_UNBOXED("elu.out", &VariableType::elu_out_out);
+  m.impl_UNBOXED("embedding_bag", &VariableType::embedding_bag);
+  m.impl("embedding_dense_backward", TORCH_FN(VariableType::embedding_dense_backward));
+  m.impl_UNBOXED("empty_like", &VariableType::empty_like);
+  m.impl_UNBOXED("empty_quantized", &VariableType::empty_quantized);
+  m.impl_UNBOXED("empty_strided", &VariableType::empty_strided);
+  m.impl_UNBOXED("erfc.out", &VariableType::erfc_out_out);
+  m.impl("erfinv", TORCH_FN(VariableType::erfinv));
+  m.impl_UNBOXED("erfinv_", &VariableType::erfinv_);
+  m.impl("expand", TORCH_FN(VariableType::expand));
+  m.impl_UNBOXED("expm1.out", &VariableType::expm1_out_out);
+  m.impl("fake_quantize_per_tensor_affine_backward", TORCH_FN(VariableType::fake_quantize_per_tensor_affine_backward));
+  m.impl("fft", TORCH_FN(VariableType::fft));
+  m.impl("flatten.using_ints", TORCH_FN(VariableType::flatten_using_ints));
+  m.impl_UNBOXED("flatten.named_out_dim", &VariableType::flatten_named_out_dim);
+  m.impl_UNBOXED("flatten.using_names", &VariableType::flatten_using_names);
+  m.impl_UNBOXED("flatten.DimnameList", &VariableType::flatten_DimnameList);
+  m.impl("floor_divide", TORCH_FN(VariableType::floor_divide));
+  m.impl("floor_divide.Scalar", TORCH_FN(VariableType::floor_divide_Scalar));
+  m.impl_UNBOXED("floor_divide_.Tensor", &VariableType::floor_divide__Tensor);
+  m.impl_UNBOXED("floor_divide_.Scalar", &VariableType::floor_divide__Scalar);
+  m.impl_UNBOXED("floor.out", &VariableType::floor_out_out);
+  m.impl_UNBOXED("full.names", &VariableType::full_names);
+  m.impl_UNBOXED("full", &VariableType::full);
+  m.impl("gather", TORCH_FN(VariableType::gather));
+  m.impl_UNBOXED("gather.dimname", &VariableType::gather_dimname);
+  m.impl("gelu_backward", TORCH_FN(VariableType::gelu_backward));
+  m.impl("grid_sampler_3d_backward", TORCH_FN(VariableType::grid_sampler_3d_backward));
+  m.impl_UNBOXED("gru_cell", &VariableType::gru_cell);
+  m.impl_UNBOXED("hann_window", &VariableType::hann_window);
+  m.impl_UNBOXED("hann_window.periodic", &VariableType::hann_window_periodic);
+  m.impl("hardshrink", TORCH_FN(VariableType::hardshrink));
+  m.impl("ifft", TORCH_FN(VariableType::ifft));
+  m.impl_UNBOXED("index_select.out", &VariableType::index_select_out_out);
+  m.impl_UNBOXED("index_select.dimname_out", &VariableType::index_select_out_dimname_out);
+  m.impl("indices", TORCH_FN(VariableType::indices));
+  m.impl("is_complex", TORCH_FN(VariableType::is_complex));
+  m.impl("is_same_size", TORCH_FN(VariableType::is_same_size));
+  m.impl_UNBOXED("l1_loss.out", &VariableType::l1_loss_out_out);
+  m.impl_UNBOXED("layer_norm", &VariableType::layer_norm);
+  m.impl("leaky_relu_backward", TORCH_FN(VariableType::leaky_relu_backward));
+  m.impl("lerp.Scalar", TORCH_FN(VariableType::lerp_Scalar));
+  m.impl("lerp.Tensor", TORCH_FN(VariableType::lerp_Tensor));
+  m.impl_UNBOXED("lerp_.Scalar", &VariableType::lerp__Scalar);
+  m.impl_UNBOXED("lerp_.Tensor", &VariableType::lerp__Tensor);
+  m.impl_UNBOXED("linear", &VariableType::linear);
+  m.impl("log_sigmoid", TORCH_FN(VariableType::log_sigmoid));
+  m.impl_UNBOXED("log_sigmoid_backward.grad_input", &VariableType::log_sigmoid_backward_out_grad_input);
+  m.impl_UNBOXED("logcumsumexp.out", &VariableType::logcumsumexp_out_out);
+  m.impl_UNBOXED("logcumsumexp.dimname_out", &VariableType::logcumsumexp_out_dimname_out);
+  m.impl_UNBOXED("logical_or.out", &VariableType::logical_or_out_out);
+  m.impl_UNBOXED("logical_xor.out", &VariableType::logical_xor_out_out);
+  m.impl_UNBOXED("logspace.out", &VariableType::logspace_out_out);
+  m.impl_UNBOXED("logsumexp.out", &VariableType::logsumexp_out_out);
+  m.impl_UNBOXED("logsumexp.names_out", &VariableType::logsumexp_out_names_out);
+  m.impl_UNBOXED("matmul.out", &VariableType::matmul_out_out);
+  m.impl_UNBOXED("max.dim_max", &VariableType::max_out_dim_max);
+  m.impl_UNBOXED("max.names_dim_max", &VariableType::max_out_names_dim_max);
+  m.impl_UNBOXED("max.out", &VariableType::max_out_out);
+  m.impl("max_unpool2d", TORCH_FN(VariableType::max_unpool2d));
+  m.impl_UNBOXED("max_unpool2d_backward.grad_input", &VariableType::max_unpool2d_backward_out_grad_input);
+  m.impl_UNBOXED("max_unpool3d.out", &VariableType::max_unpool3d_out_out);
+  m.impl("min_values", TORCH_FN(VariableType::min_values));
+  m.impl_UNBOXED("min_values.names", &VariableType::min_values_names);
+  m.impl("miopen_convolution_backward", TORCH_FN(VariableType::miopen_convolution_backward));
+  m.impl("miopen_convolution_backward_bias", TORCH_FN(VariableType::miopen_convolution_backward_bias));
+  m.impl("miopen_convolution_backward_input", TORCH_FN(VariableType::miopen_convolution_backward_input));
+  m.impl_UNBOXED("miopen_convolution_transpose", &VariableType::miopen_convolution_transpose);
+  m.impl("mkldnn_adaptive_avg_pool2d", TORCH_FN(VariableType::mkldnn_adaptive_avg_pool2d));
+  m.impl_UNBOXED("mkldnn_convolution", &VariableType::mkldnn_convolution);
+  m.impl("mkldnn_reorder_conv2d_weight", TORCH_FN(VariableType::mkldnn_reorder_conv2d_weight));
+  m.impl_UNBOXED("mode.values", &VariableType::mode_out_values);
+  m.impl_UNBOXED("mode.dimname_out", &VariableType::mode_out_dimname_out);
+  m.impl("mse_loss_backward", TORCH_FN(VariableType::mse_loss_backward));
+  m.impl("multilabel_margin_loss_backward", TORCH_FN(VariableType::multilabel_margin_loss_backward));
+  m.impl_UNBOXED("multilabel_margin_loss_forward.output", &VariableType::multilabel_margin_loss_forward_out_output);
+  m.impl_UNBOXED("multinomial", &VariableType::multinomial);
+  m.impl("mvlgamma", TORCH_FN(VariableType::mvlgamma));
+  m.impl_UNBOXED("mvlgamma_", &VariableType::mvlgamma_);
+  m.impl("narrow", TORCH_FN(VariableType::narrow));
+  m.impl("narrow.Tensor", TORCH_FN(VariableType::narrow_Tensor));
+  m.impl_UNBOXED("native_batch_norm", &VariableType::native_batch_norm);
+  m.impl_UNBOXED("ne.Scalar_out", &VariableType::ne_out_Scalar_out);
+  m.impl_UNBOXED("ne.Tensor_out", &VariableType::ne_out_Tensor_out);
+  m.impl_UNBOXED("new_full", &VariableType::new_full);
+  m.impl_UNBOXED("nll_loss", &VariableType::nll_loss);
+  m.impl_UNBOXED("nll_loss2d", &VariableType::nll_loss2d);
+  m.impl_UNBOXED("nll_loss2d_backward.grad_input", &VariableType::nll_loss2d_backward_out_grad_input);
+  m.impl_UNBOXED("nll_loss_backward.grad_input", &VariableType::nll_loss_backward_out_grad_input);
+  m.impl("nuclear_norm", TORCH_FN(VariableType::nuclear_norm));
+  m.impl("nuclear_norm.dim", TORCH_FN(VariableType::nuclear_norm_dim));
+  m.impl("orgqr", TORCH_FN(VariableType::orgqr));
+  m.impl_UNBOXED("ormqr.out", &VariableType::ormqr_out_out);
+  m.impl("permute", TORCH_FN(VariableType::permute));
+  m.impl("pixel_shuffle", TORCH_FN(VariableType::pixel_shuffle));
+  m.impl_UNBOXED("put_", &VariableType::put_);
+  m.impl("q_zero_point", TORCH_FN(VariableType::q_zero_point));
+  m.impl_UNBOXED("quantize_per_tensor", &VariableType::quantize_per_tensor);
+  m.impl_UNBOXED("quantize_per_tensor.tensors", &VariableType::quantize_per_tensor_tensors);
+  m.impl("quantized_lstm_cell", TORCH_FN(VariableType::quantized_lstm_cell));
+  m.impl("rad2deg", TORCH_FN(VariableType::rad2deg));
+  m.impl_UNBOXED("rad2deg_", &VariableType::rad2deg_);
+  m.impl_UNBOXED("rand.out", &VariableType::rand_out_out);
+  m.impl_UNBOXED("rand.generator_out", &VariableType::rand_out_generator_out);
+  m.impl_UNBOXED("randn.out", &VariableType::randn_out_out);
+  m.impl_UNBOXED("randn.generator_out", &VariableType::randn_out_generator_out);
+  m.impl_UNBOXED("range.step", &VariableType::range_step);
+  m.impl_UNBOXED("range", &VariableType::range);
+  m.impl("real", TORCH_FN(VariableType::real));
+  m.impl("reciprocal", TORCH_FN(VariableType::reciprocal));
+  m.impl_UNBOXED("reciprocal_", &VariableType::reciprocal_);
+  m.impl_UNBOXED("refine_names", &VariableType::refine_names);
+  m.impl("reflection_pad1d", TORCH_FN(VariableType::reflection_pad1d));
+  m.impl_UNBOXED("reflection_pad1d_backward.grad_input", &VariableType::reflection_pad1d_backward_out_grad_input);
+  m.impl_UNBOXED("reflection_pad2d.out", &VariableType::reflection_pad2d_out_out);
+  m.impl("relu", TORCH_FN(VariableType::relu));
+  m.impl_UNBOXED("relu_", &VariableType::relu_);
+  m.impl_UNBOXED("remainder.Scalar_out", &VariableType::remainder_out_Scalar_out);
+  m.impl_UNBOXED("remainder.Tensor_out", &VariableType::remainder_out_Tensor_out);
+  m.impl_UNBOXED("replication_pad1d.out", &VariableType::replication_pad1d_out_out);
+  m.impl_UNBOXED("rnn_relu_cell", &VariableType::rnn_relu_cell);
+  m.impl_UNBOXED("rrelu_with_noise", &VariableType::rrelu_with_noise);
+  m.impl_UNBOXED("rrelu_with_noise_", &VariableType::rrelu_with_noise_);
+  m.impl("scatter_add", TORCH_FN(VariableType::scatter_add));
+  m.impl_UNBOXED("scatter_add.dimname", &VariableType::scatter_add_dimname);
+  m.impl_UNBOXED("scatter_add_", &VariableType::scatter_add_);
+  m.impl_UNBOXED("select.Dimname", &VariableType::select_Dimname);
+  m.impl("select.int", TORCH_FN(VariableType::select_int));
+  m.impl("sin", TORCH_FN(VariableType::sin));
+  m.impl_UNBOXED("sin_", &VariableType::sin_);
+  m.impl("slow_conv_dilated3d_backward", TORCH_FN(VariableType::slow_conv_dilated3d_backward));
+  m.impl_UNBOXED("soft_margin_loss.out", &VariableType::soft_margin_loss_out_out);
+  m.impl_UNBOXED("softmax.int", &VariableType::softmax_int);
+  m.impl_UNBOXED("softmax.Dimname", &VariableType::softmax_Dimname);
+  m.impl_UNBOXED("softplus.out", &VariableType::softplus_out_out);
+  m.impl("softshrink_backward", TORCH_FN(VariableType::softshrink_backward));
+  m.impl_UNBOXED("sort.values", &VariableType::sort_out_values);
+  m.impl_UNBOXED("sort.dimname_values", &VariableType::sort_out_dimname_values);
+  m.impl("squeeze", TORCH_FN(VariableType::squeeze));
+  m.impl("squeeze.dim", TORCH_FN(VariableType::squeeze_dim));
+  m.impl_UNBOXED("squeeze.dimname", &VariableType::squeeze_dimname);
+  m.impl_UNBOXED("squeeze_", &VariableType::squeeze_);
+  m.impl_UNBOXED("squeeze_.dim", &VariableType::squeeze__dim);
+  m.impl_UNBOXED("squeeze_.dimname", &VariableType::squeeze__dimname);
+  m.impl_UNBOXED("std.out", &VariableType::std_out_out);
+  m.impl_UNBOXED("std.names_out", &VariableType::std_out_names_out);
+  m.impl("sub.Tensor", TORCH_FN(VariableType::sub_Tensor));
+  m.impl("sub.Scalar", TORCH_FN(VariableType::sub_Scalar));
+  m.impl_UNBOXED("sub_.Tensor", &VariableType::sub__Tensor);
+  m.impl_UNBOXED("sub_.Scalar", &VariableType::sub__Scalar);
+  m.impl_UNBOXED("sum.IntList_out", &VariableType::sum_out_IntList_out);
+  m.impl_UNBOXED("sum.DimnameList_out", &VariableType::sum_out_DimnameList_out);
+  m.impl_UNBOXED("take.out", &VariableType::take_out_out);
+  m.impl_UNBOXED("thnn_conv2d_forward", &VariableType::thnn_conv2d_forward);
+  m.impl_UNBOXED("thnn_conv_depthwise2d.out", &VariableType::thnn_conv_depthwise2d_out_out);
+  m.impl("to_dense_backward", TORCH_FN(VariableType::to_dense_backward));
+  m.impl_UNBOXED("topk.values", &VariableType::topk_out_values);
+  m.impl_UNBOXED("trunc.out", &VariableType::trunc_out_out);
+  m.impl("unbind.int", TORCH_FN(VariableType::unbind_int));
+  m.impl_UNBOXED("unbind.Dimname", &VariableType::unbind_Dimname);
+  m.impl("unique_consecutive", TORCH_FN(VariableType::unique_consecutive));
+  m.impl("upsample_bilinear2d_backward", TORCH_FN(VariableType::upsample_bilinear2d_backward));
+  m.impl("upsample_linear1d", TORCH_FN(VariableType::upsample_linear1d));
+  m.impl_UNBOXED("upsample_linear1d_backward.grad_input", &VariableType::upsample_linear1d_backward_out_grad_input);
+  m.impl("upsample_nearest1d_backward", TORCH_FN(VariableType::upsample_nearest1d_backward));
+  m.impl("upsample_nearest2d", TORCH_FN(VariableType::upsample_nearest2d));
+  m.impl_UNBOXED("upsample_nearest2d_backward.grad_input", &VariableType::upsample_nearest2d_backward_out_grad_input);
+  m.impl_UNBOXED("upsample_nearest3d.out", &VariableType::upsample_nearest3d_out_out);
+  m.impl("vander", TORCH_FN(VariableType::vander));
+  m.impl("view_as", TORCH_FN(VariableType::view_as));
+  m.impl("view_as_complex", TORCH_FN(VariableType::view_as_complex));
+  m.impl("view_as_real", TORCH_FN(VariableType::view_as_real));
+}
 
 }
 

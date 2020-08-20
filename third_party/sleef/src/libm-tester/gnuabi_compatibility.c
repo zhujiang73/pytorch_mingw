@@ -18,29 +18,38 @@
 #define ISA_TOKEN b
 #define VLEN_SP 4
 #define VLEN_DP 2
+#define VECTOR_CC
 #endif /* defined(ENABLE_SSE4) || defined(ENABLE_SSE2) */
 
 #ifdef ENABLE_AVX
 #define ISA_TOKEN c
 #define VLEN_SP 8
 #define VLEN_DP 4
+#define VECTOR_CC
 #endif /* ENABLE_AVX */
 
 #ifdef ENABLE_AVX2
 #define ISA_TOKEN d
 #define VLEN_SP 8
 #define VLEN_DP 4
+#define VECTOR_CC
 #endif /* ENABLE_AVX2 */
 
 #ifdef ENABLE_AVX512F
 #define ISA_TOKEN e
 #define VLEN_SP 16
 #define VLEN_DP 8
+#define VECTOR_CC
 #endif /* ENABLE_AVX512F */
 
 #ifdef ENABLE_ADVSIMD
 #define ISA_TOKEN n
 #define VLEN_SP 4
+#ifdef ENABLE_AAVPCS
+#define VECTOR_CC __attribute__((aarch64_vector_pcs))
+#else
+#define VECTOR_CC
+#endif
 #define VLEN_DP 2
 #endif /* ENABLE_ADVSIMDF */
 
@@ -50,6 +59,7 @@
 #define VLEN_SP (svcntw())
 #define VLEN_DP (svcntd())
 #define VLA_TOKEN x
+#define VECTOR_CC
 #endif /* ENABLE_SVE */
 
 // GNUABI name mangling macro.
@@ -63,7 +73,7 @@
 // sincos-like functions that are effectively loading data from
 // memory.
 #define __DECLARE(name, t, vl, p)                                              \
-  void __MAKE_FN_NAME(name, t, vl, p)(int *, int *, int *)
+  extern void VECTOR_CC __MAKE_FN_NAME(name, t, vl, p)(int *, int *, int *)
 #define __CALL(name, t, vl, p) __MAKE_FN_NAME(name, t, vl, p)(b0, b1, b2)
 
 // Make sure that the architectural macros are defined for each vector
@@ -211,7 +221,6 @@ DECLARE_SP(erfcf, v);
 DECLARE_SP(expf, v);
 DECLARE_SP(exp10f, v);
 DECLARE_SP(exp2f, v);
-DECLARE_SP(expfrexpf, v);
 DECLARE_SP(expm1f, v);
 DECLARE_SP(fabsf, v);
 DECLARE_SP(fdimf, vv);
@@ -222,7 +231,12 @@ DECLARE_SP(fminf, vv);
 DECLARE_SP(fmodf, vv);
 DECLARE_SP(frfrexpf, v);
 DECLARE_SP(hypotf, vv);
+#ifndef ENABLE_AVX
+// These two functions are not checked in some configurations due to
+// the issue in https://github.com/shibatch/sleef/issues/221
+DECLARE_SP(expfrexpf, v);
 DECLARE_SP(ilogbf, v);
+#endif
 DECLARE_SP(ldexpf, vv);
 DECLARE_SP(lgammaf, v);
 DECLARE_SP(logf, v);
@@ -387,7 +401,6 @@ int main(void) {
   CALL_SP(expf, v);
   CALL_SP(exp10f, v);
   CALL_SP(exp2f, v);
-  CALL_SP(expfrexpf, v);
   CALL_SP(expm1f, v);
   CALL_SP(fabsf, v);
   CALL_SP(fdimf, vv);
@@ -398,7 +411,12 @@ int main(void) {
   CALL_SP(fmodf, vv);
   CALL_SP(frfrexpf, v);
   CALL_SP(hypotf, vv);
+#ifndef ENABLE_AVX
+// These two functions are not checked in some configurations due to
+// the issue in https://github.com/shibatch/sleef/issues/221
+  CALL_SP(expfrexpf, v);
   CALL_SP(ilogbf, v);
+#endif
   CALL_SP(ldexpf, vv);
   CALL_SP(lgammaf, v);
   CALL_SP(logf, v);

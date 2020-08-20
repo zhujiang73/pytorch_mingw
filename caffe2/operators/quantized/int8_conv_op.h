@@ -88,7 +88,7 @@ class Int8ConvOp final : public ConvPoolOpBase<CPUContext> {
             X.scale,
             W.zero_point,
             W.scale,
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || defined(__clang__)
             W.t.template data<uint8_t>(),
             B.t.template data<int32_t>(),
 #else
@@ -141,7 +141,7 @@ class Int8ConvOp final : public ConvPoolOpBase<CPUContext> {
         lastOutputPointer_ = Y->t.template mutable_data<uint8_t>();
       }
 
-#ifdef FBCODE_CAFFE2
+#if defined(FBCODE_CAFFE2) || !defined(USE_INTERNAL_PTHREADPOOL_IMPL)
       const qnnp_status runStatus =
           qnnp_run_operator(this->qnnpackObject_, nullptr /* thread pool */);
 #else

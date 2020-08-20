@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -12,12 +12,20 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <math.h>
 #include <float.h>
 #include <limits.h>
 #include <errno.h>
 #include <inttypes.h>
 
+#if defined(POWER64_UNDEF_USE_EXTERN_INLINES)
+// This is a workaround required to cross compile for PPC64 binaries
+#include <features.h>
+#ifdef __USE_EXTERN_INLINES
+#undef __USE_EXTERN_INLINES
+#endif
+#endif
+
+#include <math.h>
 #include <mpfr.h>
 
 #include <unistd.h>
@@ -39,6 +47,7 @@ void stop(char *mes) {
 
 int ptoc[2], ctop[2];
 int pid;
+FILE *fpctop;
 
 extern char **environ;
 
@@ -73,7 +82,7 @@ void startChild(const char *path, char *const argv[]) {
     fflush(stdin);
     fflush(stdout);
 
-#if !defined(__APPLE__)
+#if !defined(__APPLE__) && !defined(__FreeBSD__)
     execvpe(path, argv, environ);
 #else
     execvp(path, argv);
@@ -92,27 +101,27 @@ void startChild(const char *path, char *const argv[]) {
 
 //
 
-#define child_d_d(funcStr, arg) do {				\
-    char str[256];						\
-    uint64_t u;							\
-    sprintf(str, funcStr " %" PRIx64 "\n", d2u(arg));		\
-    write(ptoc[1], str, strlen(str));				\
-    if (readln(ctop[0], str, 255) < 1) stop("child " funcStr);	\
-    sscanf(str, "%" PRIx64, &u);				\
-    return u2d(u);						\
+#define child_d_d(funcStr, arg) do {					\
+    char str[256];							\
+    uint64_t u;								\
+    sprintf(str, funcStr " %" PRIx64 "\n", d2u(arg));			\
+    write(ptoc[1], str, strlen(str));					\
+    if (fgets(str, 255, fpctop) == NULL) stop("child " funcStr);	\
+    sscanf(str, "%" PRIx64, &u);					\
+    return u2d(u);							\
   } while(0)
 
-#define child_d2_d(funcStr, arg) do {				\
-    char str[256];						\
-    uint64_t u, v;						\
-    sprintf(str, funcStr " %" PRIx64 "\n", d2u(arg));		\
-    write(ptoc[1], str, strlen(str));				\
-    if (readln(ctop[0], str, 255) < 1) stop("child " funcStr);	\
-    sscanf(str, "%" PRIx64 " %" PRIx64, &u, &v);		\
-    Sleef_double2 ret;						\
-    ret.x = u2d(u);						\
-    ret.y = u2d(v);						\
-    return ret;							\
+#define child_d2_d(funcStr, arg) do {					\
+    char str[256];							\
+    uint64_t u, v;							\
+    sprintf(str, funcStr " %" PRIx64 "\n", d2u(arg));			\
+    write(ptoc[1], str, strlen(str));					\
+    if (fgets(str, 255, fpctop) == NULL) stop("child " funcStr);	\
+    sscanf(str, "%" PRIx64 " %" PRIx64, &u, &v);			\
+    Sleef_double2 ret;							\
+    ret.x = u2d(u);							\
+    ret.y = u2d(v);							\
+    return ret;								\
   } while(0)
 
 #define child_d_d_d(funcStr, arg1, arg2) do {				\
@@ -120,7 +129,7 @@ void startChild(const char *path, char *const argv[]) {
     uint64_t u;								\
     sprintf(str, funcStr " %" PRIx64 " %" PRIx64 "\n", d2u(arg1), d2u(arg2)); \
     write(ptoc[1], str, strlen(str));					\
-    if (readln(ctop[0], str, 255) < 1) stop("child " funcStr);		\
+    if (fgets(str, 255, fpctop) == NULL) stop("child " funcStr);	\
     sscanf(str, "%" PRIx64, &u);					\
     return u2d(u);							\
   } while(0)
@@ -157,15 +166,21 @@ double child_sqrt_u35(double x) { child_d_d("sqrt_u35", x); }
 double child_sinh(double x) { child_d_d("sinh", x); }
 double child_cosh(double x) { child_d_d("cosh", x); }
 double child_tanh(double x) { child_d_d("tanh", x); }
+double child_sinh_u35(double x) { child_d_d("sinh_u35", x); }
+double child_cosh_u35(double x) { child_d_d("cosh_u35", x); }
+double child_tanh_u35(double x) { child_d_d("tanh_u35", x); }
 double child_asinh(double x) { child_d_d("asinh", x); }
 double child_acosh(double x) { child_d_d("acosh", x); }
 double child_atanh(double x) { child_d_d("atanh", x); }
 
 double child_log10(double x) { child_d_d("log10", x); }
 double child_log2(double x) { child_d_d("log2", x); }
+double child_log2_u35(double x) { child_d_d("log2_u35", x); }
 double child_log1p(double x) { child_d_d("log1p", x); }
 double child_exp2(double x) { child_d_d("exp2", x); }
 double child_exp10(double x) { child_d_d("exp10", x); }
+double child_exp2_u35(double x) { child_d_d("exp2_u35", x); }
+double child_exp10_u35(double x) { child_d_d("exp10_u35", x); }
 double child_expm1(double x) { child_d_d("expm1", x); }
 
 Sleef_double2 child_sincospi_u05(double x) { child_d2_d("sincospi_u05", x); }
@@ -202,7 +217,7 @@ double child_ldexp(double x, int q) {
 
   sprintf(str, "ldexp %" PRIx64 " %" PRIx64 "\n", d2u(x), d2u(q));
   write(ptoc[1], str, strlen(str));
-  if (readln(ctop[0], str, 255) < 1) stop("child_ldexp");
+  if (fgets(str, 255, fpctop) == NULL) stop("child_ldexp");
   sscanf(str, "%" PRIx64, &u);
   return u2d(u);
 }
@@ -213,44 +228,44 @@ int child_ilogb(double x) {
   
   sprintf(str, "ilogb %" PRIx64 "\n", d2u(x));
   write(ptoc[1], str, strlen(str));
-  if (readln(ctop[0], str, 255) < 1) stop("child_ilogb");
+  if (fgets(str, 255, fpctop) == NULL) stop("child_ilogb");
   sscanf(str, "%d", &i);
   return i;
 }
 
 //
 
-#define child_f_f(funcStr, arg) do {				\
-    char str[256];						\
-    uint32_t u;							\
-    sprintf(str, funcStr " %x\n", f2u(arg));			\
-    write(ptoc[1], str, strlen(str));				\
-    if (readln(ctop[0], str, 255) < 1) stop("child " funcStr);	\
-    sscanf(str, "%x", &u);					\
-    return u2f(u);						\
+#define child_f_f(funcStr, arg) do {					\
+    char str[256];							\
+    uint32_t u;								\
+    sprintf(str, funcStr " %x\n", f2u(arg));				\
+    write(ptoc[1], str, strlen(str));					\
+    if (fgets(str, 255, fpctop) == NULL) stop("child " funcStr);	\
+    sscanf(str, "%x", &u);						\
+    return u2f(u);							\
   } while(0)
 
-#define child_f2_f(funcStr, arg) do {				\
-    char str[256];						\
-    uint32_t u, v;						\
-    sprintf(str, funcStr " %x\n", f2u(arg));			\
-    write(ptoc[1], str, strlen(str));				\
-    if (readln(ctop[0], str, 255) < 1) stop("child " funcStr);	\
-    sscanf(str, "%x %x", &u, &v);				\
-    Sleef_float2 ret;						\
-    ret.x = u2f(u);						\
-    ret.y = u2f(v);						\
-    return ret;							\
+#define child_f2_f(funcStr, arg) do {					\
+    char str[256];							\
+    uint32_t u, v;							\
+    sprintf(str, funcStr " %x\n", f2u(arg));				\
+    write(ptoc[1], str, strlen(str));					\
+    if (fgets(str, 255, fpctop) == NULL) stop("child " funcStr);	\
+    sscanf(str, "%x %x", &u, &v);					\
+    Sleef_float2 ret;							\
+    ret.x = u2f(u);							\
+    ret.y = u2f(v);							\
+    return ret;								\
   } while(0)
 
-#define child_f_f_f(funcStr, arg1, arg2) do {			\
-    char str[256];						\
-    uint32_t u;							\
-    sprintf(str, funcStr " %x %x\n", f2u(arg1), f2u(arg2));	\
-    write(ptoc[1], str, strlen(str));				\
-    if (readln(ctop[0], str, 255) < 1) stop("child " funcStr);	\
-    sscanf(str, "%x", &u);					\
-    return u2f(u);						\
+#define child_f_f_f(funcStr, arg1, arg2) do {				\
+    char str[256];							\
+    uint32_t u;								\
+    sprintf(str, funcStr " %x %x\n", f2u(arg1), f2u(arg2));		\
+    write(ptoc[1], str, strlen(str));					\
+    if (fgets(str, 255, fpctop) == NULL) stop("child " funcStr);	\
+    sscanf(str, "%x", &u);						\
+    return u2f(u);							\
   } while(0)
 
 float child_sinf(float x) { child_f_f("sinf", x); }
@@ -285,15 +300,21 @@ float child_sqrtf_u35(float x) { child_f_f("sqrtf_u35", x); }
 float child_sinhf(float x) { child_f_f("sinhf", x); }
 float child_coshf(float x) { child_f_f("coshf", x); }
 float child_tanhf(float x) { child_f_f("tanhf", x); }
+float child_sinhf_u35(float x) { child_f_f("sinhf_u35", x); }
+float child_coshf_u35(float x) { child_f_f("coshf_u35", x); }
+float child_tanhf_u35(float x) { child_f_f("tanhf_u35", x); }
 float child_asinhf(float x) { child_f_f("asinhf", x); }
 float child_acoshf(float x) { child_f_f("acoshf", x); }
 float child_atanhf(float x) { child_f_f("atanhf", x); }
 
 float child_log10f(float x) { child_f_f("log10f", x); }
 float child_log2f(float x) { child_f_f("log2f", x); }
+float child_log2f_u35(float x) { child_f_f("log2f_u35", x); }
 float child_log1pf(float x) { child_f_f("log1pf", x); }
 float child_exp2f(float x) { child_f_f("exp2f", x); }
 float child_exp10f(float x) { child_f_f("exp10f", x); }
+float child_exp2f_u35(float x) { child_f_f("exp2f_u35", x); }
+float child_exp10f_u35(float x) { child_f_f("exp10f_u35", x); }
 float child_expm1f(float x) { child_f_f("expm1f", x); }
 
 Sleef_float2 child_sincospif_u05(float x) { child_f2_f("sincospif_u05", x); }
@@ -322,13 +343,17 @@ float child_lgammaf_u1(float x) { child_f_f("lgammaf_u1", x); }
 float child_erff_u1(float x) { child_f_f("erff_u1", x); }
 float child_erfcf_u15(float x) { child_f_f("erfcf_u15", x); }
 
+float child_fastsinf_u3500(float x) { child_f_f("fastsinf_u3500", x); }
+float child_fastcosf_u3500(float x) { child_f_f("fastcosf_u3500", x); }
+float child_fastpowf_u3500(float x, float y) { child_f_f_f("fastpowf_u3500", x, y); }
+
 float child_ldexpf(float x, int q) {
   char str[256];
   uint32_t u;
 
   sprintf(str, "ldexpf %x %x\n", f2u(x), f2u(q));
   write(ptoc[1], str, strlen(str));
-  if (readln(ctop[0], str, 255) < 1) stop("child_powf");
+  if (fgets(str, 255, fpctop) == NULL) stop("child_powf");
   sscanf(str, "%x", &u);
   return u2f(u);
 }
@@ -339,7 +364,7 @@ int child_ilogbf(float x) {
   
   sprintf(str, "ilogbf %x\n", f2u(x));
   write(ptoc[1], str, strlen(str));
-  if (readln(ctop[0], str, 255) < 1) stop("child_ilogbf");
+  if (fgets(str, 255, fpctop) == NULL) stop("child_ilogbf");
   sscanf(str, "%d", &i);
   return i;
 }
@@ -358,7 +383,7 @@ void showResult(int success) {
   }
 }
 
-int enableDP = 0, enableSP = 0;
+int enableDP = 0, enableSP = 0, deterministicMode = 0;
 
 void do_test() {
   mpfr_t frc, frt, frx, fry, frz;
@@ -2403,6 +2428,27 @@ void do_test() {
     }
 
     {
+      fprintf(stderr, "sinh_u35 denormal/nonnumber test : ");
+      double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_sinh, child_sinh_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "cosh_u35 denormal/nonnumber test : ");
+      double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_cosh, child_cosh_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "tanh_u35 denormal/nonnumber test : ");
+      double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_tanh, child_tanh_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
       fprintf(stderr, "asinh denormal/nonnumber test : ");
       double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_asinh, child_asinh, xa[i]);
@@ -2423,21 +2469,21 @@ void do_test() {
       showResult(success);
     }
 
-    {
+    if (!deterministicMode) {
       fprintf(stderr, "sqrt denormal/nonnumber test : ");
       double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_sqrt, child_sqrt, xa[i]);
       showResult(success);
     }
 
-    {
+    if (!deterministicMode) {
       fprintf(stderr, "sqrt_u05 denormal/nonnumber test : ");
       double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_sqrt, child_sqrt_u05, xa[i]);
       showResult(success);
     }
 
-    {
+    if (!deterministicMode) {
       fprintf(stderr, "sqrt_u35 denormal/nonnumber test : ");
       double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_sqrt, child_sqrt_u35, xa[i]);
@@ -2473,6 +2519,20 @@ void do_test() {
     }
 
     {
+      fprintf(stderr, "exp2_u35 denormal/nonnumber test : ");
+      double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_exp2, child_exp2_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "exp10_u35 denormal/nonnumber test : ");
+      double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_exp10, child_exp10_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
       fprintf(stderr, "expm1 denormal/nonnumber test : ");
       double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_expm1, child_expm1, xa[i]);
@@ -2490,6 +2550,13 @@ void do_test() {
       fprintf(stderr, "log2 denormal/nonnumber test : ");
       double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_log2, child_log2, xa[i]);
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "log2_u35 denormal/nonnumber test : ");
+      double xa[] = { +0.0, -0.0, +1, -1, +1e+10, -1e+10, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) cmpDenorm_d(mpfr_log2, child_log2_u35, xa[i]);
       showResult(success);
     }
 
@@ -2553,7 +2620,7 @@ void do_test() {
 
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(double) && success;j++) {
-	  cmpDenorm_d_d(mpfr_hypot, child_hypot_u35, xa[i], ya[i]);
+	  cmpDenorm_d_d(mpfr_hypot, child_hypot_u35, xa[i], ya[j]);
 	}
       }
 
@@ -2568,7 +2635,7 @@ void do_test() {
 
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(double) && success;j++) {
-	  cmpDenorm_d_d(mpfr_hypot, child_hypot_u05, xa[i], ya[i]);
+	  cmpDenorm_d_d(mpfr_hypot, child_hypot_u05, xa[i], ya[j]);
 	}
       }
 
@@ -2578,12 +2645,12 @@ void do_test() {
     {
       fprintf(stderr, "copysign denormal/nonnumber test : ");
 
-      double xa[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
-      double ya[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN };
+      double xa[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY };
+      double ya[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY };
 
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(double) && success;j++) {
-	  cmpDenorm_d_d(mpfr_copysign, child_copysign, xa[i], ya[i]);
+	  cmpDenorm_d_d(mpfr_copysign, child_copysign, xa[i], ya[j]);
 	}
       }
 
@@ -2593,12 +2660,12 @@ void do_test() {
     {
       fprintf(stderr, "fmax denormal/nonnumber test : ");
 
-      double xa[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
-      double ya[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
+      double xa[] = { +0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
+      double ya[] = { +0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
 
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(double) && success;j++) {
-	  cmpDenorm_d_d(mpfr_max, child_fmax, xa[i], ya[i]);
+	  cmpDenorm_d_d(mpfr_max, child_fmax, xa[i], ya[j]);
 	}
       }
 
@@ -2608,12 +2675,12 @@ void do_test() {
     {
       fprintf(stderr, "fmin denormal/nonnumber test : ");
 
-      double xa[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
-      double ya[] = { +0.0, -0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
+      double xa[] = { +0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
+      double ya[] = { +0.0, +1, -1, +1e+100, -1e+100, DBL_MAX, -DBL_MAX, DBL_MIN, -DBL_MIN, POSITIVE_INFINITY, NEGATIVE_INFINITY, NAN, SLEEF_SNAN };
 
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(double) && success;j++) {
-	  cmpDenorm_d_d(mpfr_min, child_fmin, xa[i], ya[i]);
+	  cmpDenorm_d_d(mpfr_min, child_fmin, xa[i], ya[j]);
 	}
       }
 
@@ -2628,7 +2695,7 @@ void do_test() {
 
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(double) && success;j++) {
-	  cmpDenorm_d_d(mpfr_dim, child_fdim, xa[i], ya[i]);
+	  cmpDenorm_d_d(mpfr_dim, child_fdim, xa[i], ya[j]);
 	}
       }
 
@@ -2643,7 +2710,8 @@ void do_test() {
 
       for(i=0;i<sizeof(xa)/sizeof(double) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(double) && success;j++) {
-	  cmpDenorm_d_d(mpfr_fmod, child_fmod, xa[i], ya[i]);
+	  if (fabs(xa[i] / ya[j]) > 1e+300) continue;
+	  cmpDenorm_d_d(mpfr_fmod, child_fmod, xa[i], ya[j]);
 	}
       }
 
@@ -2931,6 +2999,37 @@ void do_test() {
     }
 
     {
+      fprintf(stderr, "sinhf_u35 denormal/nonnumber test : ");
+      if (enableFlushToZero) {
+	float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_sinh, child_sinhf_u35, xa[i]);
+      } else {
+	float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_sinh, child_sinhf_u35, xa[i]);
+      }
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "coshf_u35 denormal/nonnumber test : ");
+      float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_cosh, child_coshf_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "tanhf_u35 denormal/nonnumber test : ");
+      if (enableFlushToZero) {
+	float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_tanh, child_tanhf_u35, xa[i]);
+      } else {
+	float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_tanh, child_tanhf_u35, xa[i]);
+      }
+      showResult(success);
+    }
+
+    {
       fprintf(stderr, "asinhf denormal/nonnumber test : ");
       if (enableFlushToZero) {
 	float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
@@ -2961,21 +3060,21 @@ void do_test() {
       showResult(success);
     }
 
-    {
+    if (!deterministicMode) {
       fprintf(stderr, "sqrtf denormal/nonnumber test : ");
       float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_sqrt, child_sqrtf, xa[i]);
       showResult(success);
     }
 
-    {
+    if (!deterministicMode) {
       fprintf(stderr, "sqrtf_u05 denormal/nonnumber test : ");
       float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_sqrt, child_sqrtf_u05, xa[i]);
       showResult(success);
     }
 
-    {
+    if (!deterministicMode) {
       fprintf(stderr, "sqrtf_u35 denormal/nonnumber test : ");
       float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_sqrt, child_sqrtf_u35, xa[i]);
@@ -3011,6 +3110,20 @@ void do_test() {
     }
 
     {
+      fprintf(stderr, "exp2f_u35 denormal/nonnumber test : ");
+      float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_exp2, child_exp2f_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "exp10f_u35 denormal/nonnumber test : ");
+      float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_exp10, child_exp10f_u35, xa[i]);
+      showResult(success);
+    }
+
+    {
       fprintf(stderr, "expm1f denormal/nonnumber test : ");
       float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_expm1, child_expm1f, xa[i]);
@@ -3028,6 +3141,13 @@ void do_test() {
       fprintf(stderr, "log2f denormal/nonnumber test : ");
       float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_log2, child_log2f, xa[i]);
+      showResult(success);
+    }
+
+    {
+      fprintf(stderr, "log2f_u35 denormal/nonnumber test : ");
+      float xa[] = { +0.0, -0.0, +1, -1, +1e+7, -1e+7, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+      for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) cmpDenorm_f(mpfr_log2, child_log2f_u35, xa[i]);
       showResult(success);
     }
 
@@ -3051,7 +3171,7 @@ void do_test() {
 	float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
 	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	  for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u35, xa[i], ya[i]);
+	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u35, xa[i], ya[j]);
 	  }
 	}
       } else {
@@ -3059,7 +3179,7 @@ void do_test() {
 	float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
 	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	  for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u35, xa[i], ya[i]);
+	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u35, xa[i], ya[j]);
 	  }
 	}
       }
@@ -3075,7 +3195,7 @@ void do_test() {
 	float ya[] = { +0.0, -0.0, +1, -1, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
 	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	  for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u05, xa[i], ya[i]);
+	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u05, xa[i], ya[j]);
 	  }
 	}
       } else {
@@ -3083,7 +3203,7 @@ void do_test() {
 	float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
 	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	  for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u05, xa[i], ya[i]);
+	    cmpDenorm_f_f(mpfr_hypot, child_hypotf_u05, xa[i], ya[j]);
 	  }
 	}
       }
@@ -3094,12 +3214,12 @@ void do_test() {
     {
       fprintf(stderr, "copysignf denormal/nonnumber test : ");
 
-      float xa[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
-      float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+      float xa[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf };
+      float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf };
 
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	  cmpDenorm_f_f(mpfr_copysign, child_copysignf, xa[i], ya[i]);
+	  cmpDenorm_f_f(mpfr_copysign, child_copysignf, xa[i], ya[j]);
 	}
       }
 
@@ -3109,12 +3229,12 @@ void do_test() {
     {
       fprintf(stderr, "fmaxf denormal/nonnumber test : ");
 
-      float xa[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
-      float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
+      float xa[] = { +0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
+      float ya[] = { +0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
 
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	  cmpDenorm_f_f(mpfr_max, child_fmaxf, xa[i], ya[i]);
+	  cmpDenorm_f_f(mpfr_max, child_fmaxf, xa[i], ya[j]);
 	}
       }
 
@@ -3124,12 +3244,12 @@ void do_test() {
     {
       fprintf(stderr, "fminf denormal/nonnumber test : ");
 
-      float xa[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
-      float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
+      float xa[] = { +0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
+      float ya[] = { +0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN, SLEEF_SNANf };
 
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	  cmpDenorm_f_f(mpfr_min, child_fminf, xa[i], ya[i]);
+	  cmpDenorm_f_f(mpfr_min, child_fminf, xa[i], ya[j]);
 	}
       }
 
@@ -3144,7 +3264,7 @@ void do_test() {
 
       for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	  cmpDenorm_f_f(mpfr_dim, child_fdimf, xa[i], ya[i]);
+	  cmpDenorm_f_f(mpfr_dim, child_fdimf, xa[i], ya[j]);
 	}
       }
 
@@ -3156,10 +3276,11 @@ void do_test() {
 
       if (enableFlushToZero) {
 	float xa[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
-	float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
+	float ya[] = { +0.0, -0.0, +1, -1, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
 	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	  for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	    cmpDenorm_f_f(mpfr_fmod, child_fmodf, xa[i], ya[i]);
+	    if (fabs(xa[i] / ya[j]) > 1e+38) continue;
+	    cmpDenorm_f_f(mpfr_fmod, child_fmodf, xa[i], ya[j]);
 	  }
 	}
       } else {
@@ -3167,7 +3288,8 @@ void do_test() {
 	float ya[] = { +0.0, -0.0, +1, -1, +1e+30, -1e+30, FLT_MAX, -FLT_MAX, FLT_MIN, -FLT_MIN, POSITIVE_INFINITYf, NEGATIVE_INFINITYf, NAN };
 	for(i=0;i<sizeof(xa)/sizeof(float) && success;i++) {
 	  for(j=0;j<sizeof(ya)/sizeof(float) && success;j++) {
-	    cmpDenorm_f_f(mpfr_fmod, child_fmodf, xa[i], ya[i]);
+	    if (fabs(xa[i] / ya[j]) > 1e+38) continue;
+	    cmpDenorm_f_f(mpfr_fmod, child_fmodf, xa[i], ya[j]);
 	  }
 	}
       }
@@ -3304,6 +3426,9 @@ void do_test() {
   //
 
   if (enableDP) {
+    // 64 > 53(=number of bits in DP mantissa)
+    mpfr_set_default_prec(64);
+
     fprintf(stderr, "hypot_u35 : ");
     for(y = -10;y < 10 && success;y += 0.15) {
       for(x = -10;x < 10 && success;x += 0.15) checkAccuracy_d_d(mpfr_hypot, child_hypot_u35, y, x, 3.5);
@@ -3454,6 +3579,7 @@ void do_test() {
     fprintf(stderr, "sin : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_sin, child_sin, d, 3.5);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracy_d(mpfr_sin, child_sin, d, 3.5);
+    for(i = 0;i < 920 && success;i++) checkAccuracy_d(mpfr_sin, child_sin, pow(2.16, i), 3.5);
     for(i64=(int64_t)-1e+14;i64<(int64_t)1e+14 && success;i64+=(int64_t)1e+12) {
       double start = u2d(d2u(M_PI_4 * i64)-20), end = u2d(d2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracy_d(mpfr_sin, child_sin, d, 3.5);
@@ -3465,6 +3591,7 @@ void do_test() {
     fprintf(stderr, "sin_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_sin, child_sin_u1, d, 1.0);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracy_d(mpfr_sin, child_sin_u1, d, 1.0);
+    for(i = 0;i < 920 && success;i++) checkAccuracy_d(mpfr_sin, child_sin_u1, pow(2.16, i), 1.0);
     for(i64=(int64_t)-1e+14;i64<(int64_t)1e+14 && success;i64+=(int64_t)1e+12) {
       double start = u2d(d2u(M_PI_4 * i64)-20), end = u2d(d2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracy_d(mpfr_sin, child_sin_u1, d, 1.0);
@@ -3476,6 +3603,7 @@ void do_test() {
     fprintf(stderr, "sin in sincos : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyX_d(mpfr_sin, child_sincos, d, 3.5);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracyX_d(mpfr_sin, child_sincos, d, 3.5);
+    for(i = 0;i < 920 && success;i++) checkAccuracyX_d(mpfr_sin, child_sincos, pow(2.16, i), 3.5);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2d(d2u(M_PI_4 * i)-20), end = u2d(d2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracyX_d(mpfr_sin, child_sincos, d, 3.5);
@@ -3487,6 +3615,7 @@ void do_test() {
     fprintf(stderr, "sin in sincos_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyX_d(mpfr_sin, child_sincos_u1, d, 1.0);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracyX_d(mpfr_sin, child_sincos_u1, d, 1.0);
+    for(i = 0;i < 920 && success;i++) checkAccuracyX_d(mpfr_sin, child_sincos_u1, pow(2.16, i), 1.0);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2d(d2u(M_PI_4 * i)-20), end = u2d(d2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracyX_d(mpfr_sin, child_sincos_u1, d, 1.0);
@@ -3495,6 +3624,7 @@ void do_test() {
 
     //
 
+    // 1280 > 1024(=maximum DP exponent) + 53(=number of bits in DP mantissa)
     mpfr_set_default_prec(1280);
 
     fprintf(stderr, "sin in sincospi_u35 : ");
@@ -3555,13 +3685,14 @@ void do_test() {
     }
     showResult(success);
 
-    mpfr_set_default_prec(128);
+    mpfr_set_default_prec(64);
   
     //
 
     fprintf(stderr, "cos : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_cos, child_cos, d, 3.5);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracy_d(mpfr_cos, child_cos, d, 3.5);
+    for(i = 0;i < 920 && success;i++) checkAccuracy_d(mpfr_cos, child_cos, pow(2.16, i), 3.5);
     for(i64=(int64_t)-1e+14;i64<(int64_t)1e+14 && success;i64+=(int64_t)1e+12) {
       double start = u2d(d2u(M_PI_4 * i64)-20), end = u2d(d2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracy_d(mpfr_cos, child_cos, d, 3.5);
@@ -3573,6 +3704,7 @@ void do_test() {
     fprintf(stderr, "cos_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_cos, child_cos_u1, d, 1.0);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracy_d(mpfr_cos, child_cos_u1, d, 1.0);
+    for(i = 0;i < 920 && success;i++) checkAccuracy_d(mpfr_cos, child_cos_u1, pow(2.16, i), 1.0);
     for(i64=(int64_t)-1e+14;i64<(int64_t)1e+14 && success;i64+=(int64_t)1e+12) {
       double start = u2d(d2u(M_PI_4 * i64)-20), end = u2d(d2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracy_d(mpfr_cos, child_cos_u1, d, 1.0);
@@ -3584,6 +3716,7 @@ void do_test() {
     fprintf(stderr, "cos in sincos : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyY_d(mpfr_cos, child_sincos, d, 3.5);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracyY_d(mpfr_cos, child_sincos, d, 3.5);
+    for(i = 0;i < 920 && success;i++) checkAccuracyY_d(mpfr_cos, child_sincos, pow(2.16, i), 3.5);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2d(d2u(M_PI_4 * i)-20), end = u2d(d2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracyY_d(mpfr_cos, child_sincos, d, 3.5);
@@ -3595,6 +3728,7 @@ void do_test() {
     fprintf(stderr, "cos in sincos_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyY_d(mpfr_cos, child_sincos_u1, d, 1.0);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracyY_d(mpfr_cos, child_sincos_u1, d, 1.0);
+    for(i = 0;i < 920 && success;i++) checkAccuracyY_d(mpfr_cos, child_sincos_u1, pow(2.16, i), 1.0);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2d(d2u(M_PI_4 * i)-20), end = u2d(d2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracyY_d(mpfr_cos, child_sincos_u1, d, 1.0);
@@ -3633,14 +3767,15 @@ void do_test() {
     }
     showResult(success);
 
-    mpfr_set_default_prec(128);
+    mpfr_set_default_prec(64);
   
     //
 
     fprintf(stderr, "tan : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_tan, child_tan, d, 3.5);
     for(d = -1e+7;d < 1e+7 && success;d += 1000.1) checkAccuracy_d(mpfr_tan, child_tan, d, 3.5);
-    for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracy_d(mpfr_tan, child_tan, d, 5);
+    for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracy_d(mpfr_tan, child_tan, d, 3.5);
+    for(i = 0;i < 920 && success;i++) checkAccuracy_d(mpfr_tan, child_tan, pow(2.16, i), 3.5);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2d(d2u(M_PI_4 * i)-20), end = u2d(d2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracy_d(mpfr_tan, child_tan, d, 3.5);
@@ -3653,6 +3788,7 @@ void do_test() {
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_tan, child_tan_u1, d, 1.0);
     for(d = -1e+7;d < 1e+7 && success;d += 1000.1) checkAccuracy_d(mpfr_tan, child_tan_u1, d, 1.0);
     for(d = -1e+14;d < 1e+14 && success;d += (1e+10 + 0.1)) checkAccuracy_d(mpfr_tan, child_tan_u1, d, 1.0);
+    for(i = 0;i < 920 && success;i++) checkAccuracy_d(mpfr_tan, child_tan_u1, pow(2.16, i), 1.0);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2d(d2u(M_PI_4 * i)-20), end = u2d(d2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2d(d2u(d)+1)) checkAccuracy_d(mpfr_tan, child_tan_u1, d, 1.0);
@@ -3701,24 +3837,26 @@ void do_test() {
 
     //
 
-    fprintf(stderr, "sqrt : ");
-    for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_d(mpfr_sqrt, child_sqrt, d, 1.0);
-    for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_d(mpfr_sqrt, child_sqrt, pow(2.1, d), 1.0);
-    showResult(success);
+    if (!deterministicMode) {
+      fprintf(stderr, "sqrt : ");
+      for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_d(mpfr_sqrt, child_sqrt, d, 1.0);
+      for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_d(mpfr_sqrt, child_sqrt, pow(2.1, d), 1.0);
+      showResult(success);
 
-    //
+      //
 
-    fprintf(stderr, "sqrt_u05 : ");
-    for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_d(mpfr_sqrt, child_sqrt_u05, d, 0.506);
-    for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_d(mpfr_sqrt, child_sqrt_u05, pow(2.1, d), 0.506);
-    showResult(success);
+      fprintf(stderr, "sqrt_u05 : ");
+      for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_d(mpfr_sqrt, child_sqrt_u05, d, 0.506);
+      for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_d(mpfr_sqrt, child_sqrt_u05, pow(2.1, d), 0.506);
+      showResult(success);
 
-    //
+      //
 
-    fprintf(stderr, "sqrt_u35 : ");
-    for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_d(mpfr_sqrt, child_sqrt_u35, d, 3.5);
-    for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_d(mpfr_sqrt, child_sqrt_u35, pow(2.1, d), 3.5);
-    showResult(success);
+      fprintf(stderr, "sqrt_u35 : ");
+      for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_d(mpfr_sqrt, child_sqrt_u35, d, 3.5);
+      for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_d(mpfr_sqrt, child_sqrt_u35, pow(2.1, d), 3.5);
+      showResult(success);
+    }
 
     //
 
@@ -3817,6 +3955,27 @@ void do_test() {
 
     //
 
+    fprintf(stderr, "sinh_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_sinh, child_sinh_u35, d, 3.5);
+    for(d = -709;d < 709 && success;d += 0.2) checkAccuracy_d(mpfr_sinh, child_sinh_u35, d, 3.5);
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "cosh_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_cosh, child_cosh_u35, d, 3.5);
+    for(d = -709;d < 709 && success;d += 0.2) checkAccuracy_d(mpfr_cosh, child_cosh_u35, d, 3.5);
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "tanh_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002)   checkAccuracy_d(mpfr_tanh, child_tanh_u35, d, 3.5);
+    for(d = -1000;d < 1000 && success;d += 0.2) checkAccuracy_d(mpfr_tanh, child_tanh_u35, d, 3.5);
+    showResult(success);
+
+    //
+
     fprintf(stderr, "asinh : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_asinh, child_asinh, d, 1.0);
     for(d = -1000;d < 1000 && success;d += 0.2) checkAccuracy_d(mpfr_asinh, child_asinh, d, 1.0);
@@ -3852,6 +4011,20 @@ void do_test() {
 
     //
 
+    fprintf(stderr, "exp2_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_exp2, child_exp2_u35, d, 3.5);
+    for(d = -1000;d < 1000 && success;d += 0.2) checkAccuracy_d(mpfr_exp2, child_exp2_u35, d, 3.5);
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "exp10_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_exp10, child_exp10_u35, d, 3.5);
+    for(d = -300;d < 300 && success;d += 0.1) checkAccuracy_d(mpfr_exp10, child_exp10_u35, d, 3.5);
+    showResult(success);
+
+    //
+
     fprintf(stderr, "expm1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_d(mpfr_expm1, child_expm1, d, 1.0);
     for(d = -1000;d < 1000 && success;d += 0.21) checkAccuracy_d(mpfr_expm1, child_expm1, d, 1.0);
@@ -3873,6 +4046,14 @@ void do_test() {
     for(d = 0.0001;d < 10 && success;d += 0.001) checkAccuracy_d(mpfr_log2, child_log2, d, 1.0);
     for(d = 0.0001;d < 10000 && success;d += 1.1) checkAccuracy_d(mpfr_log2, child_log2, d, 1.0);
     for(i=0;i<10000 && success;i++) checkAccuracy_d(mpfr_log2, child_log2, (DBL_MIN * pow(0.996323, i)), 1.0);
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "log2_u35 : ");
+    for(d = 0.0001;d < 10 && success;d += 0.001) checkAccuracy_d(mpfr_log2, child_log2_u35, d, 3.5);
+    for(d = 0.0001;d < 10000 && success;d += 1.1) checkAccuracy_d(mpfr_log2, child_log2_u35, d, 3.5);
+    for(i=0;i<10000 && success;i++) checkAccuracy_d(mpfr_log2, child_log2_u35, (DBL_MIN * pow(0.996323, i)), 3.5);
     showResult(success);
 
     //
@@ -4015,10 +4196,26 @@ void do_test() {
       break;								\
     }									\
   } while(0)
+
+#define checkAccuracy2_f(mpfrFunc, childFunc, argx, bound, abound) do {	\
+    mpfr_set_d(frx, (float)flushToZero(argx), GMP_RNDN);		\
+    mpfrFunc(frc, frx, GMP_RNDN);					\
+    double t = childFunc((float)flushToZero(argx));			\
+    double ae = fabs(mpfr_get_d(frc, GMP_RNDN) - t);			\
+    if (countULPsp(t, frc) > bound && ae > abound) {			\
+      fprintf(stderr, "\narg = %.20g, test = %.20g, correct = %.20g, ULP = %lf, abserror = %g\n", \
+	      (float)flushToZero(argx), (double)childFunc((float)flushToZero(argx)), mpfr_get_d(frc, GMP_RNDN), countULPsp(childFunc((float)flushToZero(argx)), frc), ae); \
+      success = 0;							\
+      break;								\
+    }									\
+  } while(0)
   
   //
 
   if (enableSP) {
+    // 53 > 24(=number of bits in SP mantissa)
+    mpfr_set_default_prec(53);
+
     fprintf(stderr, "hypotf_u35 : ");
     for(y = -10;y < 10 && success;y += 0.15) {
       for(x = -10;x < 10 && success;x += 0.15) checkAccuracy_f_f(mpfr_hypot, child_hypotf_u35, y, x, 3.5);
@@ -4169,6 +4366,7 @@ void do_test() {
     fprintf(stderr, "sinf : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_sin, child_sinf, d, 3.5);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_sin, child_sinf, d, 3.5);
+    for(i = 0;i < 1000 && success;i++) checkAccuracy_f(mpfr_sin, child_sinf, pow(1.092, i), 3.5);
     for(i64=(int64_t)-1000;i64<(int64_t)1000 && success;i64+=(int64_t)1) {
       double start = u2f(f2u(M_PI_4 * i64)-20), end = u2f(f2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracy_f(mpfr_sin, child_sinf, d, 3.5);
@@ -4180,6 +4378,7 @@ void do_test() {
     fprintf(stderr, "sinf_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_sin, child_sinf_u1, d, 1.0);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_sin, child_sinf_u1, d, 1.0);
+    for(i = 0;i < 1000 && success;i++) checkAccuracy_f(mpfr_sin, child_sinf_u1, pow(1.092, i), 1.0);
     for(i64=(int64_t)-1000;i64<(int64_t)1000 && success;i64+=(int64_t)1) {
       double start = u2f(f2u(M_PI_4 * i64)-20), end = u2f(f2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracy_f(mpfr_sin, child_sinf_u1, d, 1.0);
@@ -4191,6 +4390,7 @@ void do_test() {
     fprintf(stderr, "sin in sincosf : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyX_f(mpfr_sin, child_sincosf, d, 3.5);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracyX_f(mpfr_sin, child_sincosf, d, 3.5);
+    for(i = 0;i < 1000 && success;i++) checkAccuracyX_f(mpfr_sin, child_sincosf, pow(1.092, i), 3.5);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2f(f2u(M_PI_4 * i)-20), end = u2f(f2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracyX_f(mpfr_sin, child_sincosf, d, 3.5);
@@ -4202,6 +4402,7 @@ void do_test() {
     fprintf(stderr, "sin in sincosf_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyX_f(mpfr_sin, child_sincosf_u1, d, 1.0);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracyX_f(mpfr_sin, child_sincosf_u1, d, 1.0);
+    for(i = 0;i < 1000 && success;i++) checkAccuracyX_f(mpfr_sin, child_sincosf_u1, pow(1.092, i), 1.0);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2f(f2u(M_PI_4 * i)-20), end = u2f(f2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracyX_f(mpfr_sin, child_sincosf_u1, d, 1.0);
@@ -4210,7 +4411,8 @@ void do_test() {
 
     //
 
-    mpfr_set_default_prec(1280);
+    // 256 > 128(=maximum SP exponent) + 24(=number of bits in SP mantissa)
+    mpfr_set_default_prec(256);
 
     fprintf(stderr, "sin in sincospif_u35 : ");
     for(d = -10.1;d < 10 && success;d += 0.0021) checkAccuracyX_f(mpfr_sinpi, child_sincospif_u35, d, 3.5);
@@ -4270,13 +4472,14 @@ void do_test() {
     }
     showResult(success);
 
-    mpfr_set_default_prec(128);
+    mpfr_set_default_prec(53);
   
     //
 
     fprintf(stderr, "cosf : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_cos, child_cosf, d, 3.5);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_cos, child_cosf, d, 3.5);
+    for(i = 0;i < 1000 && success;i++) checkAccuracy_f(mpfr_cos, child_cosf, pow(1.092, i), 3.5);
     for(i64=(int64_t)-1000;i64<(int64_t)1000 && success;i64+=(int64_t)1) {
       double start = u2f(f2u(M_PI_4 * i64)-20), end = u2f(f2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracy_f(mpfr_cos, child_cosf, d, 3.5);
@@ -4288,6 +4491,7 @@ void do_test() {
     fprintf(stderr, "cosf_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_cos, child_cosf_u1, d, 1.0);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_cos, child_cosf_u1, d, 1.0);
+    for(i = 0;i < 1000 && success;i++) checkAccuracy_f(mpfr_cos, child_cosf_u1, pow(1.092, i), 1.0);
     for(i64=(int64_t)-1000;i64<(int64_t)1000 && success;i64+=(int64_t)1) {
       double start = u2f(f2u(M_PI_4 * i64)-20), end = u2f(f2u(M_PI_4 * i64)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracy_f(mpfr_cos, child_cosf_u1, d, 1.0);
@@ -4299,6 +4503,7 @@ void do_test() {
     fprintf(stderr, "cos in sincosf : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyY_f(mpfr_cos, child_sincosf, d, 3.5);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracyY_f(mpfr_cos, child_sincosf, d, 3.5);
+    for(i = 0;i < 1000 && success;i++) checkAccuracyY_f(mpfr_cos, child_sincosf, pow(1.092, i), 3.5);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2f(f2u(M_PI_4 * i)-20), end = u2f(f2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracyY_f(mpfr_cos, child_sincosf, d, 3.5);
@@ -4310,6 +4515,7 @@ void do_test() {
     fprintf(stderr, "cos in sincosf_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracyY_f(mpfr_cos, child_sincosf_u1, d, 1.0);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracyY_f(mpfr_cos, child_sincosf_u1, d, 1.0);
+    for(i = 0;i < 1000 && success;i++) checkAccuracyY_f(mpfr_cos, child_sincosf_u1, pow(1.092, i), 1.0);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2f(f2u(M_PI_4 * i)-20), end = u2f(f2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracyY_f(mpfr_cos, child_sincosf_u1, d, 1.0);
@@ -4318,7 +4524,7 @@ void do_test() {
 
     //
 
-    mpfr_set_default_prec(1280);
+    mpfr_set_default_prec(256);
 
     fprintf(stderr, "cos in sincospif_u35 : ");
     for(d = -10.1;d < 10 && success;d += 0.0021) checkAccuracyY_f(mpfr_cospi, child_sincospif_u35, d, 3.5);
@@ -4348,13 +4554,25 @@ void do_test() {
     }
     showResult(success);
 
-    mpfr_set_default_prec(128);
+    mpfr_set_default_prec(53);
   
+    //
+  
+    fprintf(stderr, "fastsinf_u3500 : ");
+    for(d = -32;d < 32 && success;d += 0.001) checkAccuracy2_f(mpfr_sin, child_fastsinf_u3500, d, 350, 2e-6);
+    showResult(success);
+
+    fprintf(stderr, "fastcosf_u3500 : ");
+    for(d = -32;d < 32 && success;d += 0.001) checkAccuracy2_f(mpfr_cos, child_fastcosf_u3500, d, 350, 2e-6);
+    showResult(success);
+
     //
 
     fprintf(stderr, "tanf : ");
+    checkAccuracy_f(mpfr_tan, child_tanf, 70.936981201171875, 3.5);
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_tan, child_tanf, d, 3.5);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_tan, child_tanf, d, 3.5);
+    for(i = 0;i < 1000 && success;i++) checkAccuracy_f(mpfr_tan, child_tanf, pow(1.092, i), 3.5);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2f(f2u(M_PI_4 * i)-20), end = u2f(f2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracy_f(mpfr_tan, child_tanf, d, 3.5);
@@ -4366,6 +4584,7 @@ void do_test() {
     fprintf(stderr, "tanf_u1 : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_tan, child_tanf_u1, d, 1.0);
     for(d = -10000;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_tan, child_tanf_u1, d, 1.0);
+    for(i = 0;i < 1000 && success;i++) checkAccuracy_f(mpfr_tan, child_tanf_u1, pow(1.092, i), 1.0);
     for(i=1;i<10000 && success;i+=31) {
       double start = u2f(f2u(M_PI_4 * i)-20), end = u2f(f2u(M_PI_4 * i)+20);
       for(d = start;d <= end;d = u2f(f2u(d)+1)) checkAccuracy_f(mpfr_tan, child_tanf_u1, d, 1.0);
@@ -4429,30 +4648,42 @@ void do_test() {
 
     //
 
-    fprintf(stderr, "sqrtf : ");
-    if (!enableFlushToZero) {
-      for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_f(mpfr_sqrt, child_sqrtf, d, 1.0);
+    fprintf(stderr, "fastpowf_u3500 : ");
+    for(y = -25;y < 25 && success;y += 0.121) {
+      for(x = 0.1;x < 25 && success;x += 0.251) {
+	checkAccuracy_f_f(mpfr_pow, child_fastpowf_u3500, x, y, 350);
+      }
     }
-    for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_f(mpfr_sqrt, child_sqrtf, pow(2.1, d), 1.0);
     showResult(success);
 
     //
 
-    fprintf(stderr, "sqrtf_u05 : ");
-    if (!enableFlushToZero) {
-      for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u05, d, 0.506);
-    }
-    for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u05, pow(2.1, d), 0.506);
-    showResult(success);
+    if (!deterministicMode) {
+      fprintf(stderr, "sqrtf : ");
+      if (!enableFlushToZero) {
+	for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_f(mpfr_sqrt, child_sqrtf, d, 1.0);
+      }
+      for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_f(mpfr_sqrt, child_sqrtf, pow(2.1, d), 1.0);
+      showResult(success);
 
-    //
+      //
 
-    fprintf(stderr, "sqrtf_u35 : ");
-    if (!enableFlushToZero) {
-      for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u35, d, 3.5);
+      fprintf(stderr, "sqrtf_u05 : ");
+      if (!enableFlushToZero) {
+	for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u05, d, 0.506);
+      }
+      for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u05, pow(2.1, d), 0.506);
+      showResult(success);
+
+      //
+
+      fprintf(stderr, "sqrtf_u35 : ");
+      if (!enableFlushToZero) {
+	for(d = -10000;d < 10000 && success;d += 2.1) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u35, d, 3.5);
+      }
+      for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u35, pow(2.1, d), 3.5);
+      showResult(success);
     }
-    for(i = -1000;i <= 1000 && success;i+=10) checkAccuracy_f(mpfr_sqrt, child_sqrtf_u35, pow(2.1, d), 3.5);
-    showResult(success);
   
     //
 
@@ -4561,6 +4792,33 @@ void do_test() {
 
     //
 
+    fprintf(stderr, "sinhf_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_sinh, child_sinhf_u35, d, 3.5);
+    if (!enableFlushToZero) {
+      for(d = -88;d < 88 && success;d += 0.2) checkAccuracy_f(mpfr_sinh, child_sinhf_u35, d, 3.5);
+    }
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "coshf_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_cosh, child_coshf_u35, d, 3.5);
+    if (!enableFlushToZero) {
+      for(d = -88;d < 88 && success;d += 0.2) checkAccuracy_f(mpfr_cosh, child_coshf_u35, d, 3.5);
+    }
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "tanhf_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_tanh, child_tanhf_u35, d, 3.5);
+    if (!enableFlushToZero) {
+      for(d = -1000;d < 1000 && success;d += 0.2) checkAccuracy_f(mpfr_tanh, child_tanhf_u35, d, 3.5);
+    }
+    showResult(success);
+
+    //
+
     fprintf(stderr, "asinhf : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_asinh, child_asinhf, d, 1.0);
     if (!enableFlushToZero) {
@@ -4606,6 +4864,24 @@ void do_test() {
 
     //
 
+    fprintf(stderr, "exp2f_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_exp2, child_exp2f_u35, d, 3.5);
+    if (!enableFlushToZero) {
+      for(d = -1000;d < 1000 && success;d += 0.2) checkAccuracy_f(mpfr_exp2, child_exp2f_u35, d, 3.5);
+    }
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "exp10f_u35 : ");
+    for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_exp10, child_exp10f_u35, d, 3.5);
+    if (!enableFlushToZero) {
+      for(d = -300;d < 300 && success;d += 0.1) checkAccuracy_f(mpfr_exp10, child_exp10f_u35, d, 3.5);
+    }
+    showResult(success);
+
+    //
+
     fprintf(stderr, "expm1f : ");
     for(d = -10;d < 10 && success;d += 0.002) checkAccuracy_f(mpfr_expm1, child_expm1f, d, 1.0);
     if (!enableFlushToZero) {
@@ -4629,6 +4905,14 @@ void do_test() {
     for(d = 0.0001;d < 10 && success;d += 0.001) checkAccuracy_f(mpfr_log2, child_log2f, d, 1.0);
     for(d = 0.0001;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_log2, child_log2f, d, 1.0);
     for(i=0;i<10000 && success;i++) checkAccuracy_f(mpfr_log2, child_log2f, (FLT_MIN * pow(0.996323, i)), 1.0);
+    showResult(success);
+
+    //
+
+    fprintf(stderr, "log2f_u35 : ");
+    for(d = 0.0001;d < 10 && success;d += 0.001) checkAccuracy_f(mpfr_log2, child_log2f_u35, d, 3.5);
+    for(d = 0.0001;d < 10000 && success;d += 1.1) checkAccuracy_f(mpfr_log2, child_log2f_u35, d, 3.5);
+    for(i=0;i<10000 && success;i++) checkAccuracy_f(mpfr_log2, child_log2f_u35, (FLT_MIN * pow(0.996323, i)), 3.5);
     showResult(success);
 
     //
@@ -4688,7 +4972,7 @@ int main(int argc, char **argv) {
   for(i=a2s;i<argc;i++) argv2[i-a2s] = argv[i];
   argv2[argc-a2s] = NULL;
   
-  mpfr_set_default_prec(128);
+  mpfr_set_default_prec(64);
 
   startChild(argv2[0], argv2);
   fflush(stdin);
@@ -4701,9 +4985,9 @@ int main(int argc, char **argv) {
     char str[256];
     int u;
 
-    if (readln(ctop[0], str, 255) < 1) stop("Feature detection(readln)");
-    if (sscanf(str, "%d", &u) != 1) stop("Feature detection(sscanf)");
-    if ((u & 3) == 0) {
+    if (readln(ctop[0], str, 255) < 1 ||
+	sscanf(str, "%d", &u) != 1 ||
+	(u & 3) == 0) {
       if (commandSde != NULL) {
 	close(ctop[0]);
 	close(ptoc[1]);
@@ -4721,6 +5005,8 @@ int main(int argc, char **argv) {
 	  fprintf(stderr, "\n\nTester : *** CPU does not support the necessary feature(SDE)\n");
 	  return 0;
 	}
+
+	printf("*** Using SDE\n");
       } else {
 	fprintf(stderr, "\n\nTester : *** CPU does not support the necessary feature\n");
 	return 0;
@@ -4730,9 +5016,12 @@ int main(int argc, char **argv) {
     enableDP = (u & 1) != 0;
     enableSP = (u & 2) != 0;
     enableFlushToZero |= ((u & 4) != 0);
+    deterministicMode |= ((u & 8) != 0);
   }
 
   if (enableFlushToZero) fprintf(stderr, "\n\n*** Flush to zero enabled\n");
+
+  fpctop = fdopen(ctop[0], "r");
   
   do_test();
 

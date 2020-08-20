@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -37,7 +37,7 @@ typedef uint8_t vmaskl __attribute__((ext_vector_type(sizeof(long double)*VECTLE
 typedef long double vlongdouble __attribute__((ext_vector_type(VECTLENDP)));
 #endif
 
-#ifdef Sleef_quad2_DEFINED
+#if defined(Sleef_quad2_DEFINED) && defined(ENABLEFLOAT128)
 typedef uint8_t vmaskq __attribute__((ext_vector_type(sizeof(Sleef_quad)*VECTLENDP)));
 #ifdef ENABLE_LONGDOUBLE
 typedef Sleef_quad vquad __attribute__((ext_vector_type(VECTLENDP)));
@@ -60,7 +60,7 @@ typedef uint8_t vmaskl __attribute__((vector_size(sizeof(long double)*VECTLENDP)
 typedef long double vlongdouble __attribute__((vector_size(sizeof(long double)*VECTLENDP)));
 #endif
 
-#ifdef Sleef_quad2_DEFINED
+#if defined(Sleef_quad2_DEFINED) && defined(ENABLEFLOAT128)
 typedef uint8_t vmaskq __attribute__((vector_size(sizeof(Sleef_quad)*VECTLENDP)));
 typedef Sleef_quad vquad __attribute__((vector_size(sizeof(Sleef_quad)*VECTLENDP)));
 #endif
@@ -79,7 +79,7 @@ static INLINE vdouble vcast_vd_d(double d) { return (vdouble) { d, d }; }
 #ifdef ENABLE_LONGDOUBLE
 static INLINE vlongdouble vcast_vl_l(long double d) { return (vlongdouble) { d, d }; }
 #endif
-#ifdef Sleef_quad2_DEFINED
+#if defined(Sleef_quad2_DEFINED) && defined(ENABLEFLOAT128)
 static INLINE vquad vcast_vq_q(Sleef_quad d) { return (vquad) { d, d }; }
 #endif
 
@@ -101,7 +101,7 @@ static INLINE vlongdouble vposneg_vl_vl(vlongdouble vd) { return (vlongdouble) {
 static INLINE vlongdouble vnegpos_vl_vl(vlongdouble vd) { return (vlongdouble) { -vd[0], +vd[1] }; }
 #endif
 
-#ifdef Sleef_quad2_DEFINED
+#if defined(Sleef_quad2_DEFINED) && defined(ENABLEFLOAT128)
 static INLINE vquad vrev21_vq_vq(vquad vd) { return (vquad) { vd[1], vd[0] }; }
 static INLINE vquad vreva2_vq_vq(vquad vd) { return vd; }
 static INLINE vquad vposneg_vq_vq(vquad vd) { return (vquad) { +vd[0], -vd[1] }; }
@@ -627,6 +627,12 @@ static INLINE vdouble vloadu_vd_p(const double *ptr) {
   return vd;
 }
 
+static INLINE vdouble vgather_vd_p_vi(const double *ptr, vint vi) {
+  vdouble vd;
+  for(int i=0;i<VECTLENDP;i++) vd[i] = ptr[vi[i]];
+  return vd;
+}
+
 static INLINE void vstore_v_p_vd(double *ptr, vdouble v) { *(vdouble *)ptr = v; }
 static INLINE void vstoreu_v_p_vd(double *ptr, vdouble v) {
   for(int i=0;i<VECTLENDP;i++) ptr[i] = v[i];
@@ -689,6 +695,7 @@ static INLINE vmask vreinterpret_vm_vf(vfloat vf) { return (vmask)vf; }
 static INLINE vfloat vreinterpret_vf_vm(vmask vm) { return (vfloat)vm; }
 static INLINE vfloat vreinterpret_vf_vi2(vint2 vi) { return (vfloat)vi; }
 static INLINE vint2 vreinterpret_vi2_vf(vfloat vf) { return (vint2)vf; }
+static INLINE vint2 vrev21_vi2_vi2(vint2 i) { return vreinterpret_vi2_vf(vrev21_vf_vf(vreinterpret_vf_vi2(i))); }
 
 static INLINE vfloat vadd_vf_vf_vf(vfloat x, vfloat y) { return x + y; }
 static INLINE vfloat vsub_vf_vf_vf(vfloat x, vfloat y) { return x - y; }
@@ -777,6 +784,12 @@ static INLINE vfloat vloadu_vf_p(const float *ptr) {
   return vf;
 }
 
+static INLINE vfloat vgather_vf_p_vi2(const float *ptr, vint2 vi2) {
+  vfloat vf;
+  for(int i=0;i<VECTLENSP;i++) vf[i] = ptr[vi2[i]];
+  return vf;
+}
+
 static INLINE void vstore_v_p_vf(float *ptr, vfloat v) { *(vfloat *)ptr = v; }
 static INLINE void vstoreu_v_p_vf(float *ptr, vfloat v) {
   for(int i=0;i<VECTLENSP;i++) ptr[i] = v[i];
@@ -826,7 +839,7 @@ static INLINE void vscatter2_v_p_i_i_vl(long double *ptr, int offset, int step, 
 static INLINE void vsscatter2_v_p_i_i_vl(long double *ptr, int offset, int step, vlongdouble v) { vscatter2_v_p_i_i_vl(ptr, offset, step, v); }
 #endif
 
-#ifdef Sleef_quad2_DEFINED
+#if defined(Sleef_quad2_DEFINED) && defined(ENABLEFLOAT128)
 static INLINE vquad vadd_vq_vq_vq(vquad x, vquad y) { return x + y; }
 static INLINE vquad vsub_vq_vq_vq(vquad x, vquad y) { return x - y; }
 static INLINE vquad vmul_vq_vq_vq(vquad x, vquad y) { return x * y; }

@@ -47,7 +47,7 @@ FileStoreHandler::FileStoreHandler(
   auto ret = mkdir(basePath_.c_str());
 #else
   auto ret = mkdir(basePath_.c_str(), 0777);
-#endif // defined(_WIN64)
+#endif // defined(_MSC_VER)
   if (ret == -1) {
     CHECK_EQ(errno, EEXIST) << "mkdir: " << strerror(errno);
   }

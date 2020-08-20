@@ -7,10 +7,10 @@
 #include <limits>
 #include <sstream>
 
-#include "c10/macros/Macros.h"
-#include "c10/util/Exception.h"
-#include "c10/util/Flags.h"
-#include "c10/util/StringUtil.h"
+#include <c10/macros/Macros.h>
+#include <c10/util/Exception.h>
+#include <c10/util/Flags.h>
+#include <c10/util/StringUtil.h>
 
 // CAFFE2_LOG_THRESHOLD is a compile time flag that would allow us to turn off
 // logging at compile time so no logging message below that level is produced
@@ -23,9 +23,9 @@
 
 // Below are different implementations for glog and non-glog cases.
 #ifdef C10_USE_GLOG
-#include "c10/util/logging_is_google_glog.h"
+#include <c10/util/logging_is_google_glog.h>
 #else // !C10_USE_GLOG
-#include "c10/util/logging_is_not_google_glog.h"
+#include <c10/util/logging_is_not_google_glog.h>
 #endif // C10_USE_GLOG
 
 C10_DECLARE_int(caffe2_log_level);
@@ -47,6 +47,13 @@ C10_DECLARE_bool(caffe2_use_fatal_for_enforce);
 #define C10_LOG_FIRST_N(severity, n) LOG(severity)
 #endif
 
+// Same for LOG_EVERY_N
+#ifdef LOG_EVERY_N
+#define C10_LOG_EVERY_N(severity, n) LOG_EVERY_N(severity, n)
+#else
+#define C10_LOG_EVERY_N(severity, n) LOG(severity)
+#endif
+
 namespace c10 {
 
 using std::string;
@@ -55,7 +62,14 @@ using std::string;
 C10_API bool InitCaffeLogging(int* argc, char** argv);
 C10_API void UpdateLoggingLevelsFromFlags();
 
-C10_API C10_NORETURN void ThrowEnforceNotMet(
+[[noreturn]] C10_API void ThrowEnforceNotMet(
+    const char* file,
+    const int line,
+    const char* condition,
+    const std::string& msg,
+    const void* caller = nullptr);
+
+[[noreturn]] C10_API void ThrowEnforceFiniteNotMet(
     const char* file,
     const int line,
     const char* condition,
@@ -91,6 +105,14 @@ using EnforceNotMet = ::c10::Error;
           __FILE__, __LINE__, #condition, ::c10::str(__VA_ARGS__)); \
     }                                                               \
   } while (false)
+
+#define CAFFE_ENFORCE_FINITE(condition, ...)                        \
+    do {                                                            \
+      if (C10_UNLIKELY(!(condition))) {                             \
+        ::c10::ThrowEnforceFiniteNotMet(                            \
+          __FILE__, __LINE__, #condition, ::c10::str(__VA_ARGS__)); \
+      }                                                             \
+    } while (false)
 
 #define CAFFE_ENFORCE_WITH_CALLER(condition, ...)                         \
   do {                                                                    \
@@ -136,7 +158,7 @@ struct C10_API EnforceOK {};
 
 class C10_API EnforceFailMessage {
  public:
-#ifdef _WIN64
+#ifdef _MSC_VER
   // MSVC + NVCC ignores constexpr and will issue a warning if included.
   /* implicit */ EnforceFailMessage(EnforceOK) : msg_(nullptr) {}
 #else
@@ -163,12 +185,12 @@ class C10_API EnforceFailMessage {
   inline bool bad() const {
     return msg_ != nullptr;
   }
-  std::string get_message_and_free(std::string&& extra) const {
+  std::string get_message_and_free(const std::string& extra) const {
     std::string r;
     if (extra.empty()) {
       r = std::move(*msg_);
     } else {
-      r = ::c10::str(std::move(*msg_), ". ", std::move(extra));
+      r = ::c10::str(std::move(*msg_), ". ", extra);
     }
     delete msg_;
     return r;
@@ -229,7 +251,7 @@ BINARY_COMP_HELPER(LessEquals, <=)
   CAFFE_ENFORCE_THAT_IMPL((condition), #condition, __VA_ARGS__)
 
 #define CAFFE_ENFORCE_EQ(x, y, ...) \
-  CAFFE_ENFORCE_THAT_IMPL( Equals ( (x), (y) ), #x " == " #y, __VA_ARGS__ )
+  CAFFE_ENFORCE_THAT_IMPL(Equals((x), (y)), #x " == " #y, __VA_ARGS__)
 #define CAFFE_ENFORCE_NE(x, y, ...) \
   CAFFE_ENFORCE_THAT_IMPL(NotEquals((x), (y)), #x " != " #y, __VA_ARGS__)
 #define CAFFE_ENFORCE_LE(x, y, ...) \

@@ -140,10 +140,19 @@ def _rebuild_tensor_v2(storage, storage_offset, size, stride, requires_grad, bac
     tensor._backward_hooks = backward_hooks
     return tensor
 
+
+def _rebuild_sparse_tensor(layout, data):
+    if layout == torch.sparse_coo:
+        indices, values, size = data
+        return torch.sparse_coo_tensor(indices, values, size)
+    raise NotImplementedError("rebuilding sparse tensor for layout %s" % (layout))
+
+
 def _rebuild_xla_tensor(data, dtype, device, requires_grad):
     tensor = torch.from_numpy(data).to(dtype=dtype, device=device)
     tensor.requires_grad = requires_grad
     return tensor
+
 
 def _rebuild_qtensor(storage, storage_offset, size, stride, quantizer_params, requires_grad, backward_hooks):
     qscheme = quantizer_params[0]
@@ -152,8 +161,9 @@ def _rebuild_qtensor(storage, storage_offset, size, stride, quantizer_params, re
         tensor = torch._empty_affine_quantized(size, scale=scale, zero_point=zero_point, dtype=storage.dtype)
     elif qscheme == torch.per_channel_affine:
         _, scales, zero_points, axis = quantizer_params
-        scales = torch.tensor(scales, dtype=torch.float64)
-        zero_points = torch.tensor(zero_points, dtype=torch.int64)
+        if type(scales) is list and type(zero_points) is list:
+            scales = torch.tensor(scales, dtype=torch.double)
+            zero_points = torch.tensor(zero_points, dtype=torch.long)
         tensor = torch._empty_per_channel_affine_quantized(
             size, scales=scales, zero_points=zero_points, axis=axis, dtype=storage.dtype)
     else:

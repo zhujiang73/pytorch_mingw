@@ -25,6 +25,54 @@
 #include "onnx/onnx-operators_pb.h"
 namespace ONNX_NAMESPACE {
 
+struct FunctionBodyBuildContext {
+  virtual const AttributeProto* getAttribute(const std::string& name) const = 0;
+  virtual bool hasInput(int i) const = 0;
+  virtual bool hasOutput(int i) const = 0;
+  virtual ~FunctionBodyBuildContext() {}
+};
+
+struct FunctionBodyBuildContextImpl : public FunctionBodyBuildContext {
+  FunctionBodyBuildContextImpl(NodeProto& node_proto)
+      : node_proto_(node_proto) {
+    for (auto& attr : *node_proto.mutable_attribute()) {
+      attributesByName_[attr.name()] = &attr;
+    }
+  }
+
+  const AttributeProto* getAttribute(const std::string& name) const {
+    auto iter = attributesByName_.find(name);
+    if (iter == attributesByName_.end()) {
+      return nullptr;
+    } else {
+      return iter->second;
+    }
+  }
+
+  bool hasInput(int i) const {
+    if (i >= node_proto_.input_size())
+      return false;
+    return node_proto_.input(i) != "";
+  }
+
+  bool hasOutput(int i) const {
+    if (i >= node_proto_.output_size())
+      return false;
+    return node_proto_.output(i) != "";
+  }
+
+  std::unordered_map<std::string, const AttributeProto*> attributesByName_;
+
+  NodeProto node_proto_;
+};
+
+using FunctionBodyQueryFunction =
+    std::function<bool(FunctionBodyBuildContext&)>;
+
+class OpSchema;
+using ContextDependentFunctionBodyBuilder = std::function<
+    bool(const FunctionBodyBuildContext&, const OpSchema&, FunctionProto&)>;
+
 class SchemaError final : public std::runtime_error {
  public:
   using std::runtime_error::runtime_error;
@@ -103,20 +151,39 @@ class OpSchema final {
 
     explicit FormalParameter(
         std::string name,
-        DataTypeSet type_set,
+        DataTypeSet allowed_type_set,
         std::string type_str,
-        std::string description,
+        const std::string& description,
         FormalParameterOption param_option = Single,
         bool is_homogeneous = true,
-        int min_arity = 1);
+        int min_arity = 1)
+        : name_(std::move(name)),
+          type_set_(std::move(allowed_type_set)),
+          type_str_(std::move(type_str)),
+#ifndef __ONNX_NO_DOC_STRINGS
+          description_(description),
+#endif
+          param_option_(param_option),
+          is_homogeneous_(is_homogeneous),
+          min_arity_(min_arity) {
+    }
 
     explicit FormalParameter(
         std::string name,
-        std::string description,
+        const std::string& description,
         std::string type_str,
         FormalParameterOption param_option = Single,
         bool is_homogeneous = true,
-        int min_arity = 1);
+        int min_arity = 1)
+        : name_(std::move(name)),
+          type_str_(std::move(type_str)),
+#ifndef __ONNX_NO_DOC_STRINGS
+          description_(description),
+#endif
+          param_option_(param_option),
+          is_homogeneous_(is_homogeneous),
+          min_arity_(min_arity) {
+    }
 
     // Get formal parameter name.
     const std::string& GetName() const;
@@ -284,7 +351,14 @@ class OpSchema final {
     return *this;
   }
 
-  OpSchema& SetDoc(std::string doc);
+  OpSchema& SetDoc(const std::string& doc) {
+#ifndef __ONNX_NO_DOC_STRINGS
+    doc_ = doc;
+#else
+    ONNX_UNUSED_PARAMETER(doc);
+#endif
+    return *this;
+  }
 
   // Functions to specify name for the operator schema.
   OpSchema& SetName(const char* name);
@@ -419,7 +493,7 @@ class OpSchema final {
   OpSchema& Input(
       int n,
       std::string name,
-      std::string description,
+      const std::string& description,
       std::string type_str,
       FormalParameterOption param_option = Single,
       bool is_homogeneous = true,
@@ -438,7 +512,7 @@ class OpSchema final {
   OpSchema& Output(
       int n,
       std::string name,
-      std::string description,
+      const std::string& description,
       std::string type_str,
       FormalParameterOption param_option = Single,
       bool is_homogeneous = true,
@@ -468,6 +542,19 @@ class OpSchema final {
   // Convenience members for types
 
   // All high-precision numeric types.
+  static const std::vector<std::string>& numeric_types_for_math_reduction_with_bfloat() {
+    static const std::vector<std::string> numeric_types_for_math_reduction_with_bfloat = {
+        "tensor(uint32)",
+        "tensor(uint64)",
+        "tensor(int32)",
+        "tensor(int64)",
+        "tensor(float16)",
+        "tensor(float)",
+        "tensor(double)",
+        "tensor(bfloat16)"};
+    return numeric_types_for_math_reduction_with_bfloat;
+  }
+
   static const std::vector<std::string>& numeric_types_for_math_reduction() {
     static const std::vector<std::string> numeric_types_for_math_reduction = {
         "tensor(uint32)",
@@ -478,6 +565,23 @@ class OpSchema final {
         "tensor(float)",
         "tensor(double)"};
     return numeric_types_for_math_reduction;
+  }
+
+  static const std::vector<std::string>& all_numeric_types_with_bfloat() {
+    static const std::vector<std::string> all_numeric_types_with_bfloat = {
+        "tensor(uint8)",
+        "tensor(uint16)",
+        "tensor(uint32)",
+        "tensor(uint64)",
+        "tensor(int8)",
+        "tensor(int16)",
+        "tensor(int32)",
+        "tensor(int64)",
+        "tensor(float16)",
+        "tensor(float)",
+        "tensor(double)",
+        "tensor(bfloat16)"};
+    return all_numeric_types_with_bfloat;
   }
 
   static const std::vector<std::string>& all_numeric_types() {
@@ -530,6 +634,27 @@ class OpSchema final {
         "tensor(complex64)",
         "tensor(complex128)"};
     return all_tensor_types;
+  }
+
+  static const std::vector<std::string>& all_tensor_types_with_bfloat() {
+    static const std::vector<std::string> all_tensor_types_with_bfloat = {
+        "tensor(uint8)",
+        "tensor(uint16)",
+        "tensor(uint32)",
+        "tensor(uint64)",
+        "tensor(int8)",
+        "tensor(int16)",
+        "tensor(int32)",
+        "tensor(int64)",
+        "tensor(bfloat16)",
+        "tensor(float16)",
+        "tensor(float)",
+        "tensor(double)",
+        "tensor(string)",
+        "tensor(bool)",
+        "tensor(complex64)",
+        "tensor(complex128)"};
+    return all_tensor_types_with_bfloat;
   }
 
   static const std::vector<std::string>& all_tensor_sequence_types() {
@@ -618,8 +743,22 @@ class OpSchema final {
   }
 
   OpSchema& FunctionBody(const std::vector<NodeProto>& func_nodes);
+  OpSchema& FunctionBody(
+      const std::vector<NodeProto>& func_nodes,
+      const std::vector<OperatorSetIdProto>& opsets);
 
   const FunctionProto* GetFunction() const;
+
+  bool HasContextDependentFunction() const {
+    return functionBuilder_ != nullptr;
+  }
+
+  OpSchema& SetContextDependentFunctionBodyBuilder(
+      ContextDependentFunctionBodyBuilder);
+
+  bool BuildContextDependentFunction(
+      const FunctionBodyBuildContext& ctx,
+      FunctionProto& functionProto) const;
 
   // Verifies that the schema is valid and all specifications are compatible.
   // It will also parse all type strings specified for inputs/outputs into valid
@@ -627,12 +766,12 @@ class OpSchema final {
   // efficiency.
   void Finalize();
 
+  // Build function with information stored in opschema
+  void BuildFunction(FunctionProto& function_body) const;
+
  private:
   void ParseAndSetTypes(
       /*out*/ std::vector<OpSchema::FormalParameter>* formalParameters);
-
-  // Build function with information stored in opschema
-  void BuildFunction();
 
   std::string name_;
   std::string file_;
@@ -658,6 +797,7 @@ class OpSchema final {
   std::function<bool(int)> num_outputs_allowed_ = [](int) { return true; };
   InferenceFunction tensor_inference_function_;
   FunctionProto function_body_;
+  ContextDependentFunctionBodyBuilder functionBuilder_;
 };
 
 // Map type to store operator schemas. The format is,
@@ -688,8 +828,13 @@ class OpSchemaRegistry final : public ISchemaRegistry {
       // Increase the highest version when you make BC-breaking changes to the
       // operator schema on specific domain. Update the lowest version when it's
       // determined to remove too old version history.
-      map_[ONNX_DOMAIN] = std::make_pair(1, 12);
+      map_[ONNX_DOMAIN] = std::make_pair(1, 13);
       map_[AI_ONNX_ML_DOMAIN] = std::make_pair(1, 2);
+      map_[AI_ONNX_TRAINING_DOMAIN] = std::make_pair(1, 1);
+      // ONNX's preview domain contains operators subject to change, so
+      // versining is not meaningful and that domain should have only one
+      // version.
+      map_[AI_ONNX_PREVIEW_TRAINING_DOMAIN] = std::make_pair(1, 1);
     }
 
     const std::unordered_map<std::string, std::pair<int, int>>& Map() const {
@@ -889,6 +1034,14 @@ OpSchema GetOpSchema();
 #define ONNX_ML_OPERATOR_SET_SCHEMA(name, ver, impl) \
   ONNX_OPERATOR_SET_SCHEMA_EX(name, OnnxML, AI_ONNX_ML_DOMAIN, ver, true, impl)
 
+#define ONNX_TRAINING_OPERATOR_SET_SCHEMA(name, ver, impl) \
+  ONNX_OPERATOR_SET_SCHEMA_EX(                             \
+      name, OnnxTraining, AI_ONNX_TRAINING_DOMAIN, ver, true, impl)
+
+#define ONNX_PREVIEW_TRAINING_OPERATOR_SET_SCHEMA(name, ver, impl) \
+  ONNX_OPERATOR_SET_SCHEMA_EX(                                     \
+      name, OnnxPreview, AI_ONNX_PREVIEW_TRAINING_DOMAIN, ver, true, impl)
+
 // Defines specialization of GetOpSchema for a class whose name is determined
 // based on a convention using name, domain, and version.  Operator schema are
 // normally included in operator sets and registered in OpSchemaRegistry::map().
@@ -939,6 +1092,10 @@ class DbgOperatorSetTracker {
 #define ONNX_OPERATOR_SET_SCHEMA_CLASS_NAME(domain, ver, name) \
   name##_##domain##_ver##ver
 
+// Naming convention for preview operator schema classes
+#define ONNX_PREVIEW_OPERATOR_SET_SCHEMA_CLASS_NAME(ver, name) \
+  ONNX_OPERATOR_SET_SCHEMA_CLASS_NAME(OnnxPreview, ver, name)
+
 // Helper function
 size_t ReplaceAll(std::string& s, const char* from, const char* to);
 
@@ -984,5 +1141,50 @@ inline std::string GenerateBroadcastingDocUni(
       " for more details please check [the doc](Broadcasting.md).";
   return ret;
 }
+
+/*
+ * Macros for setting operator documentation
+ * Use this macro for simple SetDoc() calls that generate documentation
+ * directly. This is the macro to use in almost all cases.
+ * Sample usage guidelines:
+ * const char* doc_str = "foo";
+ * SetDoc(GET_OP_DOC_STR(doc_str))
+ *
+ * SetDoc(GET_OP_DOC_STR(
+            std::string(BitShift_ver11_doc) + GenerateBroadcastingDocMul()))
+ */
+#ifndef __ONNX_NO_DOC_STRINGS
+#define GET_OP_DOC_STR(doc_str) (doc_str)
+#else
+#define GET_OP_DOC_STR(doc_str) ("")
+#endif
+
+/*
+ * Use this macro when the documentation needs to be populated in some
+ * complicated way like string substitutions, etc before calling SetDoc.
+ * Sample usage guidelines:
+    std::string doc;
+    POPULATE_OP_DOC_STR(
+        doc = R"DOC(
+Returns the tensor resulted from performing the `{name}` logical operation
+elementwise on the input tensors `A` and `B` (with Numpy-style broadcasting
+support).
+
+{broadcast_doc}
+)DOC";
+        ReplaceAll(doc, "{name}", name);
+        ReplaceAll(
+            doc, "{broadcast_doc}", GenerateBroadcastingDocMul().c_str()););
+    schema.SetDoc(doc);
+ *
+ */
+#ifndef __ONNX_NO_DOC_STRINGS
+#define POPULATE_OP_DOC_STR(DocPopulatorCode) \
+  do {                                        \
+    DocPopulatorCode                          \
+  } while (0)
+#else
+#define POPULATE_OP_DOC_STR(DocPopulatorCode)
+#endif
 
 } // namespace ONNX_NAMESPACE

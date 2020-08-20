@@ -79,6 +79,11 @@ class JsonEscaping {
   // Escape the given ByteSource to the given ByteSink.
   static void Escape(strings::ByteSource* input, strings::ByteSink* output);
 
+  // Escape the given ByteSource to the given ByteSink.
+  // This is optimized for the case where the string is all printable 7-bit
+  // ASCII and does not contain a few other characters (such as quotes).
+  static void Escape(StringPiece input, strings::ByteSink* output);
+
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(JsonEscaping);
 };
@@ -86,6 +91,6 @@ class JsonEscaping {
 }  // namespace converter
 }  // namespace util
 }  // namespace protobuf
-
 }  // namespace google
+
 #endif  // GOOGLE_PROTOBUF_UTIL_INTERNAL__JSON_ESCAPING_H__

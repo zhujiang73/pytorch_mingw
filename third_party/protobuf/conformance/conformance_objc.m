@@ -68,7 +68,8 @@ static ConformanceResponse *DoTest(ConformanceRequest *request) {
 
   switch (request.payloadOneOfCase) {
     case ConformanceRequest_Payload_OneOfCase_GPBUnsetOneOfCase:
-      Die(@"Request didn't have a payload: %@", request);
+      response.runtimeError =
+          [NSString stringWithFormat:@"Request didn't have a payload: %@", request];
       break;
 
     case ConformanceRequest_Payload_OneOfCase_ProtobufPayload: {
@@ -78,7 +79,10 @@ static ConformanceResponse *DoTest(ConformanceRequest *request) {
       } else if ([request.messageType isEqual:@"protobuf_test_messages.proto2.TestAllTypesProto2"]) {
         msgClass = [TestAllTypesProto2 class];
       } else {
-        Die(@"Protobuf request had an unknown message_type: %@", request.messageType);
+        response.runtimeError =
+            [NSString stringWithFormat:@"Protobuf request had an unknown message_type: %@",
+                                       request.messageType];
+        break;
       }
       NSError *error = nil;
       testMessage = [msgClass parseFromData:request.protobufPayload error:&error];
@@ -92,13 +96,24 @@ static ConformanceResponse *DoTest(ConformanceRequest *request) {
     case ConformanceRequest_Payload_OneOfCase_JsonPayload:
       response.skipped = @"ObjC doesn't support parsing JSON";
       break;
+
+    case ConformanceRequest_Payload_OneOfCase_JspbPayload:
+      response.skipped =
+          @"ConformanceRequest had a jspb_payload ConformanceRequest.payload;"
+          " those aren't supposed to happen with opensource.";
+      break;
+
+    case ConformanceRequest_Payload_OneOfCase_TextPayload:
+      response.skipped = @"ObjC doesn't support parsing TextFormat";
+      break;
   }
 
   if (testMessage) {
     switch (request.requestedOutputFormat) {
       case WireFormat_GPBUnrecognizedEnumeratorValue:
       case WireFormat_Unspecified:
-        Die(@"Unrecognized/unspecified output format: %@", request);
+        response.runtimeError =
+            [NSString stringWithFormat:@"Unrecognized/unspecified output format: %@", request];
         break;
 
       case WireFormat_Protobuf:
@@ -111,6 +126,18 @@ static ConformanceResponse *DoTest(ConformanceRequest *request) {
 
       case WireFormat_Json:
         response.skipped = @"ObjC doesn't support generating JSON";
+        break;
+
+      case WireFormat_Jspb:
+        response.skipped =
+            @"ConformanceRequest had a requested_output_format of JSPB WireFormat; that"
+            " isn't supposed to happen with opensource.";
+        break;
+
+      case WireFormat_TextFormat:
+        // ObjC only has partial objc generation, so don't attempt any tests that need
+        // support.
+        response.skipped = @"ObjC doesn't support generating TextFormat";
         break;
     }
   }

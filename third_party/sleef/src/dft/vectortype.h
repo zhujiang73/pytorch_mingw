@@ -1,10 +1,18 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #ifndef __VECTORTYPE_H__
 #define __VECTORTYPE_H__
+
+#if defined(POWER64_UNDEF_USE_EXTERN_INLINES)
+// This is a workaround required to cross compile for PPC64 binaries
+#include <features.h>
+#ifdef __USE_EXTERN_INLINES
+#undef __USE_EXTERN_INLINES
+#endif
+#endif
 
 #include <math.h>
 #include "sleef.h"
@@ -35,6 +43,10 @@
 
 #ifdef ENABLE_SVE
 #include "helpersve.h"
+#endif
+
+#ifdef ENABLE_VSX
+#include "helperpower_128.h"
 #endif
 
 #ifdef ENABLE_VECEXT

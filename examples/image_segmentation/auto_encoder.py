@@ -308,7 +308,7 @@ class Encoder_Thread(threading.Thread):
                     self.show_data["np_decoded"] = np_decoded.copy()
                     self.lock.release()
                     GLib.idle_add(self.caller_slot, "torch data")
-                    time.sleep(1.0)   
+                    #time.sleep(1.0)   
 
                 if ((idx_loop+1) % 1000 == 0):
                     self.save_bpcv_dict(n, idx_loop)

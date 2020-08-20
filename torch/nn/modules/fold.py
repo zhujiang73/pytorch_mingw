@@ -2,6 +2,9 @@
 from .module import Module
 from .. import functional as F
 
+from torch import Tensor
+from ..common_types import _size_any_t
+
 
 class Fold(Module):
     r"""Combines an array of sliding local blocks into a large containing
@@ -92,7 +95,7 @@ class Fold(Module):
 
         When the ``divisor`` tensor contains no zero elements, then
         ``fold`` and ``unfold`` operations are inverses of each
-        other (upto constant divisor).
+        other (up to constant divisor).
 
     .. warning::
         Currently, only 4-D output tensors (batched image-like tensors) are
@@ -116,8 +119,20 @@ class Fold(Module):
     """
     __constants__ = ['output_size', 'kernel_size', 'dilation', 'padding',
                      'stride']
+    output_size: _size_any_t
+    kernel_size: _size_any_t
+    dilation: _size_any_t
+    padding: _size_any_t
+    stride: _size_any_t
 
-    def __init__(self, output_size, kernel_size, dilation=1, padding=0, stride=1):
+    def __init__(
+        self,
+        output_size: _size_any_t,
+        kernel_size: _size_any_t,
+        dilation: _size_any_t = 1,
+        padding: _size_any_t = 0,
+        stride: _size_any_t = 1
+    ) -> None:
         super(Fold, self).__init__()
         self.output_size = output_size
         self.kernel_size = kernel_size
@@ -125,11 +140,11 @@ class Fold(Module):
         self.padding = padding
         self.stride = stride
 
-    def forward(self, input):
+    def forward(self, input: Tensor) -> Tensor:
         return F.fold(input, self.output_size, self.kernel_size, self.dilation,
                       self.padding, self.stride)
 
-    def extra_repr(self):
+    def extra_repr(self) -> str:
         return 'output_size={output_size}, kernel_size={kernel_size}, ' \
             'dilation={dilation}, padding={padding}, stride={stride}'.format(
                 **self.__dict__
@@ -139,7 +154,7 @@ class Fold(Module):
 class Unfold(Module):
     r"""Extracts sliding local blocks from a batched input tensor.
 
-    Consider an batched :attr:`input` tensor of shape :math:`(N, C, *)`,
+    Consider a batched :attr:`input` tensor of shape :math:`(N, C, *)`,
     where :math:`N` is the batch dimension, :math:`C` is the channel dimension,
     and :math:`*` represent arbitrary spatial dimensions. This operation flattens
     each sliding :attr:`kernel_size`-sized block within the spatial dimensions
@@ -221,7 +236,7 @@ class Unfold(Module):
 
         When the ``divisor`` tensor contains no zero elements, then
         ``fold`` and ``unfold`` operations are inverses of each
-        other (upto constant divisor).
+        other (up to constant divisor).
 
     .. warning::
         Currently, only 4-D input tensors (batched image-like tensors) are
@@ -257,18 +272,28 @@ class Unfold(Module):
 
     """
     __constants__ = ['kernel_size', 'dilation', 'padding', 'stride']
+    kernel_size: _size_any_t
+    dilation: _size_any_t
+    padding: _size_any_t
+    stride: _size_any_t
 
-    def __init__(self, kernel_size, dilation=1, padding=0, stride=1):
+    def __init__(
+        self,
+        kernel_size: _size_any_t,
+        dilation: _size_any_t = 1,
+        padding: _size_any_t = 0,
+        stride: _size_any_t = 1
+    ) -> None:
         super(Unfold, self).__init__()
         self.kernel_size = kernel_size
         self.dilation = dilation
         self.padding = padding
         self.stride = stride
 
-    def forward(self, input):
+    def forward(self, input: Tensor) -> Tensor:
         return F.unfold(input, self.kernel_size, self.dilation,
                         self.padding, self.stride)
 
-    def extra_repr(self):
+    def extra_repr(self) -> str:
         return 'kernel_size={kernel_size}, dilation={dilation}, padding={padding},' \
             ' stride={stride}'.format(**self.__dict__)

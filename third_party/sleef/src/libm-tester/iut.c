@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -7,9 +7,18 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <math.h>
 #include <inttypes.h>
 #include <assert.h>
+
+#if defined(POWER64_UNDEF_USE_EXTERN_INLINES)
+// This is a workaround required to cross compile for PPC64 binaries
+#include <features.h>
+#ifdef __USE_EXTERN_INLINES
+#undef __USE_EXTERN_INLINES
+#endif
+#endif
+
+#include <math.h>
 
 #if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
 #define STDIN_FILENO 0
@@ -33,12 +42,8 @@ int main(int argc, char **argv) {
   printf("3\n");
   fflush(stdout);
 
-  //fprintf(stderr, "IUT start\n");
-
   for(;;) {
-    if (readln(STDIN_FILENO, buf, BUFSIZE-1) < 1) break;
-
-    //fprintf(stderr, "iut: got %s\n", buf);
+    if (fgets(buf, BUFSIZE-1, stdin) == NULL) break;
 
     if (startsWith(buf, "sin ")) {
       uint64_t u;
@@ -175,6 +180,21 @@ int main(int argc, char **argv) {
       sscanf(buf, "tanh %" PRIx64, &u);
       u = d2u(xtanh(u2d(u)));
       printf("%" PRIx64 "\n", u);
+    } else if (startsWith(buf, "sinh_u35 ")) {
+      uint64_t u;
+      sscanf(buf, "sinh_u35 %" PRIx64, &u);
+      u = d2u(xsinh_u35(u2d(u)));
+      printf("%" PRIx64 "\n", u);
+    } else if (startsWith(buf, "cosh_u35 ")) {
+      uint64_t u;
+      sscanf(buf, "cosh_u35 %" PRIx64, &u);
+      u = d2u(xcosh_u35(u2d(u)));
+      printf("%" PRIx64 "\n", u);
+    } else if (startsWith(buf, "tanh_u35 ")) {
+      uint64_t u;
+      sscanf(buf, "tanh_u35 %" PRIx64, &u);
+      u = d2u(xtanh_u35(u2d(u)));
+      printf("%" PRIx64 "\n", u);
     } else if (startsWith(buf, "asinh ")) {
       uint64_t u;
       sscanf(buf, "asinh %" PRIx64, &u);
@@ -225,10 +245,20 @@ int main(int argc, char **argv) {
       sscanf(buf, "exp2 %" PRIx64, &u);
       u = d2u(xexp2(u2d(u)));
       printf("%" PRIx64 "\n", u);
+    } else if (startsWith(buf, "exp2_u35 ")) {
+      uint64_t u;
+      sscanf(buf, "exp2_u35 %" PRIx64, &u);
+      u = d2u(xexp2_u35(u2d(u)));
+      printf("%" PRIx64 "\n", u);
     } else if (startsWith(buf, "exp10 ")) {
       uint64_t u;
       sscanf(buf, "exp10 %" PRIx64, &u);
       u = d2u(xexp10(u2d(u)));
+      printf("%" PRIx64 "\n", u);
+    } else if (startsWith(buf, "exp10_u35 ")) {
+      uint64_t u;
+      sscanf(buf, "exp10_u35 %" PRIx64, &u);
+      u = d2u(xexp10_u35(u2d(u)));
       printf("%" PRIx64 "\n", u);
     } else if (startsWith(buf, "expm1 ")) {
       uint64_t u;
@@ -244,6 +274,11 @@ int main(int argc, char **argv) {
       uint64_t u;
       sscanf(buf, "log2 %" PRIx64, &u);
       u = d2u(xlog2(u2d(u)));
+      printf("%" PRIx64 "\n", u);
+    } else if (startsWith(buf, "log2_u35 ")) {
+      uint64_t u;
+      sscanf(buf, "log2_u35 %" PRIx64, &u);
+      u = d2u(xlog2_u35(u2d(u)));
       printf("%" PRIx64 "\n", u);
     } else if (startsWith(buf, "log1p ")) {
       uint64_t u;
@@ -439,6 +474,11 @@ int main(int argc, char **argv) {
       sscanf(buf, "powf %x %x", &u, &v);
       u = f2u(xpowf(u2f(u), u2f(v)));
       printf("%x\n", u);
+    } else if (startsWith(buf, "fastpowf_u3500 ")) {
+      uint32_t u, v;
+      sscanf(buf, "fastpowf_u3500 %x %x", &u, &v);
+      u = f2u(xfastpowf_u3500(u2f(u), u2f(v)));
+      printf("%x\n", u);
     } else if (startsWith(buf, "sinhf ")) {
       uint32_t u;
       sscanf(buf, "sinhf %x", &u);
@@ -453,6 +493,21 @@ int main(int argc, char **argv) {
       uint32_t u;
       sscanf(buf, "tanhf %x", &u);
       u = f2u(xtanhf(u2f(u)));
+      printf("%x\n", u);
+    } else if (startsWith(buf, "sinhf_u35 ")) {
+      uint32_t u;
+      sscanf(buf, "sinhf_u35 %x", &u);
+      u = f2u(xsinhf_u35(u2f(u)));
+      printf("%x\n", u);
+    } else if (startsWith(buf, "coshf_u35 ")) {
+      uint32_t u;
+      sscanf(buf, "coshf_u35 %x", &u);
+      u = f2u(xcoshf_u35(u2f(u)));
+      printf("%x\n", u);
+    } else if (startsWith(buf, "tanhf_u35 ")) {
+      uint32_t u;
+      sscanf(buf, "tanhf_u35 %x", &u);
+      u = f2u(xtanhf_u35(u2f(u)));
       printf("%x\n", u);
     } else if (startsWith(buf, "asinhf ")) {
       uint32_t u;
@@ -479,6 +534,16 @@ int main(int argc, char **argv) {
       sscanf(buf, "exp10f %x", &u);
       u = f2u(xexp10f(u2f(u)));
       printf("%x\n", u);
+    } else if (startsWith(buf, "exp2f_u35 ")) {
+      uint32_t u;
+      sscanf(buf, "exp2f_u35 %x", &u);
+      u = f2u(xexp2f_u35(u2f(u)));
+      printf("%x\n", u);
+    } else if (startsWith(buf, "exp10f_u35 ")) {
+      uint32_t u;
+      sscanf(buf, "exp10f_u35 %x", &u);
+      u = f2u(xexp10f_u35(u2f(u)));
+      printf("%x\n", u);
     } else if (startsWith(buf, "expm1f ")) {
       uint32_t u;
       sscanf(buf, "expm1f %x", &u);
@@ -493,6 +558,11 @@ int main(int argc, char **argv) {
       uint32_t u;
       sscanf(buf, "log2f %x", &u);
       u = f2u(xlog2f(u2f(u)));
+      printf("%x\n", u);
+    } else if (startsWith(buf, "log2f_u35 ")) {
+      uint32_t u;
+      sscanf(buf, "log2f_u35 %x", &u);
+      u = f2u(xlog2f_u35(u2f(u)));
       printf("%x\n", u);
     } else if (startsWith(buf, "log1pf ")) {
       uint32_t u;
@@ -533,6 +603,16 @@ int main(int argc, char **argv) {
       uint32_t u;
       sscanf(buf, "cospif_u05 %x", &u);
       u = f2u(xcospif_u05(u2f(u)));
+      printf("%x\n", u);
+    } else if (startsWith(buf, "fastsinf_u3500 ")) {
+      uint32_t u;
+      sscanf(buf, "fastsinf_u3500 %x", &u);
+      u = f2u(xfastsinf_u3500(u2f(u)));
+      printf("%x\n", u);
+    } else if (startsWith(buf, "fastcosf_u3500 ")) {
+      uint32_t u;
+      sscanf(buf, "fastcosf_u3500 %x", &u);
+      u = f2u(xfastcosf_u3500(u2f(u)));
       printf("%x\n", u);
     } else if (startsWith(buf, "tanf_u1 ")) {
       uint32_t u;

@@ -43,6 +43,7 @@ void cpuinfo_arm_linux_decode_isa_from_proc_cpuinfo(
 		isa->armv6k  = true;
 		isa->armv7   = true;
 		isa->armv7mp = true;
+		isa->armv8   = true;
 		isa->thumb  = true;
 		isa->thumb2 = true;
 		isa->idiv = true;
@@ -77,18 +78,24 @@ void cpuinfo_arm_linux_decode_isa_from_proc_cpuinfo(
 
 		/*
 		 * NEON VDOT instructions are not indicated in /proc/cpuinfo.
-		 * Use a MIDR-based heuristic to whitelist processors known to support it:
-		 * - Processors with Qualcomm-modified Cortex-A76 cores
-		 * - Kirin 980 processor
+		 * Use a MIDR-based heuristic to whitelist processors known to support it.
 		 */
 		switch (midr & (CPUINFO_ARM_MIDR_IMPLEMENTER_MASK | CPUINFO_ARM_MIDR_PART_MASK)) {
+			case UINT32_C(0x4100D0B0): /* Cortex-A76 */
+			case UINT32_C(0x4100D0D0): /* Cortex-A77 */
+			case UINT32_C(0x4100D0E0): /* Cortex-A76AE */
+			case UINT32_C(0x4800D400): /* Cortex-A76 (HiSilicon) */
 			case UINT32_C(0x51008040): /* Kryo 485 Gold (Cortex-A76) */
+			case UINT32_C(0x51008050): /* Kryo 485 Silver (Cortex-A55) */
+			case UINT32_C(0x53000030): /* Exynos-M4 */
+			case UINT32_C(0x53000040): /* Exynos-M5 */
 				isa->dot = true;
 				break;
-			default:
-				if (chipset->series == cpuinfo_arm_chipset_series_hisilicon_kirin && chipset->model == 980) {
-					isa->dot = true;
-				}
+			case UINT32_C(0x4100D050): /* Cortex A55: revision 1 or later only */
+				isa->dot = !!(midr_get_variant(midr) >= 1);
+				break;
+			case UINT32_C(0x4100D0A0): /* Cortex A75: revision 2 or later only */
+				isa->dot = !!(midr_get_variant(midr) >= 2);
 				break;
 		}
 	} else {
@@ -193,7 +200,7 @@ void cpuinfo_arm_linux_decode_isa_from_proc_cpuinfo(
 				CPUINFO_ARM_LINUX_FEATURE_VFPD32 | CPUINFO_ARM_LINUX_FEATURE_VFPV4 | CPUINFO_ARM_LINUX_FEATURE_NEON;
 			if ((architecture_version >= 7) || (features & vfpv3_mask)) {
 				isa->vfpv3 = true;
-			
+
 				const uint32_t d32_mask = CPUINFO_ARM_LINUX_FEATURE_VFPD32 | CPUINFO_ARM_LINUX_FEATURE_NEON;
 				if (features & d32_mask) {
 					isa->d32 = true;

@@ -36,10 +36,18 @@ goog.require('proto.jspb.test.MapValueEnum');
 goog.require('proto.jspb.test.MapValueMessage');
 goog.require('proto.jspb.test.TestMapFields');
 goog.require('proto.jspb.test.TestMapFieldsOptionalKeys');
+goog.require('proto.jspb.test.TestMapFieldsOptionalValues');
 goog.require('proto.jspb.test.MapEntryOptionalKeysStringKey');
 goog.require('proto.jspb.test.MapEntryOptionalKeysInt32Key');
 goog.require('proto.jspb.test.MapEntryOptionalKeysInt64Key');
 goog.require('proto.jspb.test.MapEntryOptionalKeysBoolKey');
+goog.require('proto.jspb.test.MapEntryOptionalValuesStringValue');
+goog.require('proto.jspb.test.MapEntryOptionalValuesInt32Value');
+goog.require('proto.jspb.test.MapEntryOptionalValuesInt64Value');
+goog.require('proto.jspb.test.MapEntryOptionalValuesBoolValue');
+goog.require('proto.jspb.test.MapEntryOptionalValuesDoubleValue');
+goog.require('proto.jspb.test.MapEntryOptionalValuesEnumValue');
+goog.require('proto.jspb.test.MapEntryOptionalValuesMessageValue');
 
 // CommonJS-LoadFromFile: test_pb proto.jspb.test
 goog.require('proto.jspb.test.MapValueMessageNoBinary');
@@ -54,7 +62,12 @@ function checkMapEquals(map, entries) {
   var arr = map.toArray();
   assertEquals(arr.length, entries.length);
   for (var i = 0; i < arr.length; i++) {
-    assertElementsEquals(arr[i], entries[i]);
+    if (Array.isArray(arr[i])) {
+      assertTrue(Array.isArray(entries[i]));
+      assertArrayEquals(arr[i], entries[i]);
+    } else {
+      assertElementsEquals(arr[i], entries[i]);
+    }
   }
 }
 
@@ -265,8 +278,10 @@ function makeTests(msgInfo, submessageCtor, suffix) {
       var decoded = msgInfo.deserializeBinary(serialized);
       checkMapFields(decoded);
     });
+
     /**
-     * Tests deserialization of undefined map keys go to default values in binary format.
+     * Tests deserialization of undefined map keys go to default values in
+     * binary format.
      */
     it('testMapDeserializationForUndefinedKeys', function() {
       var testMessageOptionalKeys = new proto.jspb.test.TestMapFieldsOptionalKeys();
@@ -296,6 +311,67 @@ function makeTests(msgInfo, submessageCtor, suffix) {
       ]);
       checkMapEquals(deserializedMessage.getMapBoolStringMap(), [
         [false, 'd']
+      ]);
+    });
+
+    /**
+     * Tests deserialization of undefined map values go to default values in
+     * binary format.
+     */
+    it('testMapDeserializationForUndefinedValues', function() {
+      var testMessageOptionalValues =
+          new proto.jspb.test.TestMapFieldsOptionalValues();
+      var mapEntryStringValue =
+          new proto.jspb.test.MapEntryOptionalValuesStringValue();
+      mapEntryStringValue.setKey("a");
+      testMessageOptionalValues.setMapStringString(mapEntryStringValue);
+      var mapEntryInt32Value =
+          new proto.jspb.test.MapEntryOptionalValuesInt32Value();
+      mapEntryInt32Value.setKey("b");
+      testMessageOptionalValues.setMapStringInt32(mapEntryInt32Value);
+      var mapEntryInt64Value =
+          new proto.jspb.test.MapEntryOptionalValuesInt64Value();
+      mapEntryInt64Value.setKey("c");
+      testMessageOptionalValues.setMapStringInt64(mapEntryInt64Value);
+      var mapEntryBoolValue =
+          new proto.jspb.test.MapEntryOptionalValuesBoolValue();
+      mapEntryBoolValue.setKey("d");
+      testMessageOptionalValues.setMapStringBool(mapEntryBoolValue);
+      var mapEntryDoubleValue =
+          new proto.jspb.test.MapEntryOptionalValuesDoubleValue();
+      mapEntryDoubleValue.setKey("e");
+      testMessageOptionalValues.setMapStringDouble(mapEntryDoubleValue);
+      var mapEntryEnumValue =
+          new proto.jspb.test.MapEntryOptionalValuesEnumValue();
+      mapEntryEnumValue.setKey("f");
+      testMessageOptionalValues.setMapStringEnum(mapEntryEnumValue);
+      var mapEntryMessageValue =
+          new proto.jspb.test.MapEntryOptionalValuesMessageValue();
+      mapEntryMessageValue.setKey("g");
+      testMessageOptionalValues.setMapStringMsg(mapEntryMessageValue);
+      var deserializedMessage = msgInfo.deserializeBinary(
+        testMessageOptionalValues.serializeBinary()
+       );
+      checkMapEquals(deserializedMessage.getMapStringStringMap(), [
+        ['a', '']
+      ]);
+      checkMapEquals(deserializedMessage.getMapStringInt32Map(), [
+        ['b', 0]
+      ]);
+      checkMapEquals(deserializedMessage.getMapStringInt64Map(), [
+        ['c', 0]
+      ]);
+      checkMapEquals(deserializedMessage.getMapStringBoolMap(), [
+        ['d', false]
+      ]);
+      checkMapEquals(deserializedMessage.getMapStringDoubleMap(), [
+        ['e', 0.0]
+      ]);
+      checkMapEquals(deserializedMessage.getMapStringEnumMap(), [
+        ['f', 0]
+      ]);
+      checkMapEquals(deserializedMessage.getMapStringMsgMap(), [
+        ['g', []]
       ]);
     });
   }
@@ -340,11 +416,17 @@ function makeTests(msgInfo, submessageCtor, suffix) {
     assertElementsEquals(entryIterator.next().value, ['key2', 'value2']);
     assertEquals(entryIterator.next().done, true);
 
-    if (typeof(Symbol) != 'undefined') {
+    try {
       var entryIterable = m.entries()[Symbol.iterator]();
       assertElementsEquals(entryIterable.next().value, ['key1', 'value1']);
       assertElementsEquals(entryIterable.next().value, ['key2', 'value2']);
       assertEquals(entryIterable.next().done, true);
+    } catch (err) {
+      // jspb.Map.ArrayIteratorIterable_.prototype[Symbol.iterator] may be
+      // undefined in some environment.
+      if (err.name != 'TypeError' && err.name != 'ReferenceError') {
+        throw err;
+      }
     }
 
     var keyIterator = m.keys();
@@ -352,22 +434,34 @@ function makeTests(msgInfo, submessageCtor, suffix) {
     assertEquals(keyIterator.next().value, 'key2');
     assertEquals(keyIterator.next().done, true);
 
-    if (typeof(Symbol) != 'undefined') {
+    try {
       var keyIterable = m.keys()[Symbol.iterator]();
       assertEquals(keyIterable.next().value, 'key1');
       assertEquals(keyIterable.next().value, 'key2');
       assertEquals(keyIterable.next().done, true);
+    } catch (err) {
+      // jspb.Map.ArrayIteratorIterable_.prototype[Symbol.iterator] may be
+      // undefined in some environment.
+      if (err.name != 'TypeError' && err.name != 'ReferenceError') {
+        throw err;
+      }
     }
     var valueIterator = m.values();
     assertEquals(valueIterator.next().value, 'value1');
     assertEquals(valueIterator.next().value, 'value2');
     assertEquals(valueIterator.next().done, true);
 
-    if (typeof(Symbol) != 'undefined') {
+    try {
       var valueIterable = m.values()[Symbol.iterator]();
       assertEquals(valueIterable.next().value, 'value1');
       assertEquals(valueIterable.next().value, 'value2');
       assertEquals(valueIterable.next().done, true);
+    } catch (err) {
+      // jspb.Map.ArrayIteratorIterable_.prototype[Symbol.iterator] may be
+      // undefined in some environment.
+      if (err.name != 'TypeError' && err.name != 'ReferenceError') {
+        throw err;
+      }
     }
   });
 }

@@ -1,4 +1,3 @@
-# @lint-ignore-every PYTHON3COMPATIMPORTS
 
 r"""
 The torch package contains data structures for multi-dimensional
@@ -13,10 +12,18 @@ on an NVIDIA GPU with compute capability >= 3.0.
 import os
 import sys
 import platform
+import ctypes
+
+if sys.version_info < (3,):
+    raise Exception("Python 2 has reached end-of-life and is no longer supported by PyTorch.")
+
 from ._utils import _import_dotted_name
-from ._utils_internal import get_file_path, prepare_multiprocessing_environment
-#from .version import __version__  # noqa: F401
+from ._utils_internal import get_file_path, prepare_multiprocessing_environment, \
+    USE_RTLD_GLOBAL_WITH_LIBTORCH, USE_GLOBAL_DEPS
+#from .version import __version__
 from ._six import string_classes as _string_classes
+
+from typing import Set, Type
 
 __all__ = [
     'typename', 'is_tensor', 'is_storage', 'set_default_tensor_type',
@@ -27,66 +34,80 @@ __all__ = [
     'ShortStorage', 'CharStorage', 'ByteStorage', 'BoolStorage',
     'DoubleTensor', 'FloatTensor', 'LongTensor', 'IntTensor',
     'ShortTensor', 'CharTensor', 'ByteTensor', 'BoolTensor', 'Tensor',
+    'lobpcg', '_set_deterministic', '_is_deterministic'
 ]
 
 ################################################################################
 # Load the extension module
 ################################################################################
 
-# Loading the extension with RTLD_GLOBAL option allows to not link extension
-# modules against the _C shared object. Their missing THP symbols will be
-# automatically filled by the dynamic loader.
-import os as _dl_flags
+# See Note [Global dependencies]
+def _load_global_deps():
+    if platform.system() == 'Windows':
+        return
 
-# if we have numpy, it *must* be imported before the call to setdlopenflags()
-# or there is risk that later c modules will segfault when importing numpy
-try:
-    import numpy as _np  # noqa: F401
-except ImportError:
-    pass
+    lib_name = 'libtorch_global_deps' + ('.dylib' if platform.system() == 'Darwin' else '.so')
+    here = os.path.abspath(__file__)
+    lib_path = os.path.join(os.path.dirname(here), 'lib', lib_name)
 
-if platform.system() == 'Windows':
-    # first get nvToolsExt PATH
-    def get_nvToolsExt_path():
-        NVTOOLEXT_HOME = _dl_flags.getenv('NVTOOLSEXT_PATH', 'C:\\Program Files\\NVIDIA Corporation\\NvToolsExt')
+    ctypes.CDLL(lib_path, mode=ctypes.RTLD_GLOBAL)
 
-        if _dl_flags.path.exists(NVTOOLEXT_HOME):
-            return _dl_flags.path.join(NVTOOLEXT_HOME, 'bin', 'x64')
-        else:
-            return ''
 
-    py_dll_path = _dl_flags.path.join(sys.exec_prefix, 'Library', 'bin')
-    th_dll_path = _dl_flags.path.join(_dl_flags.path.dirname(__file__), 'lib')
-
-    dll_paths = [th_dll_path, py_dll_path, get_nvToolsExt_path(), _dl_flags.environ['PATH']]
-
-    # then add the path to env
-    _dl_flags.environ['PATH'] = ';'.join(dll_paths)
-
-else:
-    # first check if the os package has the required flags
+if (USE_RTLD_GLOBAL_WITH_LIBTORCH or os.getenv('TORCH_USE_RTLD_GLOBAL')) and \
+        platform.system() != 'Windows':
+    # Do it the hard way.  You might want to load libtorch with RTLD_GLOBAL in a
+    # few circumstances:
+    #
+    #   1. You're in a build environment (e.g., fbcode) where
+    #      libtorch_global_deps is not available, but you still need
+    #      to get mkl to link in with RTLD_GLOBAL or it will just
+    #      not work.
+    #
+    #   2. You're trying to run PyTorch under UBSAN and you need
+    #      to ensure that only one copy of libtorch is loaded, so
+    #      vptr checks work properly
+    #
+    # If you're using this setting, you must verify that all the libraries
+    # you load consistently use the same libstdc++, or you may have
+    # mysterious segfaults.
+    #
+    import os as _dl_flags
     if not hasattr(_dl_flags, 'RTLD_GLOBAL') or not hasattr(_dl_flags, 'RTLD_LAZY'):
         try:
             # next try if DLFCN exists
-            import DLFCN as _dl_flags
+            import DLFCN as _dl_flags  # type: ignore
         except ImportError:
             # as a last attempt, use compile-time constants
-            import torch._dl as _dl_flags
-
+            import torch._dl as _dl_flags  # type: ignore
     old_flags = sys.getdlopenflags()
     sys.setdlopenflags(_dl_flags.RTLD_GLOBAL | _dl_flags.RTLD_LAZY)
+    from torch._C import *
+    sys.setdlopenflags(old_flags)
+    del old_flags
+    del _dl_flags
 
-del _dl_flags
+else:
+    # Easy way.  You want this most of the time, because it will prevent
+    # C++ symbols from libtorch clobbering C++ symbols from other
+    # libraries, leading to mysterious segfaults.
+    #
+    # If building in an environment where libtorch_global_deps isn't available
+    # like parts of fbsource, but where RTLD_GLOBAL causes segfaults, you will
+    # want USE_RTLD_GLOBAL_WITH_LIBTORCH = False and USE_GLOBAL_DEPS = False
+    #
+    # See Note [Global dependencies]
+    if USE_GLOBAL_DEPS:
+        _load_global_deps()
+    from torch._C import *
 
-from torch._C import *
+# Appease the type checker; ordinarily this binding is inserted by the
+# torch._C module initialization code in C
+if False:
+    import torch._C as _C
 
 __all__ += [name for name in dir(_C)
             if name[0] != '_' and
             not name.endswith('Base')]
-
-if platform.system() != 'Windows':
-    sys.setdlopenflags(old_flags)
-    del old_flags
 
 ################################################################################
 # Define basic utilities
@@ -115,6 +136,11 @@ def typename(o):
 
 def is_tensor(obj):
     r"""Returns True if `obj` is a PyTorch tensor.
+
+    Note that this function is simply doing ``isinstance(obj, Tensor)``.
+    Using that ``isinstance`` check is better for typechecking with mypy,
+    and more explicit - so it's recommended to use that instead of
+    ``is_tensor``.
 
     Args:
         obj (Object): Object to test
@@ -156,9 +182,12 @@ def set_default_tensor_type(t):
 
 
 def set_default_dtype(d):
-    r"""Sets the default floating point dtype to :attr:`d`. This type will be
-    used as default floating point type for type inference in
-    :func:`torch.tensor`.
+    r"""Sets the default floating point dtype to :attr:`d`.
+    This dtype is:
+    1. The inferred dtype for python floats in :func:`torch.tensor`.
+    2. Used to infer dtype for python complex numbers. The default complex dtype is set to
+       ``torch.complex128`` if default floating point dtype is ``torch.float64``,
+       otherwise it's set to ``torch.complex64``
 
     The default floating point dtype is initially ``torch.float32``.
 
@@ -166,15 +195,53 @@ def set_default_dtype(d):
         d (:class:`torch.dtype`): the floating point dtype to make the default
 
     Example::
-
-        >>> torch.tensor([1.2, 3]).dtype           # initial default for floating point is torch.float32
+        >>> # initial default for floating point is torch.float32
+        >>> torch.tensor([1.2, 3]).dtype
         torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
         >>> torch.set_default_dtype(torch.float64)
-        >>> torch.tensor([1.2, 3]).dtype           # a new floating point tensor
+        >>> torch.tensor([1.2, 3]).dtype    # a new floating point tensor
         torch.float64
+        >>> torch.tensor([1.2, 3j]).dtype   # a new complex tensor
+        torch.complex128
 
     """
     _C._set_default_dtype(d)
+
+def _set_deterministic(d):
+    r"""Sets a global flag to force all operations to use a deterministic
+    implementation if available. If an operation that does not have a
+    deterministic implementation is called while this setting is True, the
+    operation will throw a RuntimeError.
+
+    Note that deterministic operations tend to have worse performance than
+    non-deterministic operations.
+
+    Args:
+        d (:class:`bool`): If True, force operations to be deterministic.
+                           If False, allow non-deterministic operations.
+
+    .. warning::
+        This feature is experimental and not complete. The above docstring
+        represents what the future behavior is intended to be. Right now,
+        `_set_deterministic` will only affect `torch.bmm` and convolution
+        operators.
+    """
+    _C._set_deterministic(d)
+
+def _is_deterministic():
+    r"""Returns True if the global deterministic flag is turned on and
+    operations are being forced to use a deterministic implementation.
+
+    .. warning::
+        This feature is experimental and not complete. The above docstring
+        represents what the future behavior is intended to be. Right now,
+        the global deterministic flag will only affect `torch.bmm` and
+        convolution operators.
+    """
+    return _C._get_deterministic()
 
 # If you edit these imports, please update torch/__init__.py.in as well
 from .random import set_rng_state, get_rng_state, manual_seed, initial_seed, seed
@@ -228,6 +295,11 @@ class BoolStorage(_C.BoolStorageBase, _StorageBase):
 class BFloat16Storage(_C.BFloat16StorageBase, _StorageBase):
     pass
 
+class ComplexDoubleStorage(_C.ComplexDoubleStorageBase, _StorageBase):
+    pass
+
+class ComplexFloatStorage(_C.ComplexFloatStorageBase, _StorageBase):
+    pass
 
 class QUInt8Storage(_C.QUInt8StorageBase, _StorageBase):
     pass
@@ -242,11 +314,11 @@ class QInt32Storage(_C.QInt32StorageBase, _StorageBase):
 _storage_classes = {
     DoubleStorage, FloatStorage, LongStorage, IntStorage, ShortStorage,
     CharStorage, ByteStorage, HalfStorage, BoolStorage, QUInt8Storage, QInt8Storage,
-    QInt32Storage, BFloat16Storage
+    QInt32Storage, BFloat16Storage, ComplexFloatStorage, ComplexDoubleStorage
 }
 
 # The _tensor_classes set is initialized by the call to _C._initialize_tensor_type_bindings()
-_tensor_classes = set()
+_tensor_classes: Set[Type] = set()
 
 
 ################################################################################
@@ -267,10 +339,18 @@ def manager_path():
 _C._initExtension(manager_path())
 del manager_path
 
+# Appease the type checker: it can't deal with direct setting of globals().
+# Note that we will see "too many" functions when reexporting this way; there
+# is not a good way to fix this problem.  Perhaps, try to redesign VariableFunctions
+# so that this import is good enough
+if False:
+    from torch._C._VariableFunctions import *
+
 for name in dir(_C._VariableFunctions):
     if name.startswith('__'):
         continue
     globals()[name] = getattr(_C._VariableFunctions, name)
+    __all__.append(name)
 
 ################################################################################
 # Import interface functions defined in Python
@@ -294,6 +374,8 @@ del ByteStorageBase
 del BoolStorageBase
 del QUInt8StorageBase
 del BFloat16StorageBase
+del ComplexDoubleStorageBase
+del ComplexFloatStorageBase
 
 ################################################################################
 # Import most common subpackages
@@ -301,7 +383,8 @@ del BFloat16StorageBase
 
 import torch.cuda
 import torch.autograd
-from torch.autograd import no_grad, enable_grad, set_grad_enabled  # noqa: F401
+from torch.autograd import no_grad, enable_grad, set_grad_enabled
+import torch.futures
 import torch.nn
 import torch.nn.intrinsic
 import torch.nn.quantized
@@ -317,6 +400,7 @@ import torch.distributions
 import torch.testing
 import torch.backends.cuda
 import torch.backends.mkl
+import torch.backends.mkldnn
 import torch.backends.openmp
 import torch.backends.quantized
 import torch.quantization
@@ -337,8 +421,28 @@ def compiled_with_cxx11_abi():
 
 
 # Import the ops "namespace"
-from torch._ops import ops  # noqa: F401
-from torch._classes import classes  # noqa: F401
+from torch._ops import ops
+from torch._classes import classes
 
 # Import the quasi random sampler
 import torch.quasirandom
+
+# If you are seeing this, it means that this call site was not checked if
+# the memory format could be preserved, and it was switched to old default
+# behaviour of contiguous
+legacy_contiguous_format = contiguous_format
+
+# Register fork handler to initialize OpenMP in child processes (see gh-28389)
+from torch.multiprocessing._atfork import register_after_fork
+register_after_fork(torch.get_num_threads)
+del register_after_fork
+
+# Import tools that require fully imported torch (for applying
+# torch.jit.script as a decorator, for instance):
+from ._lobpcg import lobpcg
+
+# These were previously defined in native_functions.yaml and appeared on the
+# `torch` namespace, but we moved them to c10 dispatch to facilitate custom
+# class usage. We add these lines here to preserve backward compatbility.
+quantized_lstm = torch.ops.aten.quantized_lstm
+quantized_gru = torch.ops.aten.quantized_gru

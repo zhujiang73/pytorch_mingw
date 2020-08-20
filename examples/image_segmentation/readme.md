@@ -5,8 +5,8 @@ setup dataset image path:
 
     edit imgs_comp_mask.py
 
-        imgs_dir = "e:/cv_datasets/CUB_200_2011/images"
-        imgs_mask_dir = "e:/cv_datasets/CUB_200_2011/segmentations"
+        imgs_dir = "d:/cv_datasets/CUB_200_2011/images"
+        imgs_mask_dir = "d:/cv_datasets/CUB_200_2011/segmentations"
 
 
 Pretreatment:

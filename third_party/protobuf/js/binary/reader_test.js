@@ -407,6 +407,31 @@ describe('binaryReaderTest', function() {
       -6, '08 8B 80 80 80 80 80 80 80 80 00');
   });
 
+  /**
+   * Tests reading 64-bit integers as split values.
+   */
+  it('handles split 64 fields', function() {
+    var writer = new jspb.BinaryWriter();
+    writer.writeInt64String(1, '4294967296');
+    writer.writeSfixed64String(2, '4294967298');
+    writer.writeInt64String(3, '3');  // 3 is the zig-zag encoding of -2.
+    var reader = jspb.BinaryReader.alloc(writer.getResultBuffer());
+
+    function rejoin(lowBits, highBits) {
+      return highBits * 2 ** 32 + (lowBits >>> 0);
+    }
+    reader.nextField();
+    expect(reader.getFieldNumber()).toEqual(1);
+    expect(reader.readSplitVarint64(rejoin)).toEqual(0x100000000);
+
+    reader.nextField();
+    expect(reader.getFieldNumber()).toEqual(2);
+    expect(reader.readSplitFixed64(rejoin)).toEqual(0x100000002);
+
+    reader.nextField();
+    expect(reader.getFieldNumber()).toEqual(3);
+    expect(reader.readSplitZigzagVarint64(rejoin)).toEqual(-2);
+  });
 
   /**
    * Tests 64-bit fields that are handled as strings.
@@ -470,6 +495,11 @@ describe('binaryReaderTest', function() {
         jspb.BinaryReader.prototype.readSint64,
         jspb.BinaryWriter.prototype.writeSint64,
         1, -Math.pow(2, 63), Math.pow(2, 63) - 513, Math.round);
+
+    doTestSignedField_(
+        jspb.BinaryReader.prototype.readSintHash64,
+        jspb.BinaryWriter.prototype.writeSintHash64, 1, -Math.pow(2, 63),
+        Math.pow(2, 63) - 513, jspb.utils.numberToHash64);
   });
 
 
@@ -679,9 +709,24 @@ describe('binaryReaderTest', function() {
     writer.writeInt32(5, sentinel);
     var dummyMessage = /** @type {!jspb.BinaryMessage} */({});
     writer.writeGroup(5, dummyMessage, function() {
+      // Previously the skipGroup implementation was wrong, which only consume
+      // the decoder by nextField. This case is for making the previous
+      // implementation failed in skipGroup by an early end group tag.
+      // The reason is 44 = 5 * 8 + 4, this will be translated in to a field
+      // with number 5 and with type 4 (end group)
+      writer.writeInt64(44, 44);
+      // This will make previous implementation failed by invalid tag (7).
+      writer.writeInt64(42, 47);
       writer.writeInt64(42, 42);
+      // This is for making the previous implementation failed by an invalid
+      // varint. The bytes have at least 9 consecutive minus byte, which will
+      // fail in this.nextField for previous implementation.
+      writer.writeBytes(43, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255]);
       writer.writeGroup(6, dummyMessage, function() {
         writer.writeInt64(84, 42);
+        writer.writeInt64(84, 44);
+        writer.writeBytes(
+          43, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255]);
       });
     });
 

@@ -1,16 +1,47 @@
-import com.google.protobuf.ByteString;
+// Protocol Buffers - Google's data interchange format
+// Copyright 2008 Google Inc.  All rights reserved.
+// https://developers.google.com/protocol-buffers/
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+//     * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+//     * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 import com.google.protobuf.AbstractMessage;
-import com.google.protobuf.Parser;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedInputStream;
-import com.google.protobuf.conformance.Conformance;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf_test_messages.proto3.TestMessagesProto3;
-import com.google.protobuf_test_messages.proto3.TestMessagesProto3.TestAllTypesProto3;
-import com.google.protobuf_test_messages.proto2.TestMessagesProto2;
-import com.google.protobuf_test_messages.proto2.TestMessagesProto2.TestAllTypesProto2;
 import com.google.protobuf.ExtensionRegistry;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Parser;
+import com.google.protobuf.TextFormat;
+import com.google.protobuf.conformance.Conformance;
 import com.google.protobuf.util.JsonFormat;
 import com.google.protobuf.util.JsonFormat.TypeRegistry;
+import com.google.protobuf_test_messages.proto2.TestMessagesProto2;
+import com.google.protobuf_test_messages.proto2.TestMessagesProto2.TestAllTypesProto2;
+import com.google.protobuf_test_messages.proto3.TestMessagesProto3;
+import com.google.protobuf_test_messages.proto3.TestMessagesProto3.TestAllTypesProto3;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -56,7 +87,7 @@ class ConformanceJava {
     buf[3] = (byte)(val >> 24);
     writeToStdout(buf);
   }
-  
+
   private enum BinaryDecoderType {
     BTYE_STRING_DECODER,
     BYTE_ARRAY_DECODER,
@@ -68,11 +99,11 @@ class ConformanceJava {
   }
 
   private static class BinaryDecoder <MessageType extends AbstractMessage> {
-    public MessageType decode (ByteString bytes, BinaryDecoderType type, 
+    public MessageType decode (ByteString bytes, BinaryDecoderType type,
         Parser <MessageType> parser, ExtensionRegistry extensions)
       throws InvalidProtocolBufferException {
       switch (type) {
-        case BTYE_STRING_DECODER: 
+        case BTYE_STRING_DECODER:
           return parser.parseFrom(bytes, extensions);
         case BYTE_ARRAY_DECODER:
           return parser.parseFrom(bytes.toByteArray(), extensions);
@@ -93,7 +124,7 @@ class ConformanceJava {
           } catch (InvalidProtocolBufferException e) {
             throw e;
           }
-        } 
+        }
         case DIRECT_BYTE_BUFFER_DECODER: {
           ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.size());
           bytes.copyTo(buffer);
@@ -134,7 +165,7 @@ class ConformanceJava {
     ArrayList <MessageType> messages = new ArrayList <MessageType> ();
     ArrayList <InvalidProtocolBufferException> exceptions =
         new ArrayList <InvalidProtocolBufferException>();
-    
+
     for (int i = 0; i < BinaryDecoderType.values().length; i++) {
       messages.add(null);
       exceptions.add(null);
@@ -233,13 +264,45 @@ class ConformanceJava {
       }
       case JSON_PAYLOAD: {
         try {
-          TestMessagesProto3.TestAllTypesProto3.Builder builder = 
+          TestMessagesProto3.TestAllTypesProto3.Builder builder =
               TestMessagesProto3.TestAllTypesProto3.newBuilder();
-          JsonFormat.parser().usingTypeRegistry(typeRegistry)
-              .merge(request.getJsonPayload(), builder);
+          JsonFormat.Parser parser = JsonFormat.parser().usingTypeRegistry(typeRegistry);
+          if (request.getTestCategory()
+              == Conformance.TestCategory.JSON_IGNORE_UNKNOWN_PARSING_TEST) {
+            parser = parser.ignoringUnknownFields();
+          }
+          parser.merge(request.getJsonPayload(), builder);
           testMessage = builder.build();
         } catch (InvalidProtocolBufferException e) {
           return Conformance.ConformanceResponse.newBuilder().setParseError(e.getMessage()).build();
+        }
+        break;
+      }
+      case TEXT_PAYLOAD: {
+        if (isProto3) {
+          try {
+            TestMessagesProto3.TestAllTypesProto3.Builder builder =
+                TestMessagesProto3.TestAllTypesProto3.newBuilder();
+            TextFormat.merge(request.getTextPayload(), builder);
+            testMessage = builder.build();
+          } catch (TextFormat.ParseException e) {
+              return Conformance.ConformanceResponse.newBuilder()
+                  .setParseError(e.getMessage())
+                  .build();
+          }
+        } else if (isProto2) {
+          try {
+            TestMessagesProto2.TestAllTypesProto2.Builder builder =
+                TestMessagesProto2.TestAllTypesProto2.newBuilder();
+            TextFormat.merge(request.getTextPayload(), builder);
+            testMessage = builder.build();
+          } catch (TextFormat.ParseException e) {
+              return Conformance.ConformanceResponse.newBuilder()
+                  .setParseError(e.getMessage())
+                  .build();
+          }
+        } else {
+          throw new RuntimeException("Protobuf request doesn't have specific payload type.");
         }
         break;
       }
@@ -257,7 +320,7 @@ class ConformanceJava {
         throw new RuntimeException("Unspecified output format.");
 
       case PROTOBUF: {
-        ByteString MessageString = testMessage.toByteString(); 
+        ByteString MessageString = testMessage.toByteString();
         return Conformance.ConformanceResponse.newBuilder().setProtobufPayload(MessageString).build();
       }
 
@@ -269,6 +332,10 @@ class ConformanceJava {
           return Conformance.ConformanceResponse.newBuilder().setSerializeError(
               e.getMessage()).build();
         }
+
+      case TEXT_FORMAT:
+        return Conformance.ConformanceResponse.newBuilder().setTextPayload(
+            TextFormat.printToString(testMessage)).build();
 
       default: {
         throw new RuntimeException("Unexpected request output.");

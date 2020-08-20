@@ -1,7 +1,9 @@
 # Options
 
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
+option(BUILD_LIBM "libsleef will be built." ON)
 option(BUILD_DFT "libsleefdft will be built." ON)
+option(BUILD_QUAD "libsleefquad will be built." OFF)
 option(BUILD_GNUABI_LIBS "libsleefgnuabi will be built." ON)
 option(BUILD_TESTS "Tests will be built." ON)
 
@@ -9,17 +11,25 @@ option(SLEEF_TEST_ALL_IUT "Perform tests on implementations with all vector exte
 option(SLEEF_SHOW_CONFIG "Show SLEEF configuration status messages." ON)
 option(SLEEF_SHOW_ERROR_LOG "Show cmake error log." OFF)
 
+option(ENFORCE_TESTER3 "Build fails if tester3 is not built" OFF)
+
 # See doc/build-with-cmake.md for instructions on how to build Sleef.
 cmake_minimum_required(VERSION 3.4.3)
+# Set to NEW when updating cmake_minimum_required to VERSION >= 3.7.2
+if(${CMAKE_VERSION} VERSION_GREATER "3.7.1")
+  cmake_policy(SET CMP0066 OLD)
+endif()
 
 enable_testing()
 
 set(SLEEF_VERSION_MAJOR 3)
-set(SLEEF_VERSION_MINOR 2)
+set(SLEEF_VERSION_MINOR 4)
+set(SLEEF_VERSION_PATCHLEVEL 0)
+set(SLEEF_VERSION ${SLEEF_VERSION_MAJOR}.${SLEEF_VERSION_MINOR}.${SLEEF_VERSION_PATCHLEVEL})
 set(SLEEF_SOVERSION ${SLEEF_VERSION_MAJOR})
 
 project(SLEEF
-	VERSION ${SLEEF_VERSION_MAJOR}.${SLEEF_VERSION_MINOR}
+	VERSION ${SLEEF_VERSION}
 	LANGUAGES C)
 
 # Sanity check for in-source builds which we do not want to happen
@@ -68,16 +78,6 @@ set(TARGET_HEADERS "headers")
 # Defined in src/libm-tester/CMakeLists.txt via command add_executable
 set(TARGET_TESTER "tester")
 set(TARGET_IUT "iut")
-set(TARGET_IUTSSE2 "iutsse2")
-set(TARGET_IUTSSE4 "iutsse4")
-set(TARGET_IUTAVX "iutavx")
-set(TARGET_IUTFMA4 "iutfma4")
-set(TARGET_IUTAVX2 "iutavx2")
-set(TARGET_IUTAVX2128 "iutavx2128")
-set(TARGET_IUTAVX512F "iutavx512f")
-set(TARGET_IUTADVSIMD "iutadvsimd")
-set(TARGET_IUTNEON32 "iutneon32")
-set(TARGET_IUTSVE "iutsve")
 # The target to generate LLVM bitcode only, available when SLEEF_ENABLE_LLVM_BITCODE is passed to cmake
 set(TARGET_LLVM_BITCODE "llvm-bitcode")
 # Generates the helper executable file mkrename needed to write the sleef header
@@ -102,6 +102,12 @@ function(add_host_executable TARGETNAME)
   endif()
 endfunction()
 
+function(host_target_AAVPCS_definitions TARGETNAME)
+  if (NOT CMAKE_CROSSCOMPILING)
+    target_compile_definitions(${TARGETNAME} PRIVATE ENABLE_AAVPCS=1)
+  endif()
+endfunction()
+
 # Generates object file (shared library) `libsleefdft`
 # Defined in src/dft/CMakeLists.txt via command add_library
 set(TARGET_LIBDFT "sleefdft")
@@ -112,8 +118,7 @@ add_subdirectory("src")
 # Extra messages at configuration time. By default is active, it can be
 # turned off by invoking cmake with "-DSLEEF_SHOW_CONFIG=OFF".
 if(SLEEF_SHOW_CONFIG)
-  message(STATUS "Configuring build for \
-${PROJECT_NAME}-v${SLEEF_VERSION_MAJOR}.${SLEEF_VERSION_MINOR}")
+  message(STATUS "Configuring build for ${PROJECT_NAME}-v${SLEEF_VERSION}")
   message("   Target system: ${CMAKE_SYSTEM}")
   message("   Target processor: ${CMAKE_SYSTEM_PROCESSOR}")
   message("   Host system: ${CMAKE_HOST_SYSTEM}")
@@ -130,6 +135,10 @@ ${PROJECT_NAME}-v${SLEEF_VERSION_MAJOR}.${SLEEF_VERSION_MINOR}")
     message(STATUS "MPFR header file in " ${MPFR_INCLUDE_DIR})
   endif()
   message(STATUS "GMP : " ${LIBGMP})
+  message(STATUS "RT : " ${LIBRT})
+  message(STATUS "FFTW3 : " ${LIBFFTW3})
+  message(STATUS "OPENSSL : " ${OPENSSL_VERSION})
+  message(STATUS "SDE : " ${SDE_COMMAND})
   message(STATUS "RUNNING_ON_TRAVIS : " ${RUNNING_ON_TRAVIS})
   message(STATUS "COMPILER_SUPPORTS_OPENMP : " ${COMPILER_SUPPORTS_OPENMP})
   if(ENABLE_GNUABI)
@@ -141,6 +150,9 @@ ${PROJECT_NAME}-v${SLEEF_VERSION_MAJOR}.${SLEEF_VERSION_MINOR}")
       message(STATUS "Arm Instruction Emulator found at ${ARMIE_COMMAND}")
       message(STATUS "SVE testing is done with ${SVE_VECTOR_BITS}-bits vectors.")
     endif()
+  endif()
+  if(FORCE_AAVPCS)
+    message(STATUS "Building SLEEF with AArch64 Vector PCS support")
   endif()
 endif(SLEEF_SHOW_CONFIG)
 

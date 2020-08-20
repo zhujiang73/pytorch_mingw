@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -20,6 +20,7 @@ typedef struct {
   2 : "_u05"
   3 : "_u35"
   4 : "_u15"
+  5 : "_u3500"
 
   funcType:
   0 : vdouble func(vdouble);
@@ -34,6 +35,7 @@ typedef struct {
 
   flags:
   1 : No GNUABI
+  2 : No double func
  */
 
 funcSpec funcList[] = {
@@ -62,14 +64,25 @@ funcSpec funcList[] = {
   { "sinh", 10, 0, 0, 0 },
   { "cosh", 10, 0, 0, 0 },
   { "tanh", 10, 0, 0, 0 },
+  { "sinh", 35, 3, 0, 0 },
+  { "cosh", 35, 3, 0, 0 },
+  { "tanh", 35, 3, 0, 0 },
+
+  { "fastsin", 3500, 5, 0, 2 },
+  { "fastcos", 3500, 5, 0, 2 },
+  { "fastpow", 3500, 5, 1, 2 },
+
   { "asinh", 10, 0, 0, 0 },
   { "acosh", 10, 0, 0, 0 },
   { "atanh", 10, 0, 0, 0 },
   { "exp2", 10, 0, 0, 0 },
+  { "exp2", 35, 3, 0, 0 },
   { "exp10", 10, 0, 0, 0 },
+  { "exp10", 35, 3, 0, 0 },
   { "expm1", 10, 0, 0, 0 },
   { "log10", 10, 0, 0, 0 },
   { "log2", 10, 0, 0, 0 },
+  { "log2", 35, 3, 0, 0 },
   { "log1p", 10, 0, 0, 0 },
   { "sincospi", 5, 2, 2, 0 },
   { "sincospi", 35, 3, 2, 0 },

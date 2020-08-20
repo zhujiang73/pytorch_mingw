@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -20,6 +20,8 @@
 
 #include "misc.h"
 
+extern const double rempitabdp[];
+
 #ifdef DORENAME
 #include "rename.h"
 #endif
@@ -27,6 +29,10 @@
 #if (defined(_MSC_VER))
 #pragma fp_contract (off)
 #endif
+
+#define MLA mla
+#define C2V(x) (x)
+#include "estrin.h"
 
 static INLINE CONST int64_t doubleToRawLongBits(double d) {
   union {
@@ -308,7 +314,7 @@ static INLINE CONST Sleef_double2 ddadd_d2_d2_d2(Sleef_double2 x, Sleef_double2 
   Sleef_double2 r;
 
 #ifndef NDEBUG
-  if (!(checkfp(x.x) || checkfp(y.x) || fabsk(x.x) >= fabsk(y.x) || (fabsk(x.x+y.x) <= fabsk(x.x) && fabsk(x.x+y.x) <= fabsk(y.x)))) {
+  if (!(x.x == 0 || checkfp(x.x) || checkfp(y.x) || fabsk(x.x) >= fabsk(y.x) || (fabsk(x.x+y.x) <= fabsk(x.x) && fabsk(x.x+y.x) <= fabsk(y.x)))) {
     fprintf(stderr, "[ddadd_d2_d2_d2 : %g %g]\n", x.x, y.x);
     fflush(stderr);
   }
@@ -469,25 +475,27 @@ static INLINE CONST double atan2k(double y, double x) {
   s = y / x;
   t = s * s;
 
-  u = -1.88796008463073496563746e-05;
-  u = mla(u, t, 0.000209850076645816976906797);
-  u = mla(u, t, -0.00110611831486672482563471);
-  u = mla(u, t, 0.00370026744188713119232403);
-  u = mla(u, t, -0.00889896195887655491740809);
-  u = mla(u, t, 0.016599329773529201970117);
-  u = mla(u, t, -0.0254517624932312641616861);
-  u = mla(u, t, 0.0337852580001353069993897);
-  u = mla(u, t, -0.0407629191276836500001934);
-  u = mla(u, t, 0.0466667150077840625632675);
-  u = mla(u, t, -0.0523674852303482457616113);
-  u = mla(u, t, 0.0587666392926673580854313);
-  u = mla(u, t, -0.0666573579361080525984562);
-  u = mla(u, t, 0.0769219538311769618355029);
-  u = mla(u, t, -0.090908995008245008229153);
-  u = mla(u, t, 0.111111105648261418443745);
-  u = mla(u, t, -0.14285714266771329383765);
-  u = mla(u, t, 0.199999999996591265594148);
-  u = mla(u, t, -0.333333333333311110369124);
+  double t2 = t * t, t4 = t2 * t2, t8 = t4 * t4, t16 = t8 * t8;
+  u = POLY19(t, t2, t4, t8, t16,
+	     -1.88796008463073496563746e-05,
+	     0.000209850076645816976906797,
+	     -0.00110611831486672482563471,
+	     0.00370026744188713119232403,
+	     -0.00889896195887655491740809,
+	     0.016599329773529201970117,
+	     -0.0254517624932312641616861,
+	     0.0337852580001353069993897,
+	     -0.0407629191276836500001934,
+	     0.0466667150077840625632675,
+	     -0.0523674852303482457616113,
+	     0.0587666392926673580854313,
+	     -0.0666573579361080525984562,
+	     0.0769219538311769618355029,
+	     -0.090908995008245008229153,
+	     0.111111105648261418443745,
+	     -0.14285714266771329383765,
+	     0.199999999996591265594148,
+	     -0.333333333333311110369124);
 
   t = u * t * s + s;
   t = q * (M_PI/2) + t;
@@ -510,18 +518,21 @@ EXPORT CONST double xasin(double d) {
   int o = fabsk(d) < 0.5;
   double x2 = o ? (d*d) : ((1-fabsk(d))*0.5), x = o ? fabsk(d) : SQRT(x2), u;
 
-  u = +0.3161587650653934628e-1;
-  u = mla(u, x2, -0.1581918243329996643e-1);
-  u = mla(u, x2, +0.1929045477267910674e-1);
-  u = mla(u, x2, +0.6606077476277170610e-2);
-  u = mla(u, x2, +0.1215360525577377331e-1);
-  u = mla(u, x2, +0.1388715184501609218e-1);
-  u = mla(u, x2, +0.1735956991223614604e-1);
-  u = mla(u, x2, +0.2237176181932048341e-1);
-  u = mla(u, x2, +0.3038195928038132237e-1);
-  u = mla(u, x2, +0.4464285681377102438e-1);
-  u = mla(u, x2, +0.7500000000378581611e-1);
-  u = mla(u, x2, +0.1666666666666497543e+0);
+  double x4 = x2 * x2, x8 = x4 * x4, x16 = x8 * x8;
+  u = POLY12(x2, x4, x8, x16,
+	     +0.3161587650653934628e-1,
+	     -0.1581918243329996643e-1,
+	     +0.1929045477267910674e-1,
+	     +0.6606077476277170610e-2,
+	     +0.1215360525577377331e-1,
+	     +0.1388715184501609218e-1,
+	     +0.1735956991223614604e-1,
+	     +0.2237176181932048341e-1,
+	     +0.3038195928038132237e-1,
+	     +0.4464285681377102438e-1,
+	     +0.7500000000378581611e-1,
+	     +0.1666666666666497543e+0);
+
   u = mla(u, x * x2, x);
   
   double r = o ? u : (M_PI/2 - 2*u);
@@ -536,18 +547,20 @@ EXPORT CONST double xacos(double d) {
   double x = o ? fabsk(d) : SQRT(x2);
   x = fabsk(d) == 1.0 ? 0 : x;
 
-  u = +0.3161587650653934628e-1;
-  u = mla(u, x2, -0.1581918243329996643e-1);
-  u = mla(u, x2, +0.1929045477267910674e-1);
-  u = mla(u, x2, +0.6606077476277170610e-2);
-  u = mla(u, x2, +0.1215360525577377331e-1);
-  u = mla(u, x2, +0.1388715184501609218e-1);
-  u = mla(u, x2, +0.1735956991223614604e-1);
-  u = mla(u, x2, +0.2237176181932048341e-1);
-  u = mla(u, x2, +0.3038195928038132237e-1);
-  u = mla(u, x2, +0.4464285681377102438e-1);
-  u = mla(u, x2, +0.7500000000378581611e-1);
-  u = mla(u, x2, +0.1666666666666497543e+0);
+  double x4 = x2 * x2, x8 = x4 * x4, x16 = x8 * x8;
+  u = POLY12(x2, x4, x8, x16,
+	     +0.3161587650653934628e-1,
+	     -0.1581918243329996643e-1,
+	     +0.1929045477267910674e-1,
+	     +0.6606077476277170610e-2,
+	     +0.1215360525577377331e-1,
+	     +0.1388715184501609218e-1,
+	     +0.1735956991223614604e-1,
+	     +0.2237176181932048341e-1,
+	     +0.3038195928038132237e-1,
+	     +0.4464285681377102438e-1,
+	     +0.7500000000378581611e-1,
+	     +0.1666666666666497543e+0);
 
   u *= x * x2;
   
@@ -568,25 +581,27 @@ EXPORT CONST double xatan(double s) {
 
   t = s * s;
 
-  u = -1.88796008463073496563746e-05;
-  u = mla(u, t, 0.000209850076645816976906797);
-  u = mla(u, t, -0.00110611831486672482563471);
-  u = mla(u, t, 0.00370026744188713119232403);
-  u = mla(u, t, -0.00889896195887655491740809);
-  u = mla(u, t, 0.016599329773529201970117);
-  u = mla(u, t, -0.0254517624932312641616861);
-  u = mla(u, t, 0.0337852580001353069993897);
-  u = mla(u, t, -0.0407629191276836500001934);
-  u = mla(u, t, 0.0466667150077840625632675);
-  u = mla(u, t, -0.0523674852303482457616113);
-  u = mla(u, t, 0.0587666392926673580854313);
-  u = mla(u, t, -0.0666573579361080525984562);
-  u = mla(u, t, 0.0769219538311769618355029);
-  u = mla(u, t, -0.090908995008245008229153);
-  u = mla(u, t, 0.111111105648261418443745);
-  u = mla(u, t, -0.14285714266771329383765);
-  u = mla(u, t, 0.199999999996591265594148);
-  u = mla(u, t, -0.333333333333311110369124);
+  double t2 = t * t, t4 = t2 * t2, t8 = t4 * t4, t16 = t8 * t8;
+  u = POLY19(t, t2, t4, t8, t16,
+	     -1.88796008463073496563746e-05,
+	     0.000209850076645816976906797,
+	     -0.00110611831486672482563471,
+	     0.00370026744188713119232403,
+	     -0.00889896195887655491740809,
+	     0.016599329773529201970117,
+	     -0.0254517624932312641616861,
+	     0.0337852580001353069993897,
+	     -0.0407629191276836500001934,
+	     0.0466667150077840625632675,
+	     -0.0523674852303482457616113,
+	     0.0587666392926673580854313,
+	     -0.0666573579361080525984562,
+	     0.0769219538311769618355029,
+	     -0.090908995008245008229153,
+	     0.111111105648261418443745,
+	     -0.14285714266771329383765,
+	     0.199999999996591265594148,
+	     -0.333333333333311110369124);
 
   t = s + s * (t * u);
 
@@ -608,29 +623,31 @@ static Sleef_double2 atan2k_u1(Sleef_double2 y, Sleef_double2 x) {
   t = ddsqu_d2_d2(s);
   t = ddnormalize_d2_d2(t);
 
-  u = 1.06298484191448746607415e-05;
-  u = mla(u, t.x, -0.000125620649967286867384336);
-  u = mla(u, t.x, 0.00070557664296393412389774);
-  u = mla(u, t.x, -0.00251865614498713360352999);
-  u = mla(u, t.x, 0.00646262899036991172313504);
-  u = mla(u, t.x, -0.0128281333663399031014274);
-  u = mla(u, t.x, 0.0208024799924145797902497);
-  u = mla(u, t.x, -0.0289002344784740315686289);
-  u = mla(u, t.x, 0.0359785005035104590853656);
-  u = mla(u, t.x, -0.041848579703592507506027);
-  u = mla(u, t.x, 0.0470843011653283988193763);
-  u = mla(u, t.x, -0.0524914210588448421068719);
-  u = mla(u, t.x, 0.0587946590969581003860434);
-  u = mla(u, t.x, -0.0666620884778795497194182);
-  u = mla(u, t.x, 0.0769225330296203768654095);
-  u = mla(u, t.x, -0.0909090442773387574781907);
+  double t2 = t.x * t.x, t4 = t2 * t2, t8 = t4 * t4, t16 = t8 * t8;
+  u = POLY16(t.x, t2, t4, t8,
+	     1.06298484191448746607415e-05,
+	     -0.000125620649967286867384336,
+	     0.00070557664296393412389774,
+	     -0.00251865614498713360352999,
+	     0.00646262899036991172313504,
+	     -0.0128281333663399031014274,
+	     0.0208024799924145797902497,
+	     -0.0289002344784740315686289,
+	     0.0359785005035104590853656,
+	     -0.041848579703592507506027,
+	     0.0470843011653283988193763,
+	     -0.0524914210588448421068719,
+	     0.0587946590969581003860434,
+	     -0.0666620884778795497194182,
+	     0.0769225330296203768654095,
+	     -0.0909090442773387574781907);
   u = mla(u, t.x, 0.111111108376896236538123);
   u = mla(u, t.x, -0.142857142756268568062339);
   u = mla(u, t.x, 0.199999999997977351284817);
   u = mla(u, t.x, -0.333333333333317605173818);
 
-  t = ddmul_d2_d2_d(t, u);
-  t = ddmul_d2_d2_d2(s, ddadd_d2_d_d2(1, t));
+  t = ddadd_d2_d2_d2(s, ddmul_d2_d2_d(ddmul_d2_d2_d2(s, t), u));
+
   if (fabsk(s.x) < 1e-200) t = s;
   t = ddadd2_d2_d2_d2(ddmul_d2_d2_d(dd(1.570796326794896557998982, 6.12323399573676603586882e-17), q), t);
   
@@ -656,18 +673,21 @@ EXPORT CONST double xasin_u1(double d) {
   Sleef_double2 x = o ? dd(fabsk(d), 0) : ddsqrt_d2_d(x2);
   x = fabsk(d) == 1.0 ? dd(0, 0) : x;
 
-  u = +0.3161587650653934628e-1;
-  u = mla(u, x2, -0.1581918243329996643e-1);
-  u = mla(u, x2, +0.1929045477267910674e-1);
-  u = mla(u, x2, +0.6606077476277170610e-2);
-  u = mla(u, x2, +0.1215360525577377331e-1);
-  u = mla(u, x2, +0.1388715184501609218e-1);
-  u = mla(u, x2, +0.1735956991223614604e-1);
-  u = mla(u, x2, +0.2237176181932048341e-1);
-  u = mla(u, x2, +0.3038195928038132237e-1);
-  u = mla(u, x2, +0.4464285681377102438e-1);
-  u = mla(u, x2, +0.7500000000378581611e-1);
-  u = mla(u, x2, +0.1666666666666497543e+0);
+  double x4 = x2 * x2, x8 = x4 * x4, x16 = x8 * x8;
+  u = POLY12(x2, x4, x8, x16,
+	     +0.3161587650653934628e-1,
+	     -0.1581918243329996643e-1,
+	     +0.1929045477267910674e-1,
+	     +0.6606077476277170610e-2,
+	     +0.1215360525577377331e-1,
+	     +0.1388715184501609218e-1,
+	     +0.1735956991223614604e-1,
+	     +0.2237176181932048341e-1,
+	     +0.3038195928038132237e-1,
+	     +0.4464285681377102438e-1,
+	     +0.7500000000378581611e-1,
+	     +0.1666666666666497543e+0);
+
   u *= x2 * x.x;
   
   Sleef_double2 y = ddadd_d2_d2_d(ddsub_d2_d2_d2(dd(3.141592653589793116/4, 1.2246467991473532072e-16/4), x), -u);
@@ -683,18 +703,20 @@ EXPORT CONST double xacos_u1(double d) {
   Sleef_double2 x = o ? dd(fabsk(d), 0) : ddsqrt_d2_d(x2), w;
   x = fabsk(d) == 1.0 ? dd(0, 0) : x;
 
-  u = +0.3161587650653934628e-1;
-  u = mla(u, x2, -0.1581918243329996643e-1);
-  u = mla(u, x2, +0.1929045477267910674e-1);
-  u = mla(u, x2, +0.6606077476277170610e-2);
-  u = mla(u, x2, +0.1215360525577377331e-1);
-  u = mla(u, x2, +0.1388715184501609218e-1);
-  u = mla(u, x2, +0.1735956991223614604e-1);
-  u = mla(u, x2, +0.2237176181932048341e-1);
-  u = mla(u, x2, +0.3038195928038132237e-1);
-  u = mla(u, x2, +0.4464285681377102438e-1);
-  u = mla(u, x2, +0.7500000000378581611e-1);
-  u = mla(u, x2, +0.1666666666666497543e+0);
+  double x4 = x2 * x2, x8 = x4 * x4, x16 = x8 * x8;
+  u = POLY12(x2, x4, x8, x16,
+	     +0.3161587650653934628e-1,
+	     -0.1581918243329996643e-1,
+	     +0.1929045477267910674e-1,
+	     +0.6606077476277170610e-2,
+	     +0.1215360525577377331e-1,
+	     +0.1388715184501609218e-1,
+	     +0.1735956991223614604e-1,
+	     +0.2237176181932048341e-1,
+	     +0.3038195928038132237e-1,
+	     +0.4464285681377102438e-1,
+	     +0.7500000000378581611e-1,
+	     +0.1666666666666497543e+0);
   
   u *= x.x * x2;
 
@@ -714,37 +736,107 @@ EXPORT CONST double xatan_u1(double d) {
   return mulsign(r, d);
 }
 
+typedef struct {
+  double d;
+  int32_t i;
+} di_t;
+
+typedef struct {
+  Sleef_double2 dd;
+  int32_t i;
+} ddi_t;
+
+static CONST di_t rempisub(double x) {
+  // This function is equivalent to :
+  // di_t ret = { x - round(4 * x) * 0.25, (int32_t)(round(4 * x) - round(x) * 4) };
+  di_t ret;
+  double fr = x - (double)(1LL << 28) * (int32_t)(x * (1.0 / (1LL << 28)));
+  ret.i = ((7 & ((x > 0 ? 4 : 3) + (int32_t)(fr * 8))) - 3) >> 1;
+  fr = fr - 0.25 * (int32_t)(fr * 4 + mulsign(0.5, x));
+  fr = fabsk(fr) > 0.25 ? (fr - mulsign(0.5, x)) : fr;
+  fr = fabsk(fr) > 1e+10 ? 0 : fr;
+  if (fabsk(x) == 0.12499999999999998612) { fr = x; ret.i = 0; }
+  ret.d = fr;
+  return ret;
+}
+
+// Payne-Hanek like argument reduction
+static CONST ddi_t rempi(double a) {
+  Sleef_double2 x, y, z;
+  di_t di;
+  double t;
+  int ex = ilogb2k(a) - 55, q = ex > (700-55) ? -64 : 0;
+  a = ldexp3k(a, q);
+  if (ex < 0) ex = 0;
+  ex *= 4;
+  x = ddmul_d2_d_d(a, rempitabdp[ex]);
+  di = rempisub(x.x);
+  q = di.i;
+  x.x = di.d;
+  x = ddnormalize_d2_d2(x);
+  y = ddmul_d2_d_d(a, rempitabdp[ex+1]);
+  x = ddadd2_d2_d2_d2(x, y);
+  di = rempisub(x.x);
+  q += di.i;
+  x.x = di.d;
+  x = ddnormalize_d2_d2(x);
+  y = ddmul_d2_d2_d(dd(rempitabdp[ex+2], rempitabdp[ex+3]), a);
+  x = ddadd2_d2_d2_d2(x, y);
+  x = ddnormalize_d2_d2(x);
+  x = ddmul_d2_d2_d2(x, dd(3.141592653589793116*2, 1.2246467991473532072e-16*2));
+  ddi_t ret = { fabsk(a) < 0.7 ? dd(a, 0) : x, q };
+  return ret;
+}
+
 EXPORT CONST double xsin(double d) {
   double u, s, t = d;
+  int ql;
 
-  double dqh = trunck(d * (M_1_PI / (1 << 24))) * (double)(1 << 24);
-  int ql = rintk(mla(d, M_1_PI, -dqh));
+  if (fabsk(d) < TRIGRANGEMAX2) {
+    ql = rintk(d * M_1_PI);
+    d = mla(ql, -PI_A2, d);
+    d = mla(ql, -PI_B2, d);
+  } else if (fabsk(d) < TRIGRANGEMAX) {
+    double dqh = trunck(d * (M_1_PI / (1 << 24))) * (double)(1 << 24);
+    ql = rintk(mla(d, M_1_PI, -dqh));
 
-  d = mla(dqh, -PI_A, d);
-  d = mla( ql, -PI_A, d);
-  d = mla(dqh, -PI_B, d);
-  d = mla( ql, -PI_B, d);
-  d = mla(dqh, -PI_C, d);
-  d = mla( ql, -PI_C, d);
-  d = mla(dqh + ql, -PI_D, d);
-  
+    d = mla(dqh, -PI_A, d);
+    d = mla( ql, -PI_A, d);
+    d = mla(dqh, -PI_B, d);
+    d = mla( ql, -PI_B, d);
+    d = mla(dqh, -PI_C, d);
+    d = mla( ql, -PI_C, d);
+    d = mla(dqh + ql, -PI_D, d);
+  } else {
+    ddi_t ddi = rempi(t);
+    ql = ((ddi.i & 3) * 2 + (ddi.dd.x > 0) + 1) >> 2;
+    if ((ddi.i & 1) != 0) {
+      ddi.dd = ddadd2_d2_d2_d2(ddi.dd, dd(mulsign(3.141592653589793116*-0.5, ddi.dd.x),
+					  mulsign(1.2246467991473532072e-16*-0.5, ddi.dd.x)));
+    }
+    d = ddi.dd.x + ddi.dd.y;
+    if (xisinf(t) || xisnan(t)) d = SLEEF_NAN;
+  }
+
   s = d * d;
 
   if ((ql & 1) != 0) d = -d;
 
-  u = -7.97255955009037868891952e-18;
-  u = mla(u, s, 2.81009972710863200091251e-15);
-  u = mla(u, s, -7.64712219118158833288484e-13);
-  u = mla(u, s, 1.60590430605664501629054e-10);
-  u = mla(u, s, -2.50521083763502045810755e-08);
-  u = mla(u, s, 2.75573192239198747630416e-06);
-  u = mla(u, s, -0.000198412698412696162806809);
-  u = mla(u, s, 0.00833333333333332974823815);
+  double s2 = s * s, s4 = s2 * s2;
+  u = POLY8(s, s2, s4,
+	    -7.97255955009037868891952e-18,
+	    2.81009972710863200091251e-15,
+	    -7.64712219118158833288484e-13,
+	    1.60590430605664501629054e-10,
+	    -2.50521083763502045810755e-08,
+	    2.75573192239198747630416e-06,
+	    -0.000198412698412696162806809,
+	    0.00833333333333332974823815);
   u = mla(u, s, -0.166666666666666657414808);
 
   u = mla(s, u * d, d);
 
-  if (!xisinf(t) && (xisnegzero(t) || fabsk(t) > TRIGRANGEMAX)) u = -0.0;
+  if (xisnegzero(t)) u = t;
 
   return u;
 }
@@ -758,7 +850,7 @@ EXPORT CONST double xsin_u1(double d) {
     ql = rintk(d * M_1_PI);
     u = mla(ql, -PI_A2, d);
     s = ddadd_d2_d_d (u,  ql * -PI_B2);
-  } else {
+  } else if (fabsk(d) < TRIGRANGEMAX) {
     const double dqh = trunck(d * (M_1_PI / (1 << 24))) * (double)(1 << 24);
     ql = rintk(mla(d, M_1_PI, -dqh));
 
@@ -769,61 +861,87 @@ EXPORT CONST double xsin_u1(double d) {
     s = ddadd2_d2_d2_d(s, dqh * -PI_C);
     s = ddadd2_d2_d2_d(s,  ql * -PI_C);
     s = ddadd_d2_d2_d (s, (dqh + ql) * -PI_D);
+  } else {
+    ddi_t ddi = rempi(d);
+    ql = ((ddi.i & 3) * 2 + (ddi.dd.x > 0) + 1) >> 2;
+    if ((ddi.i & 1) != 0) {
+      ddi.dd = ddadd2_d2_d2_d2(ddi.dd, dd(mulsign(3.141592653589793116*-0.5, ddi.dd.x),
+					  mulsign(1.2246467991473532072e-16*-0.5, ddi.dd.x)));
+    }
+    s = ddnormalize_d2_d2(ddi.dd);
+    if (xisinf(d) || xisnan(d)) s.x = SLEEF_NAN;
   }
 
   t = s;
   s = ddsqu_d2_d2(s);
 
-  u = 2.72052416138529567917983e-15;
-  u = mla(u, s.x, -7.6429259411395447190023e-13);
-  u = mla(u, s.x, 1.60589370117277896211623e-10);
-  u = mla(u, s.x, -2.5052106814843123359368e-08);
-  u = mla(u, s.x, 2.75573192104428224777379e-06);
-  u = mla(u, s.x, -0.000198412698412046454654947);
+  double s2 = s.x * s.x, s4 = s2 * s2;
+  u = POLY6(s.x, s2, s4,
+	    2.72052416138529567917983e-15,
+	    -7.6429259411395447190023e-13,
+	    1.60589370117277896211623e-10,
+	    -2.5052106814843123359368e-08,
+	    2.75573192104428224777379e-06,
+	    -0.000198412698412046454654947);
   u = mla(u, s.x, 0.00833333333333318056201922);
 
   x = ddadd_d2_d_d2(1, ddmul_d2_d2_d2(ddadd_d2_d_d(-0.166666666666666657414808, u * s.x), s));
-
   u = ddmul_d_d2_d2(t, x);
   
   if ((ql & 1) != 0) u = -u;
-  if (!xisinf(d) && (xisnegzero(d) || fabsk(d) > TRIGRANGEMAX)) u = -0.0;
+  if (xisnegzero(d)) u = d;
   
   return u;
 }
 
 EXPORT CONST double xcos(double d) {
   double u, s, t = d;
+  int ql;
 
-  double dqh = trunck(d * (M_1_PI / (1LL << 23)) - 0.5 * (M_1_PI / (1LL << 23)));
-  int ql = 2*rintk(d * M_1_PI - 0.5 - dqh * (double)(1LL << 23))+1;
-  dqh *= 1 << 24;
+  if (fabsk(d) < TRIGRANGEMAX2) {
+    ql = mla(2, rintk(d * M_1_PI - 0.5), 1);
+    d = mla(ql, -PI_A2*0.5, d);
+    d = mla(ql, -PI_B2*0.5, d);
+  } else if (fabsk(d) < TRIGRANGEMAX) {
+    double dqh = trunck(d * (M_1_PI / (1LL << 23)) - 0.5 * (M_1_PI / (1LL << 23)));
+    ql = 2*rintk(d * M_1_PI - 0.5 - dqh * (double)(1LL << 23))+1;
+    dqh *= 1 << 24;
 
-  d = mla(dqh, -PI_A*0.5, d);
-  d = mla( ql, -PI_A*0.5, d);
-  d = mla(dqh, -PI_B*0.5, d);
-  d = mla( ql, -PI_B*0.5, d);
-  d = mla(dqh, -PI_C*0.5, d);
-  d = mla( ql, -PI_C*0.5, d);
-  d = mla(dqh + ql , -PI_D*0.5, d);
+    d = mla(dqh, -PI_A*0.5, d);
+    d = mla( ql, -PI_A*0.5, d);
+    d = mla(dqh, -PI_B*0.5, d);
+    d = mla( ql, -PI_B*0.5, d);
+    d = mla(dqh, -PI_C*0.5, d);
+    d = mla( ql, -PI_C*0.5, d);
+    d = mla(dqh + ql , -PI_D*0.5, d);
+  } else {
+    ddi_t ddi = rempi(t);
+    ql = ((ddi.i & 3) * 2 + (ddi.dd.x > 0) + 7) >> 1;
+    if ((ddi.i & 1) == 0) {
+      ddi.dd = ddadd2_d2_d2_d2(ddi.dd, dd(mulsign(3.141592653589793116*-0.5, ddi.dd.x > 0 ? 1 : -1),
+					  mulsign(1.2246467991473532072e-16*-0.5, ddi.dd.x > 0 ? 1 : -1)));
+    }
+    d = ddi.dd.x + ddi.dd.y;
+    if (xisinf(t) || xisnan(t)) d = SLEEF_NAN;
+  }
   
   s = d * d;
 
   if ((ql & 2) == 0) d = -d;
 
-  u = -7.97255955009037868891952e-18;
-  u = mla(u, s, 2.81009972710863200091251e-15);
-  u = mla(u, s, -7.64712219118158833288484e-13);
-  u = mla(u, s, 1.60590430605664501629054e-10);
-  u = mla(u, s, -2.50521083763502045810755e-08);
-  u = mla(u, s, 2.75573192239198747630416e-06);
-  u = mla(u, s, -0.000198412698412696162806809);
-  u = mla(u, s, 0.00833333333333332974823815);
+  double s2 = s * s, s4 = s2 * s2;
+  u = POLY8(s, s2, s4,
+	    -7.97255955009037868891952e-18,
+	    2.81009972710863200091251e-15,
+	    -7.64712219118158833288484e-13,
+	    1.60590430605664501629054e-10,
+	    -2.50521083763502045810755e-08,
+	    2.75573192239198747630416e-06,
+	    -0.000198412698412696162806809,
+	    0.00833333333333332974823815);
   u = mla(u, s, -0.166666666666666657414808);
 
   u = mla(s, u * d, d);
-
-  if (!xisinf(t) && fabsk(t) > TRIGRANGEMAX) u = 1.0;
 
   return u;
 }
@@ -839,7 +957,7 @@ EXPORT CONST double xcos_u1(double d) {
     ql = mla(2, rintk(d * M_1_PI - 0.5), 1);
     s = ddadd2_d2_d_d(d, ql * (-PI_A2*0.5));
     s = ddadd_d2_d2_d(s, ql * (-PI_B2*0.5));
-  } else {
+  } else if (d < TRIGRANGEMAX) {
     double dqh = trunck(d * (M_1_PI / (1LL << 23)) - 0.5 * (M_1_PI / (1LL << 23)));
     ql = 2*rintk(d * M_1_PI - 0.5 - dqh * (double)(1LL << 23))+1;
     dqh *= 1 << 24;
@@ -851,25 +969,34 @@ EXPORT CONST double xcos_u1(double d) {
     s = ddadd2_d2_d2_d(s, dqh * (-PI_C*0.5));
     s = ddadd2_d2_d2_d(s,  ql * (-PI_C*0.5));
     s = ddadd_d2_d2_d(s, (dqh + ql) * (-PI_D*0.5));
+  } else {
+    ddi_t ddi = rempi(d);
+    ql = ((ddi.i & 3) * 2 + (ddi.dd.x > 0) + 7) >> 1;
+    if ((ddi.i & 1) == 0) {
+      ddi.dd = ddadd2_d2_d2_d2(ddi.dd, dd(mulsign(3.141592653589793116*-0.5, ddi.dd.x > 0 ? 1 : -1),
+					  mulsign(1.2246467991473532072e-16*-0.5, ddi.dd.x > 0 ? 1 : -1)));
+    }
+    s = ddnormalize_d2_d2(ddi.dd);
+    if (xisinf(d) || xisnan(d)) s.x = SLEEF_NAN;
   }
   
   t = s;
   s = ddsqu_d2_d2(s);
 
-  u = 2.72052416138529567917983e-15;
-  u = mla(u, s.x, -7.6429259411395447190023e-13);
-  u = mla(u, s.x, 1.60589370117277896211623e-10);
-  u = mla(u, s.x, -2.5052106814843123359368e-08);
-  u = mla(u, s.x, 2.75573192104428224777379e-06);
-  u = mla(u, s.x, -0.000198412698412046454654947);
+  double s2 = s.x * s.x, s4 = s2 * s2;
+  u = POLY6(s.x, s2, s4,
+	    2.72052416138529567917983e-15,
+	    -7.6429259411395447190023e-13,
+	    1.60589370117277896211623e-10,
+	    -2.5052106814843123359368e-08,
+	    2.75573192104428224777379e-06,
+	    -0.000198412698412046454654947);
   u = mla(u, s.x, 0.00833333333333318056201922);
 
   x = ddadd_d2_d_d2(1, ddmul_d2_d2_d2(ddadd_d2_d_d(-0.166666666666666657414808, u * s.x), s));
-
   u = ddmul_d_d2_d2(t, x);
   
   if ((((int)ql) & 2) == 0) u = -u;
-  if (!xisinf(d) && d > TRIGRANGEMAX) u = 1.0;
 
   return u;
 }
@@ -877,20 +1004,32 @@ EXPORT CONST double xcos_u1(double d) {
 EXPORT CONST Sleef_double2 xsincos(double d) {
   double u, s, t;
   Sleef_double2 r;
+  int ql;
 
   s = d;
 
-  double dqh = trunck(d * ((2 * M_1_PI) / (1 << 24))) * (double)(1 << 24);
-  int ql = rintk(d * (2 * M_1_PI) - dqh);
+  if (fabsk(d) < TRIGRANGEMAX2) {
+    ql = rintk(s * (2 * M_1_PI));
+    s = mla(ql, -PI_A2*0.5, s);
+    s = mla(ql, -PI_B2*0.5, s);
+  } else if (fabsk(d) < TRIGRANGEMAX) {
+    double dqh = trunck(d * ((2 * M_1_PI) / (1 << 24))) * (double)(1 << 24);
+    ql = rintk(d * (2 * M_1_PI) - dqh);
 
-  s = mla(dqh, -PI_A * 0.5, s);
-  s = mla( ql, -PI_A * 0.5, s);
-  s = mla(dqh, -PI_B * 0.5, s);
-  s = mla( ql, -PI_B * 0.5, s);
-  s = mla(dqh, -PI_C * 0.5, s);
-  s = mla( ql, -PI_C * 0.5, s);
-  s = mla(dqh + ql, -PI_D * 0.5, s);
-  
+    s = mla(dqh, -PI_A * 0.5, s);
+    s = mla( ql, -PI_A * 0.5, s);
+    s = mla(dqh, -PI_B * 0.5, s);
+    s = mla( ql, -PI_B * 0.5, s);
+    s = mla(dqh, -PI_C * 0.5, s);
+    s = mla( ql, -PI_C * 0.5, s);
+    s = mla(dqh + ql, -PI_D * 0.5, s);
+  } else {
+    ddi_t ddi = rempi(d);
+    ql = ddi.i;
+    s = ddi.dd.x + ddi.dd.y;
+    if (xisinf(d) || xisnan(d)) s = SLEEF_NAN;
+  }  
+
   t = s;
 
   s = s * s;
@@ -921,9 +1060,6 @@ EXPORT CONST Sleef_double2 xsincos(double d) {
   if ((ql & 2) != 0) { r.x = -r.x; }
   if (((ql+1) & 2) != 0) { r.y = -r.y; }
 
-  if (fabsk(d) > TRIGRANGEMAX) { r.x = 0; r.y = 1; }
-  if (xisinf(d)) { r.x = r.y = SLEEF_NAN; }
-
   return r;
 }
 
@@ -936,7 +1072,7 @@ EXPORT CONST Sleef_double2 xsincos_u1(double d) {
     ql = rintk(d * (2 * M_1_PI));
     u = mla(ql, -PI_A2*0.5, d);
     s = ddadd_d2_d_d (u,  ql * (-PI_B2*0.5));
-  } else {
+  } else if (fabsk(d) < TRIGRANGEMAX) {
     const double dqh = trunck(d * ((2 * M_1_PI) / (1 << 24))) * (double)(1 << 24);
     ql = rintk(d * (2 * M_1_PI) - dqh);
 
@@ -947,6 +1083,11 @@ EXPORT CONST Sleef_double2 xsincos_u1(double d) {
     s = ddadd2_d2_d2_d(s, dqh * (-PI_C*0.5));
     s = ddadd2_d2_d2_d(s, ql * (-PI_C*0.5));
     s = ddadd_d2_d2_d(s, (dqh + ql) * (-PI_D*0.5));
+  } else {
+    ddi_t ddi = rempi(d);
+    ql = ddi.i;
+    s = ddi.dd;
+    if (xisinf(d) || xisnan(d)) s = dd(SLEEF_NAN, SLEEF_NAN);
   }
   
   t = s;
@@ -981,9 +1122,6 @@ EXPORT CONST Sleef_double2 xsincos_u1(double d) {
   if ((ql & 1) != 0) { u = r.y; r.y = r.x; r.x = u; }
   if ((ql & 2) != 0) { r.x = -r.x; }
   if (((ql+1) & 2) != 0) { r.y = -r.y; }
-
-  if (fabsk(d) > TRIGRANGEMAX) { r.x = 0; r.y = 1; }
-  if (xisinf(d)) { r.x = r.y = SLEEF_NAN; }
 
   return r;
 }
@@ -1184,59 +1322,68 @@ EXPORT CONST double xcospi_u05(double d) {
 }
 
 EXPORT CONST double xtan(double d) {
-  double u, s, x;
+  double u, s, x, y;
+  int ql;
 
-  double dqh = trunck(d * ((2 * M_1_PI) / (1 << 24))) * (double)(1 << 24);
-  int ql = rintk(d * (2 * M_1_PI) - dqh);
+  if (fabsk(d) < TRIGRANGEMAX2) {
+    ql = rintk(d * (2 * M_1_PI));
+    x = mla(ql, -PI_A2*0.5, d);
+    x = mla(ql, -PI_B2*0.5, x);
+  } else if (fabsk(d) < 1e+6) {
+    double dqh = trunck(d * ((2 * M_1_PI) / (1 << 24))) * (double)(1 << 24);
+    ql = rintk(d * (2 * M_1_PI) - dqh);
 
-  x = mla(dqh, -PI_A * 0.5, d);
-  x = mla( ql, -PI_A * 0.5, x);
-  x = mla(dqh, -PI_B * 0.5, x);
-  x = mla( ql, -PI_B * 0.5, x);
-  x = mla(dqh, -PI_C * 0.5, x);
-  x = mla( ql, -PI_C * 0.5, x);
-  x = mla(dqh + ql, -PI_D * 0.5, x);
+    x = mla(dqh, -PI_A * 0.5, d);
+    x = mla( ql, -PI_A * 0.5, x);
+    x = mla(dqh, -PI_B * 0.5, x);
+    x = mla( ql, -PI_B * 0.5, x);
+    x = mla(dqh, -PI_C * 0.5, x);
+    x = mla( ql, -PI_C * 0.5, x);
+    x = mla(dqh + ql, -PI_D * 0.5, x);
+  } else {
+    ddi_t ddi = rempi(d);
+    ql = ddi.i;
+    x = ddi.dd.x + ddi.dd.y;
+    if (xisinf(d) || xisnan(d)) x = SLEEF_NAN;
+  }
   
+  x *= 0.5;
   s = x * x;
 
-  if ((ql & 1) != 0) x = -x;
+  double s2 = s * s, s4 = s2 * s2;
+  u = POLY8(s, s2, s4,
+	    +0.3245098826639276316e-3,
+	    +0.5619219738114323735e-3,
+	    +0.1460781502402784494e-2,
+	    +0.3591611540792499519e-2,
+	    +0.8863268409563113126e-2,
+	    +0.2186948728185535498e-1,
+	    +0.5396825399517272970e-1,
+	    +0.1333333333330500581e+0);
 
-  u = 9.99583485362149960784268e-06;
-  u = mla(u, s, -4.31184585467324750724175e-05);
-  u = mla(u, s, 0.000103573238391744000389851);
-  u = mla(u, s, -0.000137892809714281708733524);
-  u = mla(u, s, 0.000157624358465342784274554);
-  u = mla(u, s, -6.07500301486087879295969e-05);
-  u = mla(u, s, 0.000148898734751616411290179);
-  u = mla(u, s, 0.000219040550724571513561967);
-  u = mla(u, s, 0.000595799595197098359744547);
-  u = mla(u, s, 0.00145461240472358871965441);
-  u = mla(u, s, 0.0035923150771440177410343);
-  u = mla(u, s, 0.00886321546662684547901456);
-  u = mla(u, s, 0.0218694899718446938985394);
-  u = mla(u, s, 0.0539682539049961967903002);
-  u = mla(u, s, 0.133333333334818976423364);
-  u = mla(u, s, 0.333333333333320047664472);
-  
+  u = mla(u, s, +0.3333333333333343695e+0);
   u = mla(s, u * x, x);
 
-  if ((ql & 1) != 0) u = 1.0 / u;
+  y = mla(u, u, -1);
+  x = -2 * u;
 
-  if (xisinf(d)) u = SLEEF_NAN;
+  if ((ql & 1) != 0) { double t = x; x = y; y = -t; }
+
+  u = x / y;
 
   return u;
 }
 
 EXPORT CONST double xtan_u1(double d) {
   double u;
-  Sleef_double2 s, t, x;
+  Sleef_double2 s, t, x, y;
   int ql;
   
   if (fabsk(d) < TRIGRANGEMAX2) {
     ql = rintk(d * (2 * M_1_PI));
     u = mla(ql, -PI_A2*0.5, d);
     s = ddadd_d2_d_d(u,  ql * (-PI_B2*0.5));
-  } else {
+  } else if (fabsk(d) < TRIGRANGEMAX) {
     const double dqh = trunck(d * (M_2_PI / (1 << 24))) * (double)(1 << 24);
     s = ddadd2_d2_d2_d(ddmul_d2_d2_d(dd(M_2_PI_H, M_2_PI_L), d), (d < 0 ? -0.5 : 0.5) - dqh);
     ql = s.x + s.y;
@@ -1248,36 +1395,40 @@ EXPORT CONST double xtan_u1(double d) {
     s = ddadd2_d2_d2_d(s, dqh * (-PI_C*0.5));
     s = ddadd2_d2_d2_d(s,  ql * (-PI_C*0.5));
     s = ddadd_d2_d2_d(s, (dqh + ql) * (-PI_D*0.5));
+  } else {
+    ddi_t ddi = rempi(d);
+    ql = ddi.i;
+    s = ddi.dd;
+    if (xisinf(d) || xisnan(d)) s.x = SLEEF_NAN;
   }
   
-  if ((ql & 1) != 0) s = ddneg_d2_d2(s);
+  t = ddscale_d2_d2_d(s, 0.5);
+  s = ddsqu_d2_d2(t);
 
-  t = s;
-  s = ddsqu_d2_d2(s);
+  double s2 = s.x * s.x, s4 = s2 * s2;
+  u = POLY8(s.x, s2, s4,
+	    +0.3245098826639276316e-3,
+	    +0.5619219738114323735e-3,
+	    +0.1460781502402784494e-2,
+	    +0.3591611540792499519e-2,
+	    +0.8863268409563113126e-2,
+	    +0.2186948728185535498e-1,
+	    +0.5396825399517272970e-1,
+	    +0.1333333333330500581e+0);
 
-  u = 1.01419718511083373224408e-05;
-  u = mla(u, s.x, -2.59519791585924697698614e-05);
-  u = mla(u, s.x, 5.23388081915899855325186e-05);
-  u = mla(u, s.x, -3.05033014433946488225616e-05);
-  u = mla(u, s.x, 7.14707504084242744267497e-05);
-  u = mla(u, s.x, 8.09674518280159187045078e-05);
-  u = mla(u, s.x, 0.000244884931879331847054404);
-  u = mla(u, s.x, 0.000588505168743587154904506);
-  u = mla(u, s.x, 0.00145612788922812427978848);
-  u = mla(u, s.x, 0.00359208743836906619142924);
-  u = mla(u, s.x, 0.00886323944362401618113356);
-  u = mla(u, s.x, 0.0218694882853846389592078);
-  u = mla(u, s.x, 0.0539682539781298417636002);
-  u = mla(u, s.x, 0.133333333333125941821962);
+  u = mla(u, s.x, +0.3333333333333343695e+0);
+  x = ddadd_d2_d2_d2(t, ddmul_d2_d2_d(ddmul_d2_d2_d2(s, t), u));
 
-  x = ddadd_d2_d_d2(1, ddmul_d2_d2_d2(ddadd_d2_d_d(0.333333333333334980164153, u * s.x), s));
-  x = ddmul_d2_d2_d2(t, x);
+  y = ddadd_d2_d_d2(-1, ddsqu_d2_d2(x));
+  x = ddscale_d2_d2_d(x, -2);
 
-  if ((ql & 1) != 0) x = ddrec_d2_d2(x);
+  if ((ql & 1) != 0) { t = x; x = y; y = ddneg_d2_d2(t); }
+
+  x = dddiv_d2_d2_d2(x, y);
 
   u = x.x + x.y;
 
-  if (!xisinf(d) && (xisnegzero(d) || fabsk(d) > TRIGRANGEMAX)) u = -0.0;
+  if (xisnegzero(d)) u = d;
   
   return u;
 }
@@ -1297,16 +1448,18 @@ EXPORT CONST double xlog(double d) {
   x = (m-1) / (m+1);
   x2 = x * x;
 
-  t = 0.153487338491425068243146;
-  t = mla(t, x2, 0.152519917006351951593857);
-  t = mla(t, x2, 0.181863266251982985677316);
-  t = mla(t, x2, 0.222221366518767365905163);
-  t = mla(t, x2, 0.285714294746548025383248);
-  t = mla(t, x2, 0.399999999950799600689777);
-  t = mla(t, x2, 0.6666666666667778740063);
-  t = mla(t, x2, 2);
-  
-  x = x * t + 0.693147180559945286226764 * e;
+  double x4 = x2 * x2, x8 = x4 * x4;
+
+  t = POLY7(x2, x4, x8,
+	    0.153487338491425068243146,
+	    0.152519917006351951593857,
+	    0.181863266251982985677316,
+	    0.222221366518767365905163,
+	    0.285714294746548025383248,
+	    0.399999999950799600689777,
+	    0.6666666666667778740063);
+
+  x = x * 2 + 0.693147180559945286226764 * e + x * x2 * t;
   
   if (xisinf(d)) x = SLEEF_INFINITY;
   if (d < 0 || xisnan(d)) x = SLEEF_NAN;
@@ -1321,24 +1474,53 @@ EXPORT CONST double xexp(double d) {
 
   s = mla(q, -L2U, d);
   s = mla(q, -L2L, s);
-  
-  u = 2.08860621107283687536341e-09;
-  u = mla(u, s, 2.51112930892876518610661e-08);
-  u = mla(u, s, 2.75573911234900471893338e-07);
-  u = mla(u, s, 2.75572362911928827629423e-06);
-  u = mla(u, s, 2.4801587159235472998791e-05);
-  u = mla(u, s, 0.000198412698960509205564975);
-  u = mla(u, s, 0.00138888888889774492207962);
-  u = mla(u, s, 0.00833333333331652721664984);
-  u = mla(u, s, 0.0416666666666665047591422);
-  u = mla(u, s, 0.166666666666666851703837);
-  u = mla(u, s, 0.5);
+
+  double s2 = s * s, s4 = s2 * s2, s8 = s4 * s4;
+  u = POLY10(s, s2, s4, s8,
+	     2.08860621107283687536341e-09,
+	     2.51112930892876518610661e-08,
+	     2.75573911234900471893338e-07,
+	     2.75572362911928827629423e-06,
+	     2.4801587159235472998791e-05,
+	     0.000198412698960509205564975,
+	     0.00138888888889774492207962,
+	     0.00833333333331652721664984,
+	     0.0416666666666665047591422,
+	     0.166666666666666851703837);
+  u = mla(u, s, +0.5);
 
   u = s * s * u + s + 1;
   u = ldexp2k(u, q);
 
   if (d > 709.78271114955742909217217426) u = SLEEF_INFINITY;
   if (d < -1000) u = 0;
+  
+  return u;
+}
+
+static INLINE CONST double expm1k(double d) {
+  int q = (int)rintk(d * R_LN2);
+  double s, u;
+
+  s = mla(q, -L2U, d);
+  s = mla(q, -L2L, s);
+  
+  double s2 = s * s, s4 = s2 * s2, s8 = s4 * s4;
+  u = POLY10(s, s2, s4, s8,
+	     2.08860621107283687536341e-09,
+	     2.51112930892876518610661e-08,
+	     2.75573911234900471893338e-07,
+	     2.75572362911928827629423e-06,
+	     2.4801587159235472998791e-05,
+	     0.000198412698960509205564975,
+	     0.00138888888889774492207962,
+	     0.00833333333331652721664984,
+	     0.0416666666666665047591422,
+	     0.166666666666666851703837);
+
+  u = mla(s2, 0.5, s2 * s * u) + s;
+
+  if (q != 0) u = ldexp2k(u + 1, q) - 1;
   
   return u;
 }
@@ -1359,21 +1541,26 @@ static INLINE CONST Sleef_double2 logk(double d) {
   x = dddiv_d2_d2_d2(ddadd2_d2_d_d(-1, m), ddadd2_d2_d_d(1, m));
   x2 = ddsqu_d2_d2(x);
 
-  t = 0.116255524079935043668677;
-  t = mla(t, x2.x, 0.103239680901072952701192);
-  t = mla(t, x2.x, 0.117754809412463995466069);
-  t = mla(t, x2.x, 0.13332981086846273921509);
-  t = mla(t, x2.x, 0.153846227114512262845736);
-  t = mla(t, x2.x, 0.181818180850050775676507);
-  t = mla(t, x2.x, 0.222222222230083560345903);
-  t = mla(t, x2.x, 0.285714285714249172087875);
-  t = mla(t, x2.x, 0.400000000000000077715612);
-  Sleef_double2 c = dd(0.666666666666666629659233, 3.80554962542412056336616e-17);
+  double x4 = x2.x * x2.x, x8 = x4 * x4, x16 = x8 * x8;
+  t = POLY9(x2.x, x4, x8, x16,
+	    0.116255524079935043668677,
+	    0.103239680901072952701192,
+	    0.117754809412463995466069,
+	    0.13332981086846273921509,
+	    0.153846227114512262845736,
+	    0.181818180850050775676507,
+	    0.222222222230083560345903,
+	    0.285714285714249172087875,
+	    0.400000000000000077715612);
 
+  Sleef_double2 c = dd(0.666666666666666629659233, 3.80554962542412056336616e-17);
   s = ddmul_d2_d2_d(dd(0.693147180559945286226764, 2.319046813846299558417771e-17), e);
   s = ddadd_d2_d2_d2(s, ddscale_d2_d2_d(x, 2));
-  s = ddadd_d2_d2_d2(s, ddmul_d2_d2_d2(ddmul_d2_d2_d2(x2, x),
-				       ddadd2_d2_d2_d2(ddmul_d2_d2_d(x2, t), c)));
+  x = ddmul_d2_d2_d2(x2, x);
+  s = ddadd_d2_d2_d2(s, ddmul_d2_d2_d2(x, c));
+  x = ddmul_d2_d2_d2(x2, x);
+  s = ddadd_d2_d2_d2(s, ddmul_d2_d2_d(x, t));
+
   return s;
 }
 
@@ -1393,13 +1580,15 @@ EXPORT CONST double xlog_u1(double d) {
   x = dddiv_d2_d2_d2(ddadd2_d2_d_d(-1, m), ddadd2_d2_d_d(1, m));
   x2 = x.x * x.x;
 
-  t = 0.1532076988502701353e+0;
-  t = mla(t, x2, 0.1525629051003428716e+0);
-  t = mla(t, x2, 0.1818605932937785996e+0);
-  t = mla(t, x2, 0.2222214519839380009e+0);
-  t = mla(t, x2, 0.2857142932794299317e+0);
-  t = mla(t, x2, 0.3999999999635251990e+0);
-  t = mla(t, x2, 0.6666666666667333541e+0);
+  double x4 = x2 * x2, x8 = x4 * x4;
+  t = POLY7(x2, x4, x8,
+	    0.1532076988502701353e+0,
+	    0.1525629051003428716e+0,
+	    0.1818605932937785996e+0,
+	    0.2222214519839380009e+0,
+	    0.2857142932794299317e+0,
+	    0.3999999999635251990e+0,
+	    0.6666666666667333541e+0);
 
   s = ddmul_d2_d2_d(dd(0.693147180559945286226764, 2.319046813846299558417771e-17), (double)e);
   s = ddadd_d2_d2_d2(s, ddscale_d2_d2_d(x, 2));
@@ -1424,20 +1613,21 @@ static INLINE CONST double expk(Sleef_double2 d) {
 
   s = ddnormalize_d2_d2(s);
 
-  u = 2.51069683420950419527139e-08;
-  u = mla(u, s.x, 2.76286166770270649116855e-07);
-  u = mla(u, s.x, 2.75572496725023574143864e-06);
-  u = mla(u, s.x, 2.48014973989819794114153e-05);
-  u = mla(u, s.x, 0.000198412698809069797676111);
-  u = mla(u, s.x, 0.0013888888939977128960529);
-  u = mla(u, s.x, 0.00833333333332371417601081);
-  u = mla(u, s.x, 0.0416666666665409524128449);
-  u = mla(u, s.x, 0.166666666666666740681535);
-  u = mla(u, s.x, 0.500000000000000999200722);
+  double s2 = s.x * s.x, s4 = s2 * s2, s8 = s4 * s4;
+  u = POLY10(s.x, s2, s4, s8,
+	     2.51069683420950419527139e-08,
+	     2.76286166770270649116855e-07,
+	     2.75572496725023574143864e-06,
+	     2.48014973989819794114153e-05,
+	     0.000198412698809069797676111,
+	     0.0013888888939977128960529,
+	     0.00833333333332371417601081,
+	     0.0416666666665409524128449,
+	     0.166666666666666740681535,
+	     0.500000000000000999200722);
 
-  t = ddadd_d2_d2_d2(s, ddmul_d2_d2_d(ddsqu_d2_d2(s), u));
-
-  t = ddadd_d2_d_d2(1, t);
+  t = ddadd_d2_d_d2(1, s);
+  t = ddadd_d2_d2_d2(t, ddmul_d2_d2_d(ddsqu_d2_d2(s), u));
 
   u = ldexpk(t.x + t.y, q);
 
@@ -1539,6 +1729,42 @@ EXPORT CONST double xtanh(double x) {
   return y;
 }
 
+EXPORT CONST double xsinh_u35(double x) {
+  double e = expm1k(fabsk(x));
+  double y = (e + 2) / (e + 1) * (0.5 * e);
+
+  y = fabsk(x) > 709 ? SLEEF_INFINITY : y;
+  y = xisnan(y) ? SLEEF_INFINITY : y;
+  y = mulsign(y, x);
+  y = xisnan(x) ? SLEEF_NAN : y;
+
+  return y;
+}
+
+EXPORT CONST double xcosh_u35(double x) {
+  double e = xexp(fabsk(x));
+  double y = 0.5 / e + 0.5 * e;
+
+  y = fabsk(x) > 709 ? SLEEF_INFINITY : y;
+  y = xisnan(y) ? SLEEF_INFINITY : y;
+  y = xisnan(x) ? SLEEF_NAN : y;
+
+  return y;
+}
+
+EXPORT CONST double xtanh_u35(double x) {
+  double y = fabsk(x);
+  double d = expm1k(2*y);
+  y = d / (d + 2);
+
+  y = fabsk(x) > 18.714973875 ? 1.0 : y;
+  y = xisnan(y) ? 1.0 : y;
+  y = mulsign(y, x);
+  y = xisnan(x) ? SLEEF_NAN : y;
+
+  return y;
+}
+
 static INLINE CONST Sleef_double2 logk2(Sleef_double2 d) {
   Sleef_double2 x, x2, m, s;
   double t;
@@ -1551,14 +1777,16 @@ static INLINE CONST Sleef_double2 logk2(Sleef_double2 d) {
 
   x = dddiv_d2_d2_d2(ddadd2_d2_d2_d(m, -1), ddadd2_d2_d2_d(m, 1));
   x2 = ddsqu_d2_d2(x);
-  
-  t = 0.13860436390467167910856;
-  t = mla(t, x2.x, 0.131699838841615374240845);
-  t = mla(t, x2.x, 0.153914168346271945653214);
-  t = mla(t, x2.x, 0.181816523941564611721589);
-  t = mla(t, x2.x, 0.22222224632662035403996);
-  t = mla(t, x2.x, 0.285714285511134091777308);
-  t = mla(t, x2.x, 0.400000000000914013309483);
+
+  double x4 = x2.x * x2.x, x8 = x4 * x4;
+  t = POLY7(x2.x, x4, x8,
+	    0.13860436390467167910856,
+	    0.131699838841615374240845,
+	    0.153914168346271945653214,
+	    0.181816523941564611721589,
+	    0.22222224632662035403996,
+	    0.285714285511134091777308,
+	    0.400000000000914013309483);
   t = mla(t, x2.x, 0.666666666666664853302393);
 
   s = ddmul_d2_d2_d(dd(0.693147180559945286226764, 2.319046813846299558417771e-17), e);
@@ -1688,6 +1916,36 @@ EXPORT CONST double xexp2(double d) {
 
   s = d - q;
 
+  double s2 = s * s, s4 = s2 * s2, s8 = s4 * s4;
+  u = POLY10(s, s2, s4, s8,
+	     +0.4434359082926529454e-9,
+	     +0.7073164598085707425e-8,
+	     +0.1017819260921760451e-6,
+	     +0.1321543872511327615e-5,
+	     +0.1525273353517584730e-4,
+	     +0.1540353045101147808e-3,
+	     +0.1333355814670499073e-2,
+	     +0.9618129107597600536e-2,
+	     +0.5550410866482046596e-1,
+	     +0.2402265069591012214e+0);
+  u = mla(u, s, +0.6931471805599452862e+0);
+
+  u = ddnormalize_d2_d2(ddadd_d2_d_d2(1, ddmul_d2_d_d(u, s))).x;
+
+  u = ldexp2k(u, q);
+
+  if (d >= 1024) u = SLEEF_INFINITY;
+  if (d < -2000) u = 0;
+  
+  return u;
+}
+
+EXPORT CONST double xexp2_u35(double d) {
+  int q = (int)rintk(d);
+  double s, u;
+
+  s = d - q;
+
   u = +0.4434359082926529454e-9;
   u = mla(u, s, +0.7073164598085707425e-8);
   u = mla(u, s, +0.1017819260921760451e-6);
@@ -1699,7 +1957,7 @@ EXPORT CONST double xexp2(double d) {
   u = mla(u, s, +0.5550410866482046596e-1);
   u = mla(u, s, +0.2402265069591012214e+0);
   u = mla(u, s, +0.6931471805599452862e+0);
-  u = ddnormalize_d2_d2(ddadd_d2_d_d2(1, ddmul_d2_d_d(u, s))).x;
+  u = mla(u, s, +0.1000000000000000000e+1);
 
   u = ldexp2k(u, q);
 
@@ -1727,11 +1985,40 @@ EXPORT CONST double xexp10(double d) {
   u = mla(u, s, +0.2034678592293432953e+1);
   u = mla(u, s, +0.2650949055239205876e+1);
   u = mla(u, s, +0.2302585092994045901e+1);
+
   u = ddnormalize_d2_d2(ddadd_d2_d_d2(1, ddmul_d2_d_d(u, s))).x;
   
   u = ldexp2k(u, q);
   
   if (d > 308.25471555991671) u = SLEEF_INFINITY; // log10(DBL_MAX)
+  if (d < -350) u = 0;
+  
+  return u;
+}
+
+EXPORT CONST double xexp10_u35(double d) {
+  int q = (int)rintk(d * LOG10_2);
+  double s, u;
+  
+  s = mla(q, -L10U, d);
+  s = mla(q, -L10L, s);
+  
+  u = +0.2411463498334267652e-3;
+  u = mla(u, s, +0.1157488415217187375e-2);
+  u = mla(u, s, +0.5013975546789733659e-2);
+  u = mla(u, s, +0.1959762320720533080e-1);
+  u = mla(u, s, +0.6808936399446784138e-1);
+  u = mla(u, s, +0.2069958494722676234e+0);
+  u = mla(u, s, +0.5393829292058536229e+0);
+  u = mla(u, s, +0.1171255148908541655e+1);
+  u = mla(u, s, +0.2034678592293432953e+1);
+  u = mla(u, s, +0.2650949055239205876e+1);
+  u = mla(u, s, +0.2302585092994045901e+1);
+  u = mla(u, s, +0.1000000000000000000e+1);
+  
+  u = ldexp2k(u, q);
+  
+  if (d > 308.25471555991671) u = SLEEF_INFINITY;
   if (d < -350) u = 0;
   
   return u;
@@ -1762,13 +2049,15 @@ EXPORT CONST double xlog10(double d) {
   x = dddiv_d2_d2_d2(ddadd2_d2_d_d(-1, m), ddadd2_d2_d_d(1, m));
   x2 = x.x * x.x;
 
-  t = +0.6653725819576758460e-1;
-  t = mla(t, x2, +0.6625722782820833712e-1);
-  t = mla(t, x2, +0.7898105214313944078e-1);
-  t = mla(t, x2, +0.9650955035715275132e-1);
-  t = mla(t, x2, +0.1240841409721444993e+0);
-  t = mla(t, x2, +0.1737177927454605086e+0);
-  t = mla(t, x2, +0.2895296546021972617e+0);
+  double x4 = x2 * x2, x8 = x4 * x4;
+  t = POLY7(x2, x4, x8,
+	    +0.6653725819576758460e-1,
+	    +0.6625722782820833712e-1,
+	    +0.7898105214313944078e-1,
+	    +0.9650955035715275132e-1,
+	    +0.1240841409721444993e+0,
+	    +0.1737177927454605086e+0,
+	    +0.2895296546021972617e+0);
   
   s = ddmul_d2_d2_d(dd(0.30102999566398119802, -2.803728127785170339e-18), (double)e);
   s = ddadd_d2_d2_d2(s, ddmul_d2_d2_d2(x, dd(0.86858896380650363334, 1.1430059694096389311e-17)));
@@ -1798,7 +2087,44 @@ EXPORT CONST double xlog2(double d) {
 
   x = dddiv_d2_d2_d2(ddadd2_d2_d_d(-1, m), ddadd2_d2_d_d(1, m));
   x2 = x.x * x.x;
+
+  double x4 = x2 * x2, x8 = x4 * x4;
+  t = POLY7(x2, x4, x8,
+	    +0.2211941750456081490e+0,
+	    +0.2200768693152277689e+0,
+	    +0.2623708057488514656e+0,
+	    +0.3205977477944495502e+0,
+	    +0.4121985945485324709e+0,
+	    +0.5770780162997058982e+0,
+	    +0.96179669392608091449);
+
+  s = ddadd2_d2_d_d2(e, ddmul_d2_d2_d2(x, dd(2.885390081777926774, 6.0561604995516736434e-18)));
+  s = ddadd2_d2_d2_d(s, x2 * x.x * t);
   
+  double r = s.x + s.y;
+  
+  if (xisinf(d)) r = SLEEF_INFINITY;
+  if (d < 0 || xisnan(d)) r = SLEEF_NAN;
+  if (d == 0) r = -SLEEF_INFINITY;
+
+  return r;
+}
+
+EXPORT CONST double xlog2_u35(double d) {
+  double m, t, x, x2;
+  int e;
+
+  int o = d < DBL_MIN;
+  if (o) d *= (double)(1LL << 32) * (double)(1LL << 32);
+      
+  e = ilogb2k(d * (1.0/0.75));
+  m = ldexp3k(d, -e);
+
+  if (o) e -= 64;
+
+  x = (m - 1) / (m + 1);
+  x2 = x * x;
+
   t = +0.2211941750456081490e+0;
   t = mla(t, x2, +0.2200768693152277689e+0);
   t = mla(t, x2, +0.2623708057488514656e+0);
@@ -1806,10 +2132,9 @@ EXPORT CONST double xlog2(double d) {
   t = mla(t, x2, +0.4121985945485324709e+0);
   t = mla(t, x2, +0.5770780162997058982e+0);
   t = mla(t, x2, +0.96179669392608091449  );
-  s = ddadd2_d2_d_d2(e, ddmul_d2_d2_d2(x, dd(2.885390081777926774, 6.0561604995516736434e-18)));
-  s = ddadd2_d2_d2_d(s, x2 * x.x * t);
-  
-  double r = s.x + s.y;
+
+  Sleef_double2 s = ddadd_d2_d_d2(e, ddmul_d2_d_d(2.885390081777926774, x));
+  double r = mla(t, x * x2, s.x + s.y);
   
   if (xisinf(d)) r = SLEEF_INFINITY;
   if (d < 0 || xisnan(d)) r = SLEEF_NAN;
@@ -1838,13 +2163,15 @@ EXPORT CONST double xlog1p(double d) {
   x = dddiv_d2_d2_d2(dd(m, 0), ddadd_d2_d_d(2, m));
   x2 = x.x * x.x;
 
-  t = 0.1532076988502701353e+0;
-  t = mla(t, x2, 0.1525629051003428716e+0);
-  t = mla(t, x2, 0.1818605932937785996e+0);
-  t = mla(t, x2, 0.2222214519839380009e+0);
-  t = mla(t, x2, 0.2857142932794299317e+0);
-  t = mla(t, x2, 0.3999999999635251990e+0);
-  t = mla(t, x2, 0.6666666666667333541e+0);
+  double x4 = x2 * x2, x8 = x4 * x4;
+  t = POLY7(x2, x4, x8,
+	    0.1532076988502701353e+0,
+	    0.1525629051003428716e+0,
+	    0.1818605932937785996e+0,
+	    0.2222214519839380009e+0,
+	    0.2857142932794299317e+0,
+	    0.3999999999635251990e+0,
+	    0.6666666666667333541e+0);
 
   s = ddmul_d2_d2_d(dd(0.693147180559945286226764, 2.319046813846299558417771e-17), (double)e);
   s = ddadd_d2_d2_d2(s, ddscale_d2_d2_d(x, 2));
@@ -1871,7 +2198,7 @@ EXPORT CONST double xfma(double x, double y, double z) {
     z *= c2;
     q = 1.0 / c2;
   }
-  if (fabsk(h2) > 1e+300) {
+  if (fabsk(h2) > 1e+299) {
     const double c0 = 1ULL << 54, c1 = c0 * c0, c2 = c1 * c1;
     x *= 1.0 / c1;
     y *= 1.0 / c1;
@@ -2294,7 +2621,7 @@ EXPORT CONST double xerfc_u15(double a) {
 }
 
 #ifdef ENABLE_MAIN
-// gcc -w -DENABLE_MAIN -I../common sleefdp.c -lm
+// gcc -w -DENABLE_MAIN -I../common sleefdp.c rempitab.c -lm
 #include <stdlib.h>
 int main(int argc, char **argv) {
   double d1 = atof(argv[1]);

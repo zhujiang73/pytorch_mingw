@@ -11,20 +11,19 @@
 
 #include <c10/util/Exception.h>
 #include <c10/util/Optional.h>
+#include <c10/util/StringUtil.h>
 #include <torch/csrc/WindowsTorchApiMacro.h>
-#include <torch/csrc/jit/source_range.h>
+#include <torch/csrc/jit/frontend/source_range.h>
 #include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-#include <torch/csrc/jit/ir.h>
+#include <torch/csrc/jit/ir/ir.h>
 #include <torch/csrc/jit/testing/file_check.h>
 
 namespace torch {
 namespace jit {
-
-void printQuotedString(std::ostream& stmt, const std::string& str);
 
 namespace testing {
 
@@ -35,6 +34,7 @@ enum CheckType {
   CHECK_NOT,
   CHECK_COUNT,
   CHECK_DAG,
+  CHECK_SOURCE_HIGHLIGHTED,
 };
 
 struct Check {
@@ -73,6 +73,9 @@ std::ostream& operator<<(std::ostream& out, const Check& c) {
     case CHECK_COUNT:
       out << "CHECK-COUNT-" << *c.count_;
       break;
+    case CHECK_SOURCE_HIGHLIGHTED:
+      out << "CHECK-SOURCE-HIGHLIGHTED";
+      break;
   }
   out << ": " << c.search_str_;
   return out;
@@ -90,8 +93,9 @@ size_t assertFind(
         SourceRange(search_range.source(), search_range.start(), sub.size());
     std::stringstream ss;
     ss << "Expected to find ";
-    printQuotedString(ss, sub);
-    ss << " but did not find it\n";
+    c10::printQuotedString(ss, sub);
+    ss << " but did not find it" << std::endl;
+    ss << "Searched string:" << std::endl;
     found_range.highlight(ss);
     if (extra_msg) {
       extra_msg(ss);
@@ -129,7 +133,7 @@ void assertNotFind(
         SourceRange(search_range.source(), pos, sub.size() + pos);
     std::stringstream ss;
     ss << "Expected to not find ";
-    printQuotedString(ss, sub);
+    c10::printQuotedString(ss, sub);
     ss << " but found it\n";
     found_range.highlight(ss);
     ss << "From " << check << "\n";
@@ -198,6 +202,7 @@ struct FileCheckImpl {
         {CHECK_NOT, "-NOT: "},
         {CHECK_DAG, "-DAG: "},
         {CHECK_COUNT, "-COUNT-"}, // needs special parsing
+        {CHECK_SOURCE_HIGHLIGHTED, "-SOURCE-HIGHLIGHTED: "},
     };
 
     for (const auto& check_pair : check_pairs) {
@@ -219,7 +224,7 @@ struct FileCheckImpl {
         }
         size_t end =
             assertFind(SourceRange(source, end_check_string, end_line), ":");
-        count = std::stoll(
+        count = c10::stoll(
             source->text().substr(end_check_string, end - end_check_string));
         end_check_string = end + 2; // add ':' and the space
       }
@@ -293,6 +298,60 @@ struct FileCheckImpl {
     }
   }
 
+  // Checks that source token is highlighted, does not advance search range.
+  void doCheckSourceHighlighted(
+      const Check& check,
+      const std::shared_ptr<Source>& source,
+      size_t start_offset) {
+    auto pos = source->text().find(check.search_str_, start_offset);
+    if (pos == std::string::npos) {
+      // Guaranteed to fail to generate error message.
+      assertFind(source, check.search_str_, start_offset, check);
+      return;
+    }
+
+    auto lineno = source->lineno_for_offset(pos);
+    auto col = pos - source->offset_for_line(lineno);
+    auto highlight_lineno = lineno + 1;
+
+    auto construct_error_and_throw = [&]() {
+      SourceRange error_range(source, pos, check.search_str_.size());
+      std::stringstream ss;
+      ss << "Expected to find ";
+      c10::printQuotedString(ss, check.search_str_);
+      ss << "highlighted but it is not." << std::endl;
+      error_range.highlight(ss);
+      throw std::runtime_error(ss.str());
+    };
+
+    if (highlight_lineno >= source->num_lines()) {
+      construct_error_and_throw();
+    }
+
+    auto highlight_start_offset =
+        source->offset_for_line(highlight_lineno) + col;
+    auto highlight_end_offset = std::min(
+        highlight_start_offset + check.search_str_.size(),
+        source->text().size());
+
+    if (highlight_end_offset >= source->text().size()) {
+      construct_error_and_throw();
+    }
+
+    SourceRange highlight_range(
+        source, highlight_start_offset, highlight_end_offset);
+    assertFind(highlight_range, std::string(highlight_range.size(), '~'));
+
+    assertNotFind(
+        SourceRange(source, highlight_start_offset - 1, highlight_start_offset),
+        "~",
+        check);
+    assertNotFind(
+        SourceRange(source, highlight_end_offset, highlight_end_offset + 1),
+        "~",
+        check);
+  }
+
   SourceRange matchDagGroup(
       const std::vector<Check>& group,
       const std::shared_ptr<Source>& source,
@@ -358,6 +417,10 @@ struct FileCheckImpl {
         }
         start_range = group_start_range;
       } break;
+      case CHECK_SOURCE_HIGHLIGHTED: {
+        doCheckSourceHighlighted(check, source, start_range);
+        break;
+      }
       case CHECK_DAG: {
         AT_ERROR();
       } break;
@@ -473,6 +536,12 @@ FileCheck* FileCheck::check_dag(const std::string& str) {
   fcImpl->addCheck(CHECK_DAG, str);
   return this;
 }
+
+FileCheck* FileCheck::check_source_highlighted(const std::string& str) {
+  fcImpl->addCheck(CHECK_SOURCE_HIGHLIGHTED, str);
+  return this;
+}
+
 } // namespace testing
 } // namespace jit
 } // namespace torch

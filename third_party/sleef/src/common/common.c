@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <math.h>
 #include <assert.h>
 
 #include "misc.h"
@@ -33,10 +32,14 @@ EXPORT uint64_t Sleef_currentTimeMicros() {
   gettimeofday(&time, NULL);
   return (uint64_t)((time.tv_sec * 1000000LL) + time.tv_usec);
 }
-#else
+#else // #if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
 #include <time.h>
 #include <unistd.h>
+#ifdef __FreeBSD__
+#include <stdlib.h>
+#else
 #include <malloc.h>
+#endif
 
 EXPORT void *Sleef_malloc(size_t z) { void *ptr = NULL; posix_memalign(&ptr, 4096, z); return ptr; }
 EXPORT void Sleef_free(void *ptr) { free(ptr); }
@@ -46,7 +49,7 @@ EXPORT uint64_t Sleef_currentTimeMicros() {
   clock_gettime(CLOCK_MONOTONIC, &tp);
   return (uint64_t)tp.tv_sec * 1000000LL + ((uint64_t)tp.tv_nsec/1000);
 }
-#endif
+#endif // #if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
 
 #ifdef _MSC_VER
 #include <intrin.h>

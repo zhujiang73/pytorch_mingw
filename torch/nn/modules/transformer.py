@@ -1,5 +1,8 @@
-import torch
 import copy
+from typing import Optional, Any
+
+import torch
+from torch import Tensor
 from .. import functional as F
 from .module import Module
 from .activation import MultiheadAttention
@@ -8,6 +11,7 @@ from ..init import xavier_uniform_
 from .dropout import Dropout
 from .linear import Linear
 from .normalization import LayerNorm
+
 
 class Transformer(Module):
     r"""A transformer model. User is able to modify the attributes as needed. The architecture
@@ -38,9 +42,9 @@ class Transformer(Module):
     https://github.com/pytorch/examples/tree/master/word_language_model
     """
 
-    def __init__(self, d_model=512, nhead=8, num_encoder_layers=6,
-                 num_decoder_layers=6, dim_feedforward=2048, dropout=0.1,
-                 activation="relu", custom_encoder=None, custom_decoder=None):
+    def __init__(self, d_model: int = 512, nhead: int = 8, num_encoder_layers: int = 6,
+                 num_decoder_layers: int = 6, dim_feedforward: int = 2048, dropout: float = 0.1,
+                 activation: str = "relu", custom_encoder: Optional[Any] = None, custom_decoder: Optional[Any] = None) -> None:
         super(Transformer, self).__init__()
 
         if custom_encoder is not None:
@@ -62,9 +66,9 @@ class Transformer(Module):
         self.d_model = d_model
         self.nhead = nhead
 
-    def forward(self, src, tgt, src_mask=None, tgt_mask=None,
-                memory_mask=None, src_key_padding_mask=None,
-                tgt_key_padding_mask=None, memory_key_padding_mask=None):
+    def forward(self, src: Tensor, tgt: Tensor, src_mask: Optional[Tensor] = None, tgt_mask: Optional[Tensor] = None,
+                memory_mask: Optional[Tensor] = None, src_key_padding_mask: Optional[Tensor] = None,
+                tgt_key_padding_mask: Optional[Tensor] = None, memory_key_padding_mask: Optional[Tensor] = None) -> Tensor:
         r"""Take in and process masked source/target sequences.
 
         Args:
@@ -87,14 +91,15 @@ class Transformer(Module):
             - tgt_key_padding_mask: :math:`(N, T)`.
             - memory_key_padding_mask: :math:`(N, S)`.
 
-            Note: [src/tgt/memory]_mask should be filled with
-            float('-inf') for the masked positions and float(0.0) else. These masks
-            ensure that predictions for position i depend only on the unmasked positions
-            j and are applied identically for each sequence in a batch.
-            [src/tgt/memory]_key_padding_mask should be a ByteTensor where True values are positions
-            that should be masked with float('-inf') and False values will be unchanged.
-            This mask ensures that no information will be taken from position i if
-            it is masked, and has a separate mask for each sequence in a batch.
+            Note: [src/tgt/memory]_mask ensures that position i is allowed to attend the unmasked
+            positions. If a ByteTensor is provided, the non-zero positions are not allowed to attend
+            while the zero positions will be unchanged. If a BoolTensor is provided, positions with ``True``
+            are not allowed to attend while ``False`` values will be unchanged. If a FloatTensor
+            is provided, it will be added to the attention weight. 
+            [src/tgt/memory]_key_padding_mask provides specified elements in the key to be ignored by
+            the attention. If a ByteTensor is provided, the non-zero positions will be ignored while the zero
+            positions will be unchanged. If a BoolTensor is provided, the positions with the
+            value of ``True`` will be ignored while the position with the value of ``False`` will be unchanged.
 
             - output: :math:`(T, N, E)`.
 
@@ -121,7 +126,7 @@ class Transformer(Module):
                               memory_key_padding_mask=memory_key_padding_mask)
         return output
 
-    def generate_square_subsequent_mask(self, sz):
+    def generate_square_subsequent_mask(self, sz: int) -> Tensor:
         r"""Generate a square mask for the sequence. The masked positions are filled with float('-inf').
             Unmasked positions are filled with float(0.0).
         """
@@ -151,6 +156,7 @@ class TransformerEncoder(Module):
         >>> src = torch.rand(10, 32, 512)
         >>> out = transformer_encoder(src)
     """
+    __constants__ = ['norm']
 
     def __init__(self, encoder_layer, num_layers, norm=None):
         super(TransformerEncoder, self).__init__()
@@ -158,11 +164,11 @@ class TransformerEncoder(Module):
         self.num_layers = num_layers
         self.norm = norm
 
-    def forward(self, src, mask=None, src_key_padding_mask=None):
-        r"""Pass the input through the endocder layers in turn.
+    def forward(self, src: Tensor, mask: Optional[Tensor] = None, src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
+        r"""Pass the input through the encoder layers in turn.
 
         Args:
-            src: the sequnce to the encoder (required).
+            src: the sequence to the encoder (required).
             mask: the mask for the src sequence (optional).
             src_key_padding_mask: the mask for the src keys per batch (optional).
 
@@ -171,11 +177,10 @@ class TransformerEncoder(Module):
         """
         output = src
 
-        for i in range(self.num_layers):
-            output = self.layers[i](output, src_mask=mask,
-                                    src_key_padding_mask=src_key_padding_mask)
+        for mod in self.layers:
+            output = mod(output, src_mask=mask, src_key_padding_mask=src_key_padding_mask)
 
-        if self.norm:
+        if self.norm is not None:
             output = self.norm(output)
 
         return output
@@ -196,6 +201,7 @@ class TransformerDecoder(Module):
         >>> tgt = torch.rand(20, 32, 512)
         >>> out = transformer_decoder(tgt, memory)
     """
+    __constants__ = ['norm']
 
     def __init__(self, decoder_layer, num_layers, norm=None):
         super(TransformerDecoder, self).__init__()
@@ -203,14 +209,14 @@ class TransformerDecoder(Module):
         self.num_layers = num_layers
         self.norm = norm
 
-    def forward(self, tgt, memory, tgt_mask=None,
-                memory_mask=None, tgt_key_padding_mask=None,
-                memory_key_padding_mask=None):
+    def forward(self, tgt: Tensor, memory: Tensor, tgt_mask: Optional[Tensor] = None,
+                memory_mask: Optional[Tensor] = None, tgt_key_padding_mask: Optional[Tensor] = None,
+                memory_key_padding_mask: Optional[Tensor] = None) -> Tensor:
         r"""Pass the inputs (and mask) through the decoder layer in turn.
 
         Args:
             tgt: the sequence to the decoder (required).
-            memory: the sequnce from the last layer of the encoder (required).
+            memory: the sequence from the last layer of the encoder (required).
             tgt_mask: the mask for the tgt sequence (optional).
             memory_mask: the mask for the memory sequence (optional).
             tgt_key_padding_mask: the mask for the tgt keys per batch (optional).
@@ -221,13 +227,13 @@ class TransformerDecoder(Module):
         """
         output = tgt
 
-        for i in range(self.num_layers):
-            output = self.layers[i](output, memory, tgt_mask=tgt_mask,
-                                    memory_mask=memory_mask,
-                                    tgt_key_padding_mask=tgt_key_padding_mask,
-                                    memory_key_padding_mask=memory_key_padding_mask)
+        for mod in self.layers:
+            output = mod(output, memory, tgt_mask=tgt_mask,
+                         memory_mask=memory_mask,
+                         tgt_key_padding_mask=tgt_key_padding_mask,
+                         memory_key_padding_mask=memory_key_padding_mask)
 
-        if self.norm:
+        if self.norm is not None:
             output = self.norm(output)
 
         return output
@@ -268,11 +274,16 @@ class TransformerEncoderLayer(Module):
 
         self.activation = _get_activation_fn(activation)
 
-    def forward(self, src, src_mask=None, src_key_padding_mask=None):
-        r"""Pass the input through the endocder layer.
+    def __setstate__(self, state):
+        if 'activation' not in state:
+            state['activation'] = F.relu
+        super(TransformerEncoderLayer, self).__setstate__(state)
+
+    def forward(self, src: Tensor, src_mask: Optional[Tensor] = None, src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
+        r"""Pass the input through the encoder layer.
 
         Args:
-            src: the sequnce to the encoder layer (required).
+            src: the sequence to the encoder layer (required).
             src_mask: the mask for the src sequence (optional).
             src_key_padding_mask: the mask for the src keys per batch (optional).
 
@@ -283,10 +294,7 @@ class TransformerEncoderLayer(Module):
                               key_padding_mask=src_key_padding_mask)[0]
         src = src + self.dropout1(src2)
         src = self.norm1(src)
-        if hasattr(self, "activation"):
-            src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
-        else:  # for backward compatibility
-            src2 = self.linear2(self.dropout(F.relu(self.linear1(src))))
+        src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
         src = src + self.dropout2(src2)
         src = self.norm2(src)
         return src
@@ -332,13 +340,18 @@ class TransformerDecoderLayer(Module):
 
         self.activation = _get_activation_fn(activation)
 
-    def forward(self, tgt, memory, tgt_mask=None, memory_mask=None,
-                tgt_key_padding_mask=None, memory_key_padding_mask=None):
+    def __setstate__(self, state):
+        if 'activation' not in state:
+            state['activation'] = F.relu
+        super(TransformerDecoderLayer, self).__setstate__(state)
+
+    def forward(self, tgt: Tensor, memory: Tensor, tgt_mask: Optional[Tensor] = None, memory_mask: Optional[Tensor] = None,
+                tgt_key_padding_mask: Optional[Tensor] = None, memory_key_padding_mask: Optional[Tensor] = None) -> Tensor:
         r"""Pass the inputs (and mask) through the decoder layer.
 
         Args:
             tgt: the sequence to the decoder layer (required).
-            memory: the sequnce from the last layer of the encoder (required).
+            memory: the sequence from the last layer of the encoder (required).
             tgt_mask: the mask for the tgt sequence (optional).
             memory_mask: the mask for the memory sequence (optional).
             tgt_key_padding_mask: the mask for the tgt keys per batch (optional).
@@ -355,10 +368,7 @@ class TransformerDecoderLayer(Module):
                                    key_padding_mask=memory_key_padding_mask)[0]
         tgt = tgt + self.dropout2(tgt2)
         tgt = self.norm2(tgt)
-        if hasattr(self, "activation"):
-            tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt))))
-        else:  # for backward compatibility
-            tgt2 = self.linear2(self.dropout(F.relu(self.linear1(tgt))))
+        tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt))))
         tgt = tgt + self.dropout3(tgt2)
         tgt = self.norm3(tgt)
         return tgt
@@ -373,5 +383,5 @@ def _get_activation_fn(activation):
         return F.relu
     elif activation == "gelu":
         return F.gelu
-    else:
-        raise RuntimeError("activation should be relu/gelu, not %s." % activation)
+
+    raise RuntimeError("activation should be relu/gelu, not {}".format(activation))

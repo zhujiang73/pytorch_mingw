@@ -41,10 +41,9 @@ goog.provide('jspb.Message');
 goog.require('goog.array');
 goog.require('goog.asserts');
 goog.require('goog.crypt.base64');
+goog.require('jspb.BinaryReader');
 goog.require('jspb.Map');
 
-// Not needed in compilation units that have no protos with xids.
-goog.forwardDeclare('xid.String');
 
 
 
@@ -105,7 +104,7 @@ jspb.ExtensionFieldInfo = function(fieldNumber, fieldName, ctor, toObjectFn,
 /**
  * Stores binary-related information for a single extension field.
  * @param {!jspb.ExtensionFieldInfo<T>} fieldInfo
- * @param {function(this:jspb.BinaryReader,number,?)} binaryReaderFn
+ * @param {function(this:jspb.BinaryReader,number,?,?)} binaryReaderFn
  * @param {function(this:jspb.BinaryWriter,number,?)
  *        |function(this:jspb.BinaryWriter,number,?,?,?,?,?)} binaryWriterFn
  * @param {function(?,?)=} opt_binaryMessageSerializeFn
@@ -171,7 +170,8 @@ jspb.Message = function() {
  *     dead code eliminate fields used in protocol buffers that are never used
  *     in an application.
  */
-goog.define('jspb.Message.GENERATE_TO_OBJECT', true);
+jspb.Message.GENERATE_TO_OBJECT =
+    goog.define('jspb.Message.GENERATE_TO_OBJECT', true);
 
 
 /**
@@ -181,12 +181,10 @@ goog.define('jspb.Message.GENERATE_TO_OBJECT', true);
  *     calling fromObject. Enabling this might disable the JSCompiler's ability
  *     to dead code eliminate fields used in protocol buffers that are never
  *     used in an application.
- *     NOTE: By default no protos actually have a fromObject method. You need to
- *     add the jspb.generate_from_object options to the proto definition to
- *     activate the feature.
  *     By default this is enabled for test code only.
  */
-goog.define('jspb.Message.GENERATE_FROM_OBJECT', !goog.DISALLOW_TEST_ONLY_CODE);
+jspb.Message.GENERATE_FROM_OBJECT = goog.define(
+    'jspb.Message.GENERATE_FROM_OBJECT', !goog.DISALLOW_TEST_ONLY_CODE);
 
 
 /**
@@ -194,7 +192,8 @@ goog.define('jspb.Message.GENERATE_FROM_OBJECT', !goog.DISALLOW_TEST_ONLY_CODE);
  *     this off if you do not use toString in your project and want to trim it
  *     from the compiled JS.
  */
-goog.define('jspb.Message.GENERATE_TO_STRING', true);
+jspb.Message.GENERATE_TO_STRING =
+    goog.define('jspb.Message.GENERATE_TO_STRING', true);
 
 
 /**
@@ -202,7 +201,8 @@ goog.define('jspb.Message.GENERATE_TO_STRING', true);
  *     local (e.g. not from another iframe) and thus safely classified with
  *     instanceof Array.
  */
-goog.define('jspb.Message.ASSUME_LOCAL_ARRAYS', false);
+jspb.Message.ASSUME_LOCAL_ARRAYS =
+    goog.define('jspb.Message.ASSUME_LOCAL_ARRAYS', false);
 
 
 // TODO(jakubvrana): Turn this off by default.
@@ -212,7 +212,8 @@ goog.define('jspb.Message.ASSUME_LOCAL_ARRAYS', false);
  *     the proto before serialization. This is enabled by default to be
  *     backwards compatible. Projects are advised to turn this flag always off.
  */
-goog.define('jspb.Message.SERIALIZE_EMPTY_TRAILING_FIELDS', true);
+jspb.Message.SERIALIZE_EMPTY_TRAILING_FIELDS =
+    goog.define('jspb.Message.SERIALIZE_EMPTY_TRAILING_FIELDS', true);
 
 
 /**
@@ -269,30 +270,18 @@ jspb.Message.prototype.messageId_;
 
 
 /**
- * Repeated float or double fields which have been converted to include only
- * numbers and not strings holding "NaN", "Infinity" and "-Infinity".
+ * Repeated fields that have been converted to their proper type. This is used
+ * for numbers stored as strings (typically "NaN", "Infinity" and "-Infinity")
+ * and for booleans stored as numbers (0 or 1).
  * @private {!Object<number,boolean>|undefined}
  */
-jspb.Message.prototype.convertedFloatingPointFields_;
-
+jspb.Message.prototype.convertedPrimitiveFields_;
 
 /**
  * Repeated fields numbers.
  * @protected {?Array<number>|undefined}
  */
 jspb.Message.prototype.repeatedFields;
-
-
-/**
- * The xid of this proto type (The same for all instances of a proto). Provides
- * a way to identify a proto by stable obfuscated name.
- * @see {xid}.
- * Available if {@link jspb.generate_xid} is added as a Message option to
- * a protocol buffer.
- * @const {!xid.String|undefined} The xid or undefined if message is
- *     annotated to generate the xid.
- */
-jspb.Message.prototype.messageXid;
 
 
 
@@ -327,6 +316,10 @@ jspb.Message.prototype.arrayIndexOffset_;
 jspb.Message.getIndex_ = function(msg, fieldNumber) {
   return fieldNumber + msg.arrayIndexOffset_;
 };
+
+// This is only here to ensure we are not back sliding on ES6 requiements for
+// protos in g3.
+jspb.Message.hiddenES6Property_ = class {};
 
 
 /**
@@ -369,7 +362,7 @@ jspb.Message.initialize = function(
   msg.arrayIndexOffset_ = messageId === 0 ? -1 : 0;
   msg.array = data;
   jspb.Message.initPivotAndExtensionObject_(msg, suggestedPivot);
-  msg.convertedFloatingPointFields_ = {};
+  msg.convertedPrimitiveFields_ = {};
 
   if (!jspb.Message.SERIALIZE_EMPTY_TRAILING_FIELDS) {
     // TODO(jakubvrana): This is same for all instances, move to prototype.
@@ -427,6 +420,24 @@ jspb.Message.isArray_ = function(o) {
                                             goog.isArray(o);
 };
 
+/**
+ * Returns true if the provided argument is an extension object.
+ * @param {*} o The object to classify as array or not.
+ * @return {boolean} True if the provided object is an extension object.
+ * @private
+ */
+jspb.Message.isExtensionObject_ = function(o) {
+  // Normal fields are never objects, so we can be sure that if we find an
+  // object here, then it's the extension object. However, we must ensure that
+  // the object is not an array, since arrays are valid field values (bytes
+  // fields can also be array).
+  // NOTE(lukestebbing): We avoid looking at .length to avoid a JIT bug
+  // in Safari on iOS 8. See the description of CL/86511464 for details.
+  return (o !== null && typeof o == 'object' &&
+      !jspb.Message.isArray_(o) &&
+      !(jspb.Message.SUPPORTS_UINT8ARRAY_ && o instanceof Uint8Array));
+};
+
 
 /**
  * If the array contains an extension object in its last position, then the
@@ -439,24 +450,31 @@ jspb.Message.isArray_ = function(o) {
  * @private
  */
 jspb.Message.initPivotAndExtensionObject_ = function(msg, suggestedPivot) {
-  if (msg.array.length) {
-    var foundIndex = msg.array.length - 1;
-    var obj = msg.array[foundIndex];
-    // Normal fields are never objects, so we can be sure that if we find an
-    // object here, then it's the extension object. However, we must ensure that
-    // the object is not an array, since arrays are valid field values.
-    // NOTE(lukestebbing): We avoid looking at .length to avoid a JIT bug
-    // in Safari on iOS 8. See the description of CL/86511464 for details.
-    if (obj && typeof obj == 'object' && !jspb.Message.isArray_(obj) &&
-        !(jspb.Message.SUPPORTS_UINT8ARRAY_ && obj instanceof Uint8Array)) {
-      msg.pivot_ = jspb.Message.getFieldNumber_(msg, foundIndex);
+  // There are 3 variants that need to be dealt with which are the
+  // combination of whether there exists an extension object (EO) and
+  // whether there is a suggested pivot (SP).
+  //
+  // EO,    ?    : pivot is the index of the EO
+  // no-EO, no-SP: pivot is MAX_INT
+  // no-EO, SP   : pivot is the max(lastindex + 1, SP)
+
+  var msgLength = msg.array.length;
+  var lastIndex = -1;
+  if (msgLength) {
+    lastIndex = msgLength - 1;
+    var obj = msg.array[lastIndex];
+    if (jspb.Message.isExtensionObject_(obj)) {
+      msg.pivot_ = jspb.Message.getFieldNumber_(msg, lastIndex);
       msg.extensionObject_ = obj;
       return;
     }
   }
 
   if (suggestedPivot > -1) {
-    msg.pivot_ = suggestedPivot;
+    // If a extension object is not present, set the pivot value as being
+    // after the last value in the array to avoid overwriting values, etc.
+    msg.pivot_ = Math.max(
+        suggestedPivot, jspb.Message.getFieldNumber_(msg, lastIndex + 1));
     // Avoid changing the shape of the proto with an empty extension object by
     // deferring the materialization of the extension object until the first
     // time a field set into it (may be due to getting a repeated proto field
@@ -597,10 +615,7 @@ jspb.Message.serializeBinaryExtensions = function(proto, writer, extensions,
  * Reads an extension field from the given reader and, if a valid extension,
  * sets the extension value.
  * @param {!jspb.Message} msg A jspb proto.
- * @param {{
- *   skipField:function(this:jspb.BinaryReader),
- *   getFieldNumber:function(this:jspb.BinaryReader):number
- * }} reader
+ * @param {!jspb.BinaryReader} reader
  * @param {!Object} extensions The extensions object.
  * @param {function(this:jspb.Message,!jspb.ExtensionFieldInfo)} getExtensionFn
  * @param {function(this:jspb.Message,!jspb.ExtensionFieldInfo, ?)} setExtensionFn
@@ -679,20 +694,7 @@ jspb.Message.getField = function(msg, fieldNumber) {
  * @protected
  */
 jspb.Message.getRepeatedField = function(msg, fieldNumber) {
-  if (fieldNumber < msg.pivot_) {
-    var index = jspb.Message.getIndex_(msg, fieldNumber);
-    var val = msg.array[index];
-    if (val === jspb.Message.EMPTY_LIST_SENTINEL_) {
-      return msg.array[index] = [];
-    }
-    return val;
-  }
-
-  var val = msg.extensionObject_[fieldNumber];
-  if (val === jspb.Message.EMPTY_LIST_SENTINEL_) {
-    return msg.extensionObject_[fieldNumber] = [];
-  }
-  return val;
+  return /** @type {!Array} */ (jspb.Message.getField(msg, fieldNumber));
 };
 
 
@@ -711,6 +713,20 @@ jspb.Message.getOptionalFloatingPointField = function(msg, fieldNumber) {
 
 
 /**
+ * Gets the value of an optional boolean field.
+ * @param {!jspb.Message} msg A jspb proto.
+ * @param {number} fieldNumber The field number.
+ * @return {?boolean|undefined} The field's value.
+ * @protected
+ */
+jspb.Message.getBooleanField = function(msg, fieldNumber) {
+  var value = jspb.Message.getField(msg, fieldNumber);
+  // TODO(b/122673075): always return null when the value is null-ish.
+  return value == null ? (value) : !!value;
+};
+
+
+/**
  * Gets the value of a repeated float or double field.
  * @param {!jspb.Message} msg A jspb proto.
  * @param {number} fieldNumber The field number.
@@ -719,18 +735,40 @@ jspb.Message.getOptionalFloatingPointField = function(msg, fieldNumber) {
  */
 jspb.Message.getRepeatedFloatingPointField = function(msg, fieldNumber) {
   var values = jspb.Message.getRepeatedField(msg, fieldNumber);
-  if (!msg.convertedFloatingPointFields_) {
-    msg.convertedFloatingPointFields_ = {};
+  if (!msg.convertedPrimitiveFields_) {
+    msg.convertedPrimitiveFields_ = {};
   }
-  if (!msg.convertedFloatingPointFields_[fieldNumber]) {
+  if (!msg.convertedPrimitiveFields_[fieldNumber]) {
     for (var i = 0; i < values.length; i++) {
       // Converts "NaN", "Infinity" and "-Infinity" to their corresponding
       // numbers.
       values[i] = +values[i];
     }
-    msg.convertedFloatingPointFields_[fieldNumber] = true;
+    msg.convertedPrimitiveFields_[fieldNumber] = true;
   }
   return /** @type {!Array<number>} */ (values);
+};
+
+/**
+ * Gets the value of a repeated boolean field.
+ * @param {!jspb.Message} msg A jspb proto.
+ * @param {number} fieldNumber The field number.
+ * @return {!Array<boolean>} The field's value.
+ * @protected
+ */
+jspb.Message.getRepeatedBooleanField = function(msg, fieldNumber) {
+  var values = jspb.Message.getRepeatedField(msg, fieldNumber);
+  if (!msg.convertedPrimitiveFields_) {
+    msg.convertedPrimitiveFields_ = {};
+  }
+  if (!msg.convertedPrimitiveFields_[fieldNumber]) {
+    for (var i = 0; i < values.length; i++) {
+      // Converts 0 and 1 to their corresponding booleans.
+      values[i] = !!values[i];
+    }
+    msg.convertedPrimitiveFields_[fieldNumber] = true;
+  }
+  return /** @type {!Array<boolean>} */ (values);
 };
 
 
@@ -740,7 +778,7 @@ jspb.Message.getRepeatedFloatingPointField = function(msg, fieldNumber) {
  * @return {?string} The field's coerced value.
  */
 jspb.Message.bytesAsB64 = function(value) {
-  if (value == null || goog.isString(value)) {
+  if (value == null || typeof value === 'string') {
     return value;
   }
   if (jspb.Message.SUPPORTS_UINT8ARRAY_ && value instanceof Uint8Array) {
@@ -762,7 +800,7 @@ jspb.Message.bytesAsU8 = function(value) {
   if (value == null || value instanceof Uint8Array) {
     return value;
   }
-  if (goog.isString(value)) {
+  if (typeof value === 'string') {
     return goog.crypt.base64.decodeStringToUint8Array(value);
   }
   goog.asserts.fail('Cannot coerce to Uint8Array: ' + goog.typeOf(value));
@@ -778,7 +816,7 @@ jspb.Message.bytesAsU8 = function(value) {
  */
 jspb.Message.bytesListAsB64 = function(value) {
   jspb.Message.assertConsistentTypes_(value);
-  if (!value.length || goog.isString(value[0])) {
+  if (!value.length || typeof value[0] === 'string') {
     return /** @type {!Array<string>} */ (value);
   }
   return goog.array.map(value, jspb.Message.bytesAsB64);
@@ -842,6 +880,49 @@ jspb.Message.getFieldWithDefault = function(msg, fieldNumber, defaultValue) {
 
 
 /**
+ * Gets the value of a boolean field, with proto3 (non-nullable primitives)
+ * semantics. Returns `defaultValue` if the field is not otherwise set.
+ * @template T
+ * @param {!jspb.Message} msg A jspb proto.
+ * @param {number} fieldNumber The field number.
+ * @param {boolean} defaultValue The default value.
+ * @return {boolean} The field's value.
+ * @protected
+ */
+jspb.Message.getBooleanFieldWithDefault = function(
+    msg, fieldNumber, defaultValue) {
+  var value = jspb.Message.getBooleanField(msg, fieldNumber);
+  if (value == null) {
+    return defaultValue;
+  } else {
+    return value;
+  }
+};
+
+
+/**
+ * Gets the value of a floating point field, with proto3 (non-nullable
+ * primitives) semantics. Returns `defaultValue` if the field is not otherwise
+ * set.
+ * @template T
+ * @param {!jspb.Message} msg A jspb proto.
+ * @param {number} fieldNumber The field number.
+ * @param {number} defaultValue The default value.
+ * @return {number} The field's value.
+ * @protected
+ */
+jspb.Message.getFloatingPointFieldWithDefault = function(
+    msg, fieldNumber, defaultValue) {
+  var value = jspb.Message.getOptionalFloatingPointField(msg, fieldNumber);
+  if (value == null) {
+    return defaultValue;
+  } else {
+    return value;
+  }
+};
+
+
+/**
  * Alias for getFieldWithDefault used by older generated code.
  * @template T
  * @param {!jspb.Message} msg A jspb proto.
@@ -877,172 +958,204 @@ jspb.Message.getMapField = function(msg, fieldNumber, noLazyCreate,
   // If we already have a map in the map wrappers, return that.
   if (fieldNumber in msg.wrappers_) {
     return msg.wrappers_[fieldNumber];
-  } else if (noLazyCreate) {
-    return undefined;
-  } else {
-    // Wrap the underlying elements array with a Map.
-    var arr = jspb.Message.getField(msg, fieldNumber);
-    if (!arr) {
-      arr = [];
-      jspb.Message.setField(msg, fieldNumber, arr);
-    }
-    return msg.wrappers_[fieldNumber] =
-        new jspb.Map(
-            /** @type {!Array<!Array<!Object>>} */ (arr), opt_valueCtor);
   }
+  var arr = jspb.Message.getField(msg, fieldNumber);
+  // Wrap the underlying elements array with a Map.
+  if (!arr) {
+    if (noLazyCreate) {
+      return undefined;
+    }
+    arr = [];
+    jspb.Message.setField(msg, fieldNumber, arr);
+  }
+  return msg.wrappers_[fieldNumber] =
+      new jspb.Map(
+          /** @type {!Array<!Array<!Object>>} */ (arr), opt_valueCtor);
 };
 
 
 /**
  * Sets the value of a non-extension field.
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {string|number|boolean|Uint8Array|Array|undefined} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setField = function(msg, fieldNumber, value) {
+  // TODO(b/35241823): replace this with a bounded generic when available
+  goog.asserts.assertInstanceof(msg, jspb.Message);
   if (fieldNumber < msg.pivot_) {
     msg.array[jspb.Message.getIndex_(msg, fieldNumber)] = value;
   } else {
     jspb.Message.maybeInitEmptyExtensionObject_(msg);
     msg.extensionObject_[fieldNumber] = value;
   }
+  return msg;
 };
 
 
 /**
  * Sets the value of a non-extension integer field of a proto3
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {number} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setProto3IntField = function(msg, fieldNumber, value) {
-  jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, 0);
+  return jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, 0);
 };
 
-
-/**
- * Sets the value of a non-extension integer, handled as string, field of a proto3
- * @param {!jspb.Message} msg A jspb proto.
- * @param {number} fieldNumber The field number.
- * @param {number} value New value
- * @protected
- */
-jspb.Message.setProto3StringIntField = function(msg, fieldNumber, value) {
-  jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, '0');
-};
 
 /**
  * Sets the value of a non-extension floating point field of a proto3
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {number} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setProto3FloatField = function(msg, fieldNumber, value) {
-  jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, 0.0);
+  return jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, 0.0);
 };
 
 
 /**
  * Sets the value of a non-extension boolean field of a proto3
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {boolean} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setProto3BooleanField = function(msg, fieldNumber, value) {
-  jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, false);
+  return jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, false);
 };
 
 
 /**
  * Sets the value of a non-extension String field of a proto3
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {string} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setProto3StringField = function(msg, fieldNumber, value) {
-  jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, "");
+  return jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, '');
 };
 
 
 /**
  * Sets the value of a non-extension Bytes field of a proto3
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {!Uint8Array|string} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setProto3BytesField = function(msg, fieldNumber, value) {
-  jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, "");
+  return jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, '');
 };
 
 
 /**
  * Sets the value of a non-extension enum field of a proto3
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {number} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setProto3EnumField = function(msg, fieldNumber, value) {
-  jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, 0);
+  return jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, 0);
 };
 
 
+/**
+ * Sets the value of a non-extension int field of a proto3 that has jstype set
+ * to String.
+ * @param {T} msg A jspb proto.
+ * @param {number} fieldNumber The field number.
+ * @param {string} value New value
+ * @return {T} return msg
+ * @template T
+ * @protected
+ */
+jspb.Message.setProto3StringIntField = function(msg, fieldNumber, value) {
+  return jspb.Message.setFieldIgnoringDefault_(msg, fieldNumber, value, '0');
+};
 
 /**
  * Sets the value of a non-extension primitive field, with proto3 (non-nullable
  * primitives) semantics of ignoring values that are equal to the type's
  * default.
- * @template T
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {!Uint8Array|string|number|boolean|undefined} value New value
  * @param {!Uint8Array|string|number|boolean} defaultValue The default value.
+ * @return {T} return msg
+ * @template T
  * @private
  */
 jspb.Message.setFieldIgnoringDefault_ = function(
     msg, fieldNumber, value, defaultValue) {
-  if (value != defaultValue) {
+  // TODO(b/35241823): replace this with a bounded generic when available
+  goog.asserts.assertInstanceof(msg, jspb.Message);
+  if (value !== defaultValue) {
     jspb.Message.setField(msg, fieldNumber, value);
   } else {
     msg.array[jspb.Message.getIndex_(msg, fieldNumber)] = null;
   }
+  return msg;
 };
 
 
 /**
  * Adds a value to a repeated, primitive field.
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {string|number|boolean|!Uint8Array} value New value
  * @param {number=} opt_index Index where to put new value.
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.addToRepeatedField = function(msg, fieldNumber, value, opt_index) {
+  // TODO(b/35241823): replace this with a bounded generic when available
+  goog.asserts.assertInstanceof(msg, jspb.Message);
   var arr = jspb.Message.getRepeatedField(msg, fieldNumber);
   if (opt_index != undefined) {
     arr.splice(opt_index, 0, value);
   } else {
     arr.push(value);
   }
+  return msg;
 };
 
 
 /**
  * Sets the value of a field in a oneof union and clears all other fields in
  * the union.
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {!Array<number>} oneof The fields belonging to the union.
  * @param {string|number|boolean|Uint8Array|Array|undefined} value New value
+ * @return {T} return msg
+ * @template T
  * @protected
  */
 jspb.Message.setOneofField = function(msg, fieldNumber, oneof, value) {
+  // TODO(b/35241823): replace this with a bounded generic when available
+  goog.asserts.assertInstanceof(msg, jspb.Message);
   var currentCase = jspb.Message.computeOneofCase(msg, oneof);
   if (currentCase && currentCase !== fieldNumber && value !== undefined) {
     if (msg.wrappers_ && currentCase in msg.wrappers_) {
@@ -1050,7 +1163,7 @@ jspb.Message.setOneofField = function(msg, fieldNumber, oneof, value) {
     }
     jspb.Message.setField(msg, currentCase, undefined);
   }
-  jspb.Message.setField(msg, fieldNumber, value);
+  return jspb.Message.setField(msg, fieldNumber, value);
 };
 
 
@@ -1127,7 +1240,7 @@ jspb.Message.getWrapperField = function(msg, ctor, fieldNumber, opt_required) {
  * @param {!jspb.Message} msg A jspb proto.
  * @param {function(new:jspb.Message, Array)} ctor Constructor for the field.
  * @param {number} fieldNumber The field number.
- * @return {Array<!jspb.Message>} The repeated field as an array of protos.
+ * @return {!Array<!jspb.Message>} The repeated field as an array of protos.
  * @protected
  */
 jspb.Message.getRepeatedWrapperField = function(msg, ctor, fieldNumber) {
@@ -1164,48 +1277,61 @@ jspb.Message.wrapRepeatedField_ = function(msg, ctor, fieldNumber) {
 
 /**
  * Sets a proto field and syncs it to the backing array.
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {?jspb.Message|?jspb.Map|undefined} value A new value for this proto
  * field.
+ * @return {T} the msg
+ * @template T
  * @protected
  */
 jspb.Message.setWrapperField = function(msg, fieldNumber, value) {
+  // TODO(b/35241823): replace this with a bounded generic when available
+  goog.asserts.assertInstanceof(msg, jspb.Message);
   if (!msg.wrappers_) {
     msg.wrappers_ = {};
   }
   var data = value ? value.toArray() : value;
   msg.wrappers_[fieldNumber] = value;
-  jspb.Message.setField(msg, fieldNumber, data);
+  return jspb.Message.setField(msg, fieldNumber, data);
 };
+
 
 
 /**
  * Sets a proto field in a oneof union and syncs it to the backing array.
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {!Array<number>} oneof The fields belonging to the union.
  * @param {jspb.Message|undefined} value A new value for this proto field.
+ * @return {T} the msg
+ * @template T
  * @protected
  */
 jspb.Message.setOneofWrapperField = function(msg, fieldNumber, oneof, value) {
+  // TODO(b/35241823): replace this with a bounded generic when available
+  goog.asserts.assertInstanceof(msg, jspb.Message);
   if (!msg.wrappers_) {
     msg.wrappers_ = {};
   }
   var data = value ? value.toArray() : value;
   msg.wrappers_[fieldNumber] = value;
-  jspb.Message.setOneofField(msg, fieldNumber, oneof, data);
+  return jspb.Message.setOneofField(msg, fieldNumber, oneof, data);
 };
 
 
 /**
  * Sets a repeated proto field and syncs it to the backing array.
- * @param {!jspb.Message} msg A jspb proto.
+ * @param {T} msg A jspb proto.
  * @param {number} fieldNumber The field number.
  * @param {Array<!jspb.Message>|undefined} value An array of protos.
+ * @return {T} the msg
+ * @template T
  * @protected
  */
 jspb.Message.setRepeatedWrapperField = function(msg, fieldNumber, value) {
+  // TODO(b/35241823): replace this with a bounded generic when available
+  goog.asserts.assertInstanceof(msg, jspb.Message);
   if (!msg.wrappers_) {
     msg.wrappers_ = {};
   }
@@ -1214,7 +1340,7 @@ jspb.Message.setRepeatedWrapperField = function(msg, fieldNumber, value) {
     data[i] = value[i].toArray();
   }
   msg.wrappers_[fieldNumber] = value;
-  jspb.Message.setField(msg, fieldNumber, data);
+  return jspb.Message.setField(msg, fieldNumber, data);
 };
 
 
@@ -1528,8 +1654,8 @@ jspb.Message.compareFields = function(field1, field2) {
 
   if (!goog.isObject(field1) || !goog.isObject(field2)) {
     // NaN != NaN so we cover this case.
-    if ((goog.isNumber(field1) && isNaN(field1)) ||
-        (goog.isNumber(field2) && isNaN(field2))) {
+    if ((typeof field1 === 'number' && isNaN(field1)) ||
+        (typeof field2 === 'number' && isNaN(field2))) {
       // One of the fields might be a string 'NaN'.
       return String(field1) == String(field2);
     }
@@ -1734,7 +1860,6 @@ jspb.Message.clone_ = function(obj) {
  * @param {Function} constructor The message constructor.
  */
 jspb.Message.registerMessageType = function(id, constructor) {
-  jspb.Message.registry_[id] = constructor;
   // This is needed so we can later access messageId directly on the contructor,
   // otherwise it is not available due to 'property collapsing' by the compiler.
   /**
@@ -1742,15 +1867,6 @@ jspb.Message.registerMessageType = function(id, constructor) {
    */
   constructor.messageId = id;
 };
-
-
-/**
- * The registry of message ids to message constructors.
- * @private
- */
-jspb.Message.registry_ = {};
-
-
 /**
  * The extensions registered on MessageSet. This is a map of extension
  * field number to field info object. This should be considered as a

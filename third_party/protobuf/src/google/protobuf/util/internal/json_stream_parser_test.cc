@@ -35,7 +35,6 @@
 #include <google/protobuf/stubs/time.h>
 #include <google/protobuf/util/internal/expecting_objectwriter.h>
 #include <google/protobuf/util/internal/object_writer.h>
-#include <google/protobuf/stubs/strutil.h>
 #include <gtest/gtest.h>
 #include <google/protobuf/stubs/status.h>
 
@@ -88,10 +87,10 @@ class JsonStreamParserTest : public ::testing::Test {
   JsonStreamParserTest() : mock_(), ow_(&mock_) {}
   virtual ~JsonStreamParserTest() {}
 
-  util::Status RunTest(StringPiece json, int split, bool coerce_utf8 = false,
-                       bool allow_empty_null = false,
-                       bool loose_float_number_conversion = false) {
+  util::Status RunTest(StringPiece json, int split,
+                       std::function<void(JsonStreamParser*)> setup) {
     JsonStreamParser parser(&mock_);
+    setup(&parser);
 
     // Special case for split == length, test parsing one character at a time.
     if (split == json.length()) {
@@ -117,25 +116,29 @@ class JsonStreamParserTest : public ::testing::Test {
         result = parser.FinishParse();
       }
     }
+    if (result.ok()) {
+      EXPECT_EQ(parser.recursion_depth(), 0);
+    }
     return result;
   }
 
-  void DoTest(StringPiece json, int split, bool coerce_utf8 = false,
-              bool allow_empty_null = false,
-              bool loose_float_number_conversion = false) {
-    util::Status result = RunTest(json, split, coerce_utf8, allow_empty_null,
-                                  loose_float_number_conversion);
+  void DoTest(
+      StringPiece json, int split,
+      std::function<void(JsonStreamParser*)> setup = [](JsonStreamParser* p) {
+      }) {
+    util::Status result = RunTest(json, split, setup);
     if (!result.ok()) {
       GOOGLE_LOG(WARNING) << result;
     }
-    EXPECT_OK(result);
+    EXPECT_TRUE(result.ok());
   }
 
-  void DoErrorTest(StringPiece json, int split, StringPiece error_prefix,
-                   bool coerce_utf8 = false, bool allow_empty_null = false) {
-    util::Status result =
-        RunTest(json, split, coerce_utf8, allow_empty_null);
-    EXPECT_EQ(util::error::INVALID_ARGUMENT, result.error_code());
+  void DoErrorTest(
+      StringPiece json, int split, StringPiece error_prefix,
+      std::function<void(JsonStreamParser*)> setup = [](JsonStreamParser* p) {
+      }) {
+    util::Status result = RunTest(json, split, setup);
+    EXPECT_EQ(util::error::INVALID_ARGUMENT, result.code());
     StringPiece error_message(result.error_message());
     EXPECT_EQ(error_prefix, error_message.substr(0, error_prefix.size()));
   }
@@ -321,6 +324,33 @@ TEST_F(JsonStreamParserTest, ObjectKeyTypes) {
     DoTest(str, i);
   }
 }
+
+TEST_F(JsonStreamParserTest, UnquotedObjectKeyWithReservedPrefxes) {
+  StringPiece str = "{ nullkey: \"a\", truekey: \"b\", falsekey: \"c\"}";
+  for (int i = 0; i <= str.length(); ++i) {
+    ow_.StartObject("")
+        ->RenderString("nullkey", "a")
+        ->RenderString("truekey", "b")
+        ->RenderString("falsekey", "c")
+        ->EndObject();
+    DoTest(str, i);
+  }
+}
+
+TEST_F(JsonStreamParserTest, UnquotedObjectKeyWithReservedKeyword) {
+  StringPiece str = "{ null: \"a\", true: \"b\", false: \"c\"}";
+  for (int i = 0; i <= str.length(); ++i) {
+    DoErrorTest(str, i, "Expected an object key or }.");
+  }
+}
+
+TEST_F(JsonStreamParserTest, UnquotedObjectKeyWithEmbeddedNonAlphanumeric) {
+  StringPiece str = "{ foo-bar-baz: \"a\"}";
+  for (int i = 0; i <= str.length(); ++i) {
+    DoErrorTest(str, i, "Expected : between key:value pair.");
+  }
+}
+
 
 // - array containing primitive values (true, false, null, num, string)
 TEST_F(JsonStreamParserTest, ArrayPrimitiveValues) {
@@ -836,6 +866,49 @@ TEST_F(JsonStreamParserTest, UnknownCharactersInObject) {
     ow_.StartObject("");
     DoErrorTest(str, i, "Expected a value.");
   }
+}
+
+TEST_F(JsonStreamParserTest, DeepNestJsonNotExceedLimit) {
+  int count = 99;
+  std::string str;
+  for (int i = 0; i < count; ++i) {
+    StrAppend(&str, "{'a':");
+  }
+  StrAppend(&str, "{'nest64':'v1', 'nest64': false, 'nest64': ['v2']}");
+  for (int i = 0; i < count; ++i) {
+    StrAppend(&str, "}");
+  }
+  ow_.StartObject("");
+  for (int i = 0; i < count; ++i) {
+    ow_.StartObject("a");
+  }
+  ow_.RenderString("nest64", "v1")
+      ->RenderBool("nest64", false)
+      ->StartList("nest64")
+      ->RenderString("", "v2")
+      ->EndList();
+  for (int i = 0; i < count; ++i) {
+    ow_.EndObject();
+  }
+  ow_.EndObject();
+  DoTest(str, 0);
+}
+
+TEST_F(JsonStreamParserTest, DeepNestJsonExceedLimit) {
+  int count = 98;
+  std::string str;
+  for (int i = 0; i < count; ++i) {
+    StrAppend(&str, "{'a':");
+  }
+  // Supports trailing commas.
+  StrAppend(&str,
+                  "{'nest11' : [{'nest12' : null,},],"
+                  "'nest21' : {'nest22' : {'nest23' : false}}}");
+  for (int i = 0; i < count; ++i) {
+    StrAppend(&str, "}");
+  }
+  DoErrorTest(str, 0,
+              "Message too deep. Max recursion depth reached for key 'nest22'");
 }
 
 }  // namespace converter

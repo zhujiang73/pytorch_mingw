@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -47,6 +47,10 @@ typedef __m128i vint;
 
 typedef __m256 vfloat;
 typedef struct { __m128i x, y; } vint2;
+
+typedef struct {
+  vmask x, y;
+} vmask2;
 
 //
 
@@ -211,9 +215,11 @@ static INLINE vdouble vmin_vd_vd_vd(vdouble x, vdouble y) { return _mm256_min_pd
 #if CONFIG == 1
 static INLINE vdouble vmla_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return vadd_vd_vd_vd(vmul_vd_vd_vd(x, y), z); }
 static INLINE vdouble vmlapn_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return vsub_vd_vd_vd(vmul_vd_vd_vd(x, y), z); }
+static INLINE vdouble vmlanp_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return vsub_vd_vd_vd(z, vmul_vd_vd_vd(x, y)); }
 #else
 static INLINE vdouble vmla_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return _mm256_macc_pd(x, y, z); }
 static INLINE vdouble vmlapn_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return _mm256_msub_pd(x, y, z); }
+static INLINE vdouble vmlanp_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return _mm256_nmacc_pd(x, y, z); }
 static INLINE vdouble vfma_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return _mm256_macc_pd(x, y, z); }
 static INLINE vdouble vfmapp_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return _mm256_macc_pd(x, y, z); }
 static INLINE vdouble vfmapn_vd_vd_vd_vd(vdouble x, vdouble y, vdouble z) { return _mm256_msub_pd(x, y, z); }
@@ -290,6 +296,12 @@ static INLINE vdouble vloadu_vd_p(const double *ptr) { return _mm256_loadu_pd(pt
 static INLINE void vstore_v_p_vd(double *ptr, vdouble v) { _mm256_store_pd(ptr, v); }
 static INLINE void vstoreu_v_p_vd(double *ptr, vdouble v) { _mm256_storeu_pd(ptr, v); }
 
+static INLINE vdouble vgather_vd_p_vi(const double *ptr, vint vi) {
+  int a[VECTLENDP];
+  vstoreu_v_p_vi(a, vi);
+  return _mm256_set_pd(ptr[a[3]], ptr[a[2]], ptr[a[1]], ptr[a[0]]);
+}
+
 #if defined(_MSC_VER)
 // This function is needed when debugging on MSVC.
 static INLINE double vcast_d_vd(vdouble v) {
@@ -339,9 +351,11 @@ static INLINE vfloat vmin_vf_vf_vf(vfloat x, vfloat y) { return _mm256_min_ps(x,
 #if CONFIG == 1
 static INLINE vfloat vmla_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vadd_vf_vf_vf(vmul_vf_vf_vf(x, y), z); }
 static INLINE vfloat vmlanp_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vsub_vf_vf_vf(z, vmul_vf_vf_vf(x, y)); }
+static INLINE vfloat vmlapn_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return vsub_vf_vf_vf(vmul_vf_vf_vf(x, y), z); }
 #else
 static INLINE vfloat vmla_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return _mm256_macc_ps(x, y, z); }
 static INLINE vfloat vmlanp_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return _mm256_nmacc_ps(x, y, z); }
+static INLINE vfloat vmlapn_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return _mm256_msub_ps(x, y, z); }
 static INLINE vfloat vfma_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return _mm256_macc_ps(x, y, z); }
 static INLINE vfloat vfmapp_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return _mm256_macc_ps(x, y, z); }
 static INLINE vfloat vfmapn_vf_vf_vf_vf(vfloat x, vfloat y, vfloat z) { return _mm256_msub_ps(x, y, z); }
@@ -477,6 +491,13 @@ static INLINE vfloat vloadu_vf_p(const float *ptr) { return _mm256_loadu_ps(ptr)
 static INLINE void vstore_v_p_vf(float *ptr, vfloat v) { _mm256_store_ps(ptr, v); }
 static INLINE void vstoreu_v_p_vf(float *ptr, vfloat v) { _mm256_storeu_ps(ptr, v); }
 
+static INLINE vfloat vgather_vf_p_vi2(const float *ptr, vint2 vi2) {
+  int a[VECTLENSP];
+  vstoreu_v_p_vi2(a, vi2);
+  return _mm256_set_ps(ptr[a[7]], ptr[a[6]], ptr[a[5]], ptr[a[4]],
+		       ptr[a[3]], ptr[a[2]], ptr[a[1]], ptr[a[0]]);
+}
+
 #ifdef _MSC_VER
 // This function is needed when debugging on MSVC.
 static INLINE float vcast_f_vf(vfloat v) {
@@ -527,6 +548,7 @@ static INLINE void vsscatter2_v_p_i_i_vd(double *ptr, int offset, int step, vdou
 
 static INLINE vfloat vrev21_vf_vf(vfloat d0) { return _mm256_shuffle_ps(d0, d0, (2 << 6) | (3 << 4) | (0 << 2) | (1 << 0)); }
 static INLINE vfloat vreva2_vf_vf(vfloat d0) { d0 = _mm256_permute2f128_ps(d0, d0, 1); return _mm256_shuffle_ps(d0, d0, (1 << 6) | (0 << 4) | (3 << 2) | (2 << 0)); }
+static INLINE vint2 vrev21_vi2_vi2(vint2 i) { return vreinterpret_vi2_vf(vrev21_vf_vf(vreinterpret_vf_vi2(i))); }
 
 static INLINE void vstream_v_p_vf(float *ptr, vfloat v) { _mm256_stream_ps(ptr, v); }
 
@@ -538,3 +560,133 @@ static INLINE void vscatter2_v_p_i_i_vf(float *ptr, int offset, int step, vfloat
 }
 
 static INLINE void vsscatter2_v_p_i_i_vf(float *ptr, int offset, int step, vfloat v) { vscatter2_v_p_i_i_vf(ptr, offset, step, v); }
+
+//
+
+typedef Sleef_quad4 vargquad;
+
+static INLINE vmask2 vinterleave_vm2_vm2(vmask2 v) {
+  return (vmask2) {
+    vreinterpret_vm_vd(_mm256_unpacklo_pd(vreinterpret_vd_vm(v.x), vreinterpret_vd_vm(v.y))),
+      vreinterpret_vm_vd(_mm256_unpackhi_pd(vreinterpret_vd_vm(v.x), vreinterpret_vd_vm(v.y))) };
+}
+
+static INLINE vmask2 vuninterleave_vm2_vm2(vmask2 v) {
+  return (vmask2) {
+    vreinterpret_vm_vd(_mm256_unpacklo_pd(vreinterpret_vd_vm(v.x), vreinterpret_vd_vm(v.y))),
+      vreinterpret_vm_vd(_mm256_unpackhi_pd(vreinterpret_vd_vm(v.x), vreinterpret_vd_vm(v.y))) };
+}
+
+static INLINE vint vuninterleave_vi_vi(vint v) {
+  return _mm_shuffle_epi32(v, (0 << 0) | (2 << 2) | (1 << 4) | (3 << 6));
+}
+
+static INLINE vdouble vinterleave_vd_vd(vdouble vd) {
+  double tmp[4];
+  vstoreu_v_p_vd(tmp, vd);
+  double t = tmp[1]; tmp[1] = tmp[2]; tmp[2] = t;
+  return vloadu_vd_p(tmp);
+}
+
+static INLINE vdouble vuninterleave_vd_vd(vdouble vd) {
+  double tmp[4];
+  vstoreu_v_p_vd(tmp, vd);
+  double t = tmp[1]; tmp[1] = tmp[2]; tmp[2] = t;
+  return vloadu_vd_p(tmp);
+}
+
+static INLINE vmask vinterleave_vm_vm(vmask vm) {
+  double tmp[4];
+  vstoreu_v_p_vd(tmp, vreinterpret_vd_vm(vm));
+  double t = tmp[1]; tmp[1] = tmp[2]; tmp[2] = t;
+  return vreinterpret_vm_vd(vloadu_vd_p(tmp));
+}
+
+static INLINE vmask vuninterleave_vm_vm(vmask vm) {
+  double tmp[4];
+  vstoreu_v_p_vd(tmp, vreinterpret_vd_vm(vm));
+  double t = tmp[1]; tmp[1] = tmp[2]; tmp[2] = t;
+  return vreinterpret_vm_vd(vloadu_vd_p(tmp));
+}
+
+static vmask2 vloadu_vm2_p(void *p) {
+  vmask2 vm2 = {
+    vcast_vm_vi2(vloadu_vi2_p((int32_t *)p)),
+    vcast_vm_vi2(vloadu_vi2_p((int32_t *)((uint8_t *)p + sizeof(vmask))))
+  };
+  return vm2;
+}
+
+static void vstoreu_v_p_vm2(void *p, vmask2 vm2) {
+  vstoreu_v_p_vi2((int32_t *)p, vcast_vi2_vm(vm2.x));
+  vstoreu_v_p_vi2((int32_t *)((uint8_t *)p + sizeof(vmask)), vcast_vi2_vm(vm2.y));
+}
+
+static INLINE vmask2 vcast_vm2_aq(vargquad aq) {
+#if !defined(_MSC_VER)
+  union {
+    vargquad aq;
+    vmask2 vm2;
+  } c;
+  c.aq = aq;
+  return vinterleave_vm2_vm2(c.vm2);
+#else
+  return vinterleave_vm2_vm2(vloadu_vm2_p(&aq));
+#endif
+}
+
+static INLINE vargquad vcast_aq_vm2(vmask2 vm2) {
+#if !defined(_MSC_VER)
+  union {
+    vargquad aq;
+    vmask2 vm2;
+  } c;
+  c.vm2 = vuninterleave_vm2_vm2(vm2);
+  return c.aq;
+#else
+  vargquad a;
+  vstoreu_v_p_vm2(&a, vuninterleave_vm2_vm2(vm2));
+  return a;
+#endif
+}
+
+static INLINE int vtestallzeros_i_vo64(vopmask g) {
+  return _mm_movemask_epi8(_mm_or_si128(_mm256_extractf128_si256(g, 0), _mm256_extractf128_si256(g, 1))) == 0;
+}
+
+static INLINE vmask vsel_vm_vo64_vm_vm(vopmask o, vmask x, vmask y) {
+  return vreinterpret_vm_vd(_mm256_blendv_pd(vreinterpret_vd_vm(y), vreinterpret_vd_vm(x), vreinterpret_vd_vm(o)));
+}
+
+static INLINE vmask vsub64_vm_vm_vm(vmask x, vmask y) {
+  __m128i xh = _mm256_extractf128_si256(x, 1), xl = _mm256_extractf128_si256(x, 0);
+  __m128i yh = _mm256_extractf128_si256(y, 1), yl = _mm256_extractf128_si256(y, 0);
+  vmask r = _mm256_castsi128_si256(_mm_sub_epi64(xl, yl));
+  return _mm256_insertf128_si256(r, _mm_sub_epi64(xh, yh), 1);
+}
+
+static INLINE vmask vneg64_vm_vm(vmask x) { return vsub64_vm_vm_vm(vcast_vm_i_i(0, 0), x); }
+static INLINE vopmask vgt64_vo_vm_vm(vmask x, vmask y) {
+  __m128i xh = _mm256_extractf128_si256(x, 1), xl = _mm256_extractf128_si256(x, 0);
+  __m128i yh = _mm256_extractf128_si256(y, 1), yl = _mm256_extractf128_si256(y, 0);
+  vmask r = _mm256_castsi128_si256(_mm_cmpgt_epi64(xl, yl));
+  return _mm256_insertf128_si256(r, _mm_cmpgt_epi64(xh, yh), 1);
+}
+
+#define vsll64_vm_vm_i(x, c) \
+  _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_slli_epi64(_mm256_extractf128_si256(x, 0), c)), \
+			  _mm_slli_epi64(_mm256_extractf128_si256(x, 1), c), 1)
+#define vsrl64_vm_vm_i(x, c) \
+  _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_srli_epi64(_mm256_extractf128_si256(x, 0), c)), \
+			  _mm_srli_epi64(_mm256_extractf128_si256(x, 1), c), 1)
+
+static INLINE vmask vcast_vm_vi(vint vi) {
+  vint vi0 = _mm_and_si128(_mm_shuffle_epi32(vi, (1 << 4) | (1 << 6)), _mm_set_epi32(0, -1, 0, -1));
+  vint vi1 = _mm_and_si128(_mm_shuffle_epi32(vi, (2 << 0) | (2 << 2) | (3 << 4) | (3 << 6)), _mm_set_epi32(0, -1, 0, -1));
+  vmask m = _mm256_insertf128_si256(_mm256_castsi128_si256(vi0), vi1, 1);
+  return vor_vm_vm_vm(vcast_vm_vi2(vcastu_vi2_vi(vand_vi_vo_vi(vgt_vo_vi_vi(vcast_vi_i(0), vi), vcast_vi_i(-1)))), m);
+}
+static INLINE vint vcast_vi_vm(vmask vm) {
+  return _mm_or_si128(_mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(_mm256_castsi256_si128(vm)), _mm_set1_ps(0), 0x08)),
+  		      _mm_castps_si128(_mm_shuffle_ps(_mm_set1_ps(0), _mm_castsi128_ps(_mm256_extractf128_si256(vm, 1)), 0x80)));
+}

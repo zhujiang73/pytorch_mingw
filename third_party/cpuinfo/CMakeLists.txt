@@ -79,11 +79,13 @@ IF(NOT CMAKE_SYSTEM_NAME)
       "Target operating system is not specified. "
       "cpuinfo will compile, but cpuinfo_initialize() will always fail.")
   SET(CPUINFO_SUPPORTED_PLATFORM FALSE)
-ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Windows|Darwin|Linux|Android)$")
-  MESSAGE(WARNING
-    "Target operating system \"${CMAKE_SYSTEM_NAME}\" is not supported in cpuinfo. "
-    "cpuinfo will compile, but cpuinfo_initialize() will always fail.")
-  SET(CPUINFO_SUPPORTED_PLATFORM FALSE)
+ELSEIF(NOT CMAKE_SYSTEM_NAME MATCHES "^(Windows|CYGWIN|MSYS|Darwin|Linux|Android)$")
+  IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14" AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    MESSAGE(WARNING
+      "Target operating system \"${CMAKE_SYSTEM_NAME}\" is not supported in cpuinfo. "
+      "cpuinfo will compile, but cpuinfo_initialize() will always fail.")
+    SET(CPUINFO_SUPPORTED_PLATFORM FALSE)
+  ENDIF()
 ENDIF()
 
 # ---[ Download deps
@@ -119,10 +121,11 @@ ENDIF()
 # ---[ cpuinfo library
 SET(CPUINFO_SRCS
   src/init.c
-  src/api.c)
+  src/api.c
+  src/cache.c)
 
 IF(CPUINFO_SUPPORTED_PLATFORM)
-  IF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|AMD64|x86(_64)?)$" OR IOS_ARCH MATCHES "^(i386|x86_64)$")
+  IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten" AND (CMAKE_SYSTEM_PROCESSOR MATCHES "^(i[3-6]86|AMD64|x86(_64)?)$" OR IOS_ARCH MATCHES "^(i386|x86_64)$"))
     LIST(APPEND CPUINFO_SRCS
       src/x86/init.c
       src/x86/info.c
@@ -138,9 +141,9 @@ IF(CPUINFO_SUPPORTED_PLATFORM)
       LIST(APPEND CPUINFO_SRCS
         src/x86/linux/init.c
         src/x86/linux/cpuinfo.c)
-    ELSEIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    ELSEIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
       LIST(APPEND CPUINFO_SRCS src/x86/mach/init.c)
-    ELSEIF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "^(Windows|CYGWIN|MSYS)$")
       LIST(APPEND CPUINFO_SRCS src/x86/windows/init.c)
     ENDIF()
   ELSEIF(CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv[5-8].*|aarch64)$" OR IOS_ARCH MATCHES "^(armv7.*|arm64.*)$")
@@ -172,14 +175,18 @@ IF(CPUINFO_SUPPORTED_PLATFORM)
     ENDIF()
   ENDIF()
 
+  IF(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    LIST(APPEND CPUINFO_SRCS
+      src/emscripten/init.c)
+  ENDIF()
+
   IF(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Android")
     LIST(APPEND CPUINFO_SRCS
       src/linux/smallfile.c
       src/linux/multiline.c
-      src/linux/current.c
       src/linux/cpulist.c
       src/linux/processors.c)
-  ELSEIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  ELSEIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
     LIST(APPEND CPUINFO_SRCS src/mach/topology.c)
   ENDIF()
 
@@ -203,6 +210,11 @@ ADD_LIBRARY(cpuinfo_internals STATIC ${CPUINFO_SRCS})
 CPUINFO_TARGET_ENABLE_C99(cpuinfo)
 CPUINFO_TARGET_ENABLE_C99(cpuinfo_internals)
 CPUINFO_TARGET_RUNTIME_LIBRARY(cpuinfo)
+IF(CMAKE_SYSTEM_NAME MATCHES "^(Windows|CYGWIN|MSYS)$")
+  # Target Windows 7+ API
+  TARGET_COMPILE_DEFINITIONS(cpuinfo PRIVATE _WIN32_WINNT=0x0601)
+  TARGET_COMPILE_DEFINITIONS(cpuinfo_internals PRIVATE _WIN32_WINNT=0x0601)
+ENDIF()
 SET_TARGET_PROPERTIES(cpuinfo PROPERTIES PUBLIC_HEADER include/cpuinfo.h)
 TARGET_INCLUDE_DIRECTORIES(cpuinfo BEFORE PUBLIC include)
 TARGET_INCLUDE_DIRECTORIES(cpuinfo BEFORE PRIVATE src)
@@ -781,16 +793,19 @@ IF(CPUINFO_SUPPORTED_PLATFORM AND CPUINFO_BUILD_TOOLS)
   CPUINFO_TARGET_ENABLE_C99(isa-info)
   CPUINFO_TARGET_RUNTIME_LIBRARY(isa-info)
   TARGET_LINK_LIBRARIES(isa-info PRIVATE cpuinfo)
+  INSTALL(TARGETS isa-info RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   ADD_EXECUTABLE(cpu-info tools/cpu-info.c)
   CPUINFO_TARGET_ENABLE_C99(cpu-info)
   CPUINFO_TARGET_RUNTIME_LIBRARY(cpu-info)
   TARGET_LINK_LIBRARIES(cpu-info PRIVATE cpuinfo)
+  INSTALL(TARGETS cpu-info RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   ADD_EXECUTABLE(cache-info tools/cache-info.c)
   CPUINFO_TARGET_ENABLE_C99(cache-info)
   CPUINFO_TARGET_RUNTIME_LIBRARY(cache-info)
   TARGET_LINK_LIBRARIES(cache-info PRIVATE cpuinfo)
+  INSTALL(TARGETS cache-info RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
   IF(CMAKE_SYSTEM_NAME MATCHES "^(Android|Linux)$" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv[5-8].*|aarch64)$")
     ADD_EXECUTABLE(auxv-dump tools/auxv-dump.c)
@@ -809,5 +824,6 @@ IF(CPUINFO_SUPPORTED_PLATFORM AND CPUINFO_BUILD_TOOLS)
     CPUINFO_TARGET_RUNTIME_LIBRARY(cpuid-dump)
     TARGET_INCLUDE_DIRECTORIES(cpuid-dump BEFORE PRIVATE src)
     TARGET_INCLUDE_DIRECTORIES(cpuid-dump BEFORE PRIVATE include)
+    INSTALL(TARGETS cpuid-dump RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   ENDIF()
 ENDIF()

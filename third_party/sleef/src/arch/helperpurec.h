@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -47,7 +47,7 @@ typedef union {
 typedef longdoubleVector vmaskl;
 typedef longdoubleVector vlongdouble;
 
-#ifdef Sleef_quad2_DEFINED
+#if defined(Sleef_quad2_DEFINED) && defined(ENABLEFLOAT128)
 typedef union {
   uint8_t u[sizeof(Sleef_quad)*VECTLENDP];
   Sleef_quad q[VECTLENDP];
@@ -229,7 +229,7 @@ static INLINE vdouble vrint_vd_vd(vdouble vd) { return vcast_vd_vi(vrint_vi_vd(v
 static INLINE vint vcast_vi_i(int j) { vint ret; for(int i=0;i<VECTLENDP;i++) ret.i[i] = j; return ret; }
 
 static INLINE vopmask veq64_vo_vm_vm(vmask x, vmask y) { vopmask ret; for(int i=0;i<VECTLENDP;i++) ret.x[i] = x.x[i] == y.x[i] ? -1 : 0; return ret; }
-static INLINE vmask vadd64_vo_vm_vm(vmask x, vmask y) { vmask ret; for(int i=0;i<VECTLENDP;i++) ret.x[i] = x.x[i] + y.x[i]; return ret; }
+static INLINE vmask vadd64_vm_vm_vm(vmask x, vmask y) { vmask ret; for(int i=0;i<VECTLENDP;i++) ret.x[i] = x.x[i] + y.x[i]; return ret; }
 
 //
 
@@ -304,6 +304,12 @@ static INLINE double vcast_d_vd(vdouble v) { return v.d[0]; }
 static INLINE vdouble vload_vd_p(const double *ptr) { return *(vdouble *)ptr; }
 static INLINE vdouble vloadu_vd_p(const double *ptr) { vdouble vd; for(int i=0;i<VECTLENDP;i++) vd.d[i] = ptr[i]; return vd; }
 
+static INLINE vdouble vgather_vd_p_vi(const double *ptr, vint vi) {
+  vdouble vd;
+  for(int i=0;i<VECTLENDP;i++) vd.d[i] = ptr[vi.i[i]];
+  return vd;
+}
+
 static INLINE void vstore_v_p_vd(double *ptr, vdouble v) { *(vdouble *)ptr = v; }
 static INLINE void vstoreu_v_p_vd(double *ptr, vdouble v) { for(int i=0;i<VECTLENDP;i++) ptr[i] = v.d[i]; }
 static INLINE void vstream_v_p_vd(double *ptr, vdouble v) { *(vdouble *)ptr = v; }
@@ -334,6 +340,8 @@ static INLINE vmask vreinterpret_vm_vf(vfloat vf) { union { vfloat vf; vmask vm;
 static INLINE vfloat vreinterpret_vf_vm(vmask vm) { union { vfloat vf; vmask vm; } cnv; cnv.vm = vm; return cnv.vf; }
 static INLINE vfloat vreinterpret_vf_vi2(vint2 vi) { union { vfloat vf; vint2 vi2; } cnv; cnv.vi2 = vi; return cnv.vf; }
 static INLINE vint2 vreinterpret_vi2_vf(vfloat vf) { union { vfloat vf; vint2 vi2; } cnv; cnv.vf = vf; return cnv.vi2; }
+
+static INLINE vint2 vrev21_vi2_vi2(vint2 i) { return vreinterpret_vi2_vf(vrev21_vf_vf(vreinterpret_vf_vi2(i))); }
 
 static INLINE vfloat vadd_vf_vf_vf(vfloat x, vfloat y) { vfloat ret; for(int i=0;i<VECTLENSP;i++) ret.f[i] = x.f[i] + y.f[i]; return ret; }
 static INLINE vfloat vsub_vf_vf_vf(vfloat x, vfloat y) { vfloat ret; for(int i=0;i<VECTLENSP;i++) ret.f[i] = x.f[i] - y.f[i]; return ret; }
@@ -418,6 +426,12 @@ static INLINE vfloat vloadu_vf_p(const float *ptr) {
   return vf;
 }
 
+static INLINE vfloat vgather_vf_p_vi2(const float *ptr, vint2 vi2) {
+  vfloat vf;
+  for(int i=0;i<VECTLENSP;i++) vf.f[i] = ptr[vi2.i[i]];
+  return vf;
+}
+
 static INLINE void vstore_v_p_vf(float *ptr, vfloat v) { *(vfloat *)ptr = v; }
 static INLINE void vstoreu_v_p_vf(float *ptr, vfloat v) {
   for(int i=0;i<VECTLENSP;i++) ptr[i] = v.f[i];
@@ -487,7 +501,7 @@ static INLINE void vscatter2_v_p_i_i_vl(long double *ptr, int offset, int step, 
 
 static INLINE void vsscatter2_v_p_i_i_vl(long double *ptr, int offset, int step, vlongdouble v) { vscatter2_v_p_i_i_vl(ptr, offset, step, v); }
 
-#ifdef Sleef_quad2_DEFINED
+#if defined(Sleef_quad2_DEFINED) && defined(ENABLEFLOAT128)
 static INLINE vquad vcast_vq_q(Sleef_quad d) { vquad ret; for(int i=0;i<VECTLENDP;i++) ret.q[i] = d; return ret; }
 
 static INLINE vquad vrev21_vq_vq(vquad d0) {

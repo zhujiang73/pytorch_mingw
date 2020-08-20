@@ -28,7 +28,7 @@
 	#define PSIMD_INTRINSIC static
 #endif
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 	#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 		#include <arm_neon.h>
 	#endif
@@ -78,7 +78,7 @@
 	#include <stdint.h>
 #endif
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 	#define PSIMD_HAVE_F64 0
 	#define PSIMD_HAVE_F32 1
 	#define PSIMD_HAVE_U8 1
@@ -295,8 +295,54 @@
 		return *((const psimd_f32*) address);
 	}
 
+	PSIMD_INTRINSIC psimd_s8 psimd_load_splat_s8(const void* address) {
+		return psimd_splat_s8(*((const int8_t*) address));
+	}
+
+	PSIMD_INTRINSIC psimd_u8 psimd_load_splat_u8(const void* address) {
+		return psimd_splat_u8(*((const uint8_t*) address));
+	}
+
+	PSIMD_INTRINSIC psimd_s16 psimd_load_splat_s16(const void* address) {
+		return psimd_splat_s16(*((const int16_t*) address));
+	}
+
+	PSIMD_INTRINSIC psimd_u16 psimd_load_splat_u16(const void* address) {
+		return psimd_splat_u16(*((const uint16_t*) address));
+	}
+
+	PSIMD_INTRINSIC psimd_s32 psimd_load_splat_s32(const void* address) {
+		return psimd_splat_s32(*((const int32_t*) address));
+	}
+
+	PSIMD_INTRINSIC psimd_u32 psimd_load_splat_u32(const void* address) {
+		return psimd_splat_u32(*((const uint32_t*) address));
+	}
+
+	PSIMD_INTRINSIC psimd_f32 psimd_load_splat_f32(const void* address) {
+		return psimd_splat_f32(*((const float*) address));
+	}
+
+	PSIMD_INTRINSIC psimd_s32 psimd_load1_s32(const void* address) {
+		return (psimd_s32) { *((const int32_t*) address), 0, 0, 0 };
+	}
+
+	PSIMD_INTRINSIC psimd_u32 psimd_load1_u32(const void* address) {
+		return (psimd_u32) { *((const uint32_t*) address), 0, 0, 0 };
+	}
+
 	PSIMD_INTRINSIC psimd_f32 psimd_load1_f32(const void* address) {
 		return (psimd_f32) { *((const float*) address), 0.0f, 0.0f, 0.0f };
+	}
+
+	PSIMD_INTRINSIC psimd_s32 psimd_load2_s32(const void* address) {
+		const int32_t* address_s32 = (const int32_t*) address;
+		return (psimd_s32) { address_s32[0], address_s32[1], 0, 0 };
+	}
+
+	PSIMD_INTRINSIC psimd_u32 psimd_load2_u32(const void* address) {
+		const uint32_t* address_u32 = (const uint32_t*) address;
+		return (psimd_u32) { address_u32[0], address_u32[1], 0, 0 };
 	}
 
 	PSIMD_INTRINSIC psimd_f32 psimd_load2_f32(const void* address) {
@@ -304,9 +350,27 @@
 		return (psimd_f32) { address_f32[0], address_f32[1], 0.0f, 0.0f };
 	}
 
+	PSIMD_INTRINSIC psimd_s32 psimd_load3_s32(const void* address) {
+		const int32_t* address_s32 = (const int32_t*) address;
+		return (psimd_s32) { address_s32[0], address_s32[1], address_s32[2], 0 };
+	}
+
+	PSIMD_INTRINSIC psimd_u32 psimd_load3_u32(const void* address) {
+		const uint32_t* address_u32 = (const uint32_t*) address;
+		return (psimd_u32) { address_u32[0], address_u32[1], address_u32[2], 0 };
+	}
+
 	PSIMD_INTRINSIC psimd_f32 psimd_load3_f32(const void* address) {
 		const float* address_f32 = (const float*) address;
 		return (psimd_f32) { address_f32[0], address_f32[1], address_f32[2], 0.0f };
+	}
+
+	PSIMD_INTRINSIC psimd_s32 psimd_load4_s32(const void* address) {
+		return psimd_load_s32(address);
+	}
+
+	PSIMD_INTRINSIC psimd_u32 psimd_load4_u32(const void* address) {
+		return psimd_load_u32(address);
 	}
 
 	PSIMD_INTRINSIC psimd_f32 psimd_load4_f32(const void* address) {
@@ -403,8 +467,28 @@
 		*((psimd_f32*) address) = value;
 	}
 
+	PSIMD_INTRINSIC void psimd_store1_s32(void* address, psimd_s32 value) {
+		*((int32_t*) address) = value[0];
+	}
+
+	PSIMD_INTRINSIC void psimd_store1_u32(void* address, psimd_u32 value) {
+		*((uint32_t*) address) = value[0];
+	}
+
 	PSIMD_INTRINSIC void psimd_store1_f32(void* address, psimd_f32 value) {
 		*((float*) address) = value[0];
+	}
+
+	PSIMD_INTRINSIC void psimd_store2_s32(void* address, psimd_s32 value) {
+		int32_t* address_s32 = (int32_t*) address;
+		address_s32[0] = value[0];
+		address_s32[1] = value[1];
+	}
+
+	PSIMD_INTRINSIC void psimd_store2_u32(void* address, psimd_u32 value) {
+		uint32_t* address_u32 = (uint32_t*) address;
+		address_u32[0] = value[0];
+		address_u32[1] = value[1];
 	}
 
 	PSIMD_INTRINSIC void psimd_store2_f32(void* address, psimd_f32 value) {
@@ -413,11 +497,33 @@
 		address_f32[1] = value[1];
 	}
 
+	PSIMD_INTRINSIC void psimd_store3_s32(void* address, psimd_s32 value) {
+		int32_t* address_s32 = (int32_t*) address;
+		address_s32[0] = value[0];
+		address_s32[1] = value[1];
+		address_s32[2] = value[2];
+	}
+
+	PSIMD_INTRINSIC void psimd_store3_u32(void* address, psimd_u32 value) {
+		uint32_t* address_u32 = (uint32_t*) address;
+		address_u32[0] = value[0];
+		address_u32[1] = value[1];
+		address_u32[2] = value[2];
+	}
+
 	PSIMD_INTRINSIC void psimd_store3_f32(void* address, psimd_f32 value) {
 		float* address_f32 = (float*) address;
 		address_f32[0] = value[0];
 		address_f32[1] = value[1];
 		address_f32[2] = value[2];
+	}
+
+	PSIMD_INTRINSIC void psimd_store4_s32(void* address, psimd_s32 value) {
+		psimd_store_s32(address, value);
+	}
+
+	PSIMD_INTRINSIC void psimd_store4_u32(void* address, psimd_u32 value) {
+		psimd_store_u32(address, value);
 	}
 
 	PSIMD_INTRINSIC void psimd_store4_f32(void* address, psimd_f32 value) {
@@ -553,65 +659,103 @@
 		#endif
 	}
 
+	/* Quasi-Fused Multiply-Add */
+	PSIMD_INTRINSIC psimd_f32 psimd_qfma_f32(psimd_f32 a, psimd_f32 b, psimd_f32 c) {
+		#if defined(__aarch64__) || defined(__ARM_NEON__) && defined(__ARM_FEATURE_FMA)
+			return (psimd_f32) vfmaq_f32((float32x4_t) a, (float32x4_t) b, (float32x4_t) c);
+		#elif (defined(__x86_64__) || defined(__i386__) || defined(__i686__)) && defined(__FMA__)
+			return (psimd_f32) _mm_fmadd_ps((__m128) b, (__m128) c, (__m128) a);
+		#elif (defined(__x86_64__) || defined(__i386__) || defined(__i686__)) && defined(__FMA4__)
+			return (psimd_f32) _mm_macc_ps((__m128) b, (__m128) c, (__m128) a);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__) && PSIMD_ENABLE_WASM_QFMA
+			return (psimd_f32) __builtin_wasm_qfma_f32x4(a, b, c);
+		#else
+			return a + b * c;
+		#endif
+	}
+
+	PSIMD_INTRINSIC psimd_f32 psimd_div_f32(psimd_f32 a, psimd_f32 b) {
+		return a / b;
+	}
+
 	/* Vector and */
 	PSIMD_INTRINSIC psimd_f32 psimd_andmask_f32(psimd_s32 mask, psimd_f32 v) {
 		return (psimd_f32) (mask & (psimd_s32) v);
+	}
+
+	/* Vector and-not */
+	PSIMD_INTRINSIC psimd_f32 psimd_andnotmask_f32(psimd_s32 mask, psimd_f32 v) {
+		return (psimd_f32) (~mask & (psimd_s32) v);
 	}
 
 	/* Vector blend */
 	PSIMD_INTRINSIC psimd_s8 psimd_blend_s8(psimd_s8 mask, psimd_s8 a, psimd_s8 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_s8) vbslq_s8((uint8x16_t) mask, (int8x16_t) a, (int8x16_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return (psimd_s8) __builtin_wasm_bitselect(a, b, mask);
 		#else
 			return (mask & a) | (~mask & b);
 		#endif
 	}
 
-	PSIMD_INTRINSIC psimd_u8 psimd_blend_u8(psimd_u8 mask, psimd_u8 a, psimd_u8 b) {
+	PSIMD_INTRINSIC psimd_u8 psimd_blend_u8(psimd_s8 mask, psimd_u8 a, psimd_u8 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_u8) vbslq_u8((uint8x16_t) mask, (uint8x16_t) a, (uint8x16_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return (psimd_u8) __builtin_wasm_bitselect(a, b, mask);
 		#else
-			return (mask & a) | (~mask & b);
+			return (psimd_u8) ((mask & (psimd_s8) a) | (~mask & (psimd_s8) b));
 		#endif
 	}
 	
 	PSIMD_INTRINSIC psimd_s16 psimd_blend_s16(psimd_s16 mask, psimd_s16 a, psimd_s16 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_s16) vbslq_s16((uint16x8_t) mask, (int16x8_t) a, (int16x8_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return (psimd_s16) __builtin_wasm_bitselect(a, b, mask);
 		#else
 			return (mask & a) | (~mask & b);
 		#endif
 	}
 
-	PSIMD_INTRINSIC psimd_u16 psimd_blend_u16(psimd_u16 mask, psimd_u16 a, psimd_u16 b) {
+	PSIMD_INTRINSIC psimd_u16 psimd_blend_u16(psimd_s16 mask, psimd_u16 a, psimd_u16 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_u16) vbslq_u16((uint16x8_t) mask, (uint16x8_t) a, (uint16x8_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return (psimd_u16) __builtin_wasm_bitselect(a, b, mask);
 		#else
-			return (mask & a) | (~mask & b);
+			return (psimd_u16) ((mask & (psimd_s16) a) | (~mask & (psimd_s16) b));
 		#endif
 	}
 	
 	PSIMD_INTRINSIC psimd_s32 psimd_blend_s32(psimd_s32 mask, psimd_s32 a, psimd_s32 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_s32) vbslq_s32((uint32x4_t) mask, (int32x4_t) a, (int32x4_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return (psimd_s32) __builtin_wasm_bitselect(a, b, mask);
 		#else
 			return (mask & a) | (~mask & b);
 		#endif
 	}
 
-	PSIMD_INTRINSIC psimd_u32 psimd_blend_u32(psimd_u32 mask, psimd_u32 a, psimd_u32 b) {
+	PSIMD_INTRINSIC psimd_u32 psimd_blend_u32(psimd_s32 mask, psimd_u32 a, psimd_u32 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_u32) vbslq_u32((uint32x4_t) mask, (uint32x4_t) a, (uint32x4_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return (psimd_u32) __builtin_wasm_bitselect(a, b, mask);
 		#else
-			return (mask & a) | (~mask & b);
+			return (psimd_u32) ((mask & (psimd_s32) a) | (~mask & (psimd_s32) b));
 		#endif
 	}
 	
 	PSIMD_INTRINSIC psimd_f32 psimd_blend_f32(psimd_s32 mask, psimd_f32 a, psimd_f32 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_f32) vbslq_f32((uint32x4_t) mask, (float32x4_t) a, (float32x4_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return (psimd_f32) __builtin_wasm_bitselect(a, b, mask);
 		#else
-			return (psimd_f32) psimd_blend_s32(mask, (psimd_s32) a, (psimd_s32) b);
+			return (psimd_f32) ((mask & (psimd_s32) a) | (~mask & (psimd_s32) b));
 		#endif
 	}
 
@@ -621,7 +765,7 @@
 	}
 
 	PSIMD_INTRINSIC psimd_u8 psimd_signblend_u8(psimd_s8 x, psimd_u8 a, psimd_u8 b) {
-		return psimd_blend_u8((psimd_u8) (x >> psimd_splat_s8(7)), a, b);
+		return psimd_blend_u8((x >> psimd_splat_s8(7)), a, b);
 	}
 
 	PSIMD_INTRINSIC psimd_s16 psimd_signblend_s16(psimd_s16 x, psimd_s16 a, psimd_s16 b) {
@@ -629,7 +773,7 @@
 	}
 
 	PSIMD_INTRINSIC psimd_u16 psimd_signblend_u16(psimd_s16 x, psimd_u16 a, psimd_u16 b) {
-		return psimd_blend_u16((psimd_u16) (x >> psimd_splat_s16(15)), a, b);
+		return psimd_blend_u16((x >> psimd_splat_s16(15)), a, b);
 	}
 
 	PSIMD_INTRINSIC psimd_s32 psimd_signblend_s32(psimd_s32 x, psimd_s32 a, psimd_s32 b) {
@@ -637,7 +781,7 @@
 	}
 
 	PSIMD_INTRINSIC psimd_u32 psimd_signblend_u32(psimd_s32 x, psimd_u32 a, psimd_u32 b) {
-		return psimd_blend_u32((psimd_u32) (x >> psimd_splat_s32(31)), a, b);
+		return psimd_blend_u32((x >> psimd_splat_s32(31)), a, b);
 	}
 
 	PSIMD_INTRINSIC psimd_f32 psimd_signblend_f32(psimd_f32 x, psimd_f32 a, psimd_f32 b) {
@@ -648,7 +792,7 @@
 	/* Vector absolute value */
 	PSIMD_INTRINSIC psimd_f32 psimd_abs_f32(psimd_f32 v) {
 		const psimd_s32 mask = (psimd_s32) psimd_splat_f32(-0.0f);
-		return (psimd_f32) ((psimd_s32) v & mask);
+		return (psimd_f32) ((psimd_s32) v & ~mask);
 	}
 
 	/* Vector negation */
@@ -709,6 +853,8 @@
 	PSIMD_INTRINSIC psimd_f32 psimd_max_f32(psimd_f32 a, psimd_f32 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_f32) vmaxq_f32((float32x4_t) a, (float32x4_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return __builtin_wasm_max_f32x4(a, b);
 		#else
 			return psimd_blend_f32(a > b, a, b);
 		#endif
@@ -766,6 +912,8 @@
 	PSIMD_INTRINSIC psimd_f32 psimd_min_f32(psimd_f32 a, psimd_f32 b) {
 		#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 			return (psimd_f32) vminq_f32((float32x4_t) a, (float32x4_t) b);
+		#elif defined(__wasm__) && defined(__wasm_simd128__) && defined(__clang__)
+			return __builtin_wasm_min_f32x4(a, b);
 		#else
 			return psimd_blend_f32(a < b, a, b);
 		#endif

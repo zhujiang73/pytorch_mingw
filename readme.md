@@ -6,7 +6,6 @@
   Based on pytorch :
 
         https://github.com/pytorch/pytorch 
-        https://github.com/ROCmSoftwarePlatform/pytorch 
 
 
   msys2 : 
@@ -24,8 +23,10 @@
 
         cd build 
 
-        cmake -G "MinGW Makefiles"  .. -DCMAKE_INSTALL_PREFIX="c:\mingw"
+        cmake -G "MinGW Makefiles"  .. -DCMAKE_INSTALL_PREFIX="D:\mingw"
 
+        mingw32-make  -j 8 
+        
         mingw32-make  install
 
   
@@ -33,9 +34,9 @@
       
      win10  cmd  console :
 
-       set  PYTHONPATH=C:\mingw\python
+       set  PYTHONPATH=D:\mingw\python
 
-       set  PATH=%PATH%;C:\mingw\lib 
+       set  PATH=%PATH%;D:\mingw\lib 
 
        cd  pytorch_mingw\examples
 
@@ -43,8 +44,11 @@
 
 
                                                        zhujiangmail@hotmail.com
-                                                                    
-                                                                2019.07.12
+                                                                   
+                                                                2020.08.20    
+
+
+
 
 
 

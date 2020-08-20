@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -30,15 +30,21 @@
 #define xsinh Sleef_sinh_u10
 #define xcosh Sleef_cosh_u10
 #define xtanh Sleef_tanh_u10
+#define xsinh_u35 Sleef_sinh_u35
+#define xcosh_u35 Sleef_cosh_u35
+#define xtanh_u35 Sleef_tanh_u35
 #define xasinh Sleef_asinh_u10
 #define xacosh Sleef_acosh_u10
 #define xatanh Sleef_atanh_u10
 
 #define xexp2 Sleef_exp2_u10
 #define xexp10 Sleef_exp10_u10
+#define xexp2_u35 Sleef_exp2_u35
+#define xexp10_u35 Sleef_exp10_u35
 #define xexpm1 Sleef_expm1_u10
 #define xlog10 Sleef_log10_u10
 #define xlog2 Sleef_log2_u10
+#define xlog2_u35 Sleef_log2_u35
 #define xlog1p Sleef_log1p_u10
 
 #define xsincospi_u05 Sleef_sincospi_u05
@@ -106,15 +112,22 @@
 #define xsinhf Sleef_sinhf_u10
 #define xcoshf Sleef_coshf_u10
 #define xtanhf Sleef_tanhf_u10
+#define xsinhf_u35 Sleef_sinhf_u35
+#define xcoshf_u35 Sleef_coshf_u35
+#define xtanhf_u35 Sleef_tanhf_u35
 #define xasinhf Sleef_asinhf_u10
 #define xacoshf Sleef_acoshf_u10
 #define xatanhf Sleef_atanhf_u10
 
 #define xexp2f Sleef_exp2f_u10
 #define xexp10f Sleef_exp10f_u10
+#define xexp2f_u35 Sleef_exp2f_u35
+#define xexp10f_u35 Sleef_exp10f_u35
 #define xexpm1f Sleef_expm1f_u10
 #define xlog10f Sleef_log10f_u10
 #define xlog2f Sleef_log2f_u10
+#define xlog10f_u35 Sleef_log10f_u35
+#define xlog2f_u35 Sleef_log2f_u35
 #define xlog1pf Sleef_log1pf_u10
 
 #define xsincospif_u05 Sleef_sincospif_u05
@@ -152,6 +165,10 @@
 #define xtgammaf_u1 Sleef_tgammaf_u10
 #define xerff_u1 Sleef_erff_u10
 #define xerfcf_u15 Sleef_erfcf_u15
+
+#define xfastsinf_u3500 Sleef_fastsinf_u3500
+#define xfastcosf_u3500 Sleef_fastcosf_u3500
+#define xfastpowf_u3500 Sleef_fastpowf_u3500
 
 //
 

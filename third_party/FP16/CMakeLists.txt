@@ -89,6 +89,7 @@ INSTALL(FILES
     include/fp16/avx2.py
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/fp16)
 
+
 IF(FP16_BUILD_TESTS)
   # ---[ Build google test
   IF(NOT TARGET gtest)

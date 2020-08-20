@@ -69,10 +69,10 @@ class ReLU6(torch.nn.ReLU):
     """
     def __init__(self, inplace=False):
         super(ReLU6, self).__init__(inplace)
-        assert not inplace, 'torch.nn.quantized.ReLU does not support inplace'
+        self.inplace = inplace
 
     def forward(self, input):
-        return torch.ops.quantized.relu6(input)
+        return torch.ops.quantized.relu6(input, self.inplace)
 
     def _get_name(self):
         return 'QuantizedReLU6'
@@ -80,3 +80,52 @@ class ReLU6(torch.nn.ReLU):
     @staticmethod
     def from_float(mod):
         return ReLU6(mod.inplace)
+
+class Hardswish(torch.nn.Hardswish):
+    r"""This is the quantized version of :class:`~torch.nn.Hardswish`.
+
+    Args:
+        scale: quantization scale of the output tensor
+        zero_point: quantization zero point of the output tensor
+    """
+    def __init__(self, scale, zero_point):
+        super(Hardswish, self).__init__()
+        self.scale = scale
+        self.zero_point = zero_point
+
+    def forward(self, input):
+        return torch.nn.quantized.functional.hardswish(
+            input, scale=self.scale, zero_point=self.zero_point)
+
+    def _get_name(self):
+        return 'QuantizedHardswish'
+
+    @staticmethod
+    def from_float(mod):
+        scale, zero_point = mod.activation_post_process.calculate_qparams()
+        return Hardswish(float(scale), int(zero_point))
+
+class ELU(torch.nn.ELU):
+    r"""This is the quantized equivalent of :class:`~torch.nn.ELU`.
+
+    Args:
+        scale: quantization scale of the output tensor
+        zero_point: quantization zero point of the output tensor
+        alpha: the alpha constant
+    """
+    def __init__(self, scale, zero_point, alpha=1.):
+        super(ELU, self).__init__(alpha)
+        self.scale = scale
+        self.zero_point = zero_point
+
+    def forward(self, input):
+        return torch.nn.quantized.functional.elu(
+            input, self.scale, self.zero_point, self.alpha)
+
+    def _get_name(self):
+        return 'QuantizedELU'
+
+    @staticmethod
+    def from_float(mod):
+        scale, zero_point = mod.activation_post_process.calculate_qparams()
+        return ELU(float(scale), int(zero_point), mod.alpha)

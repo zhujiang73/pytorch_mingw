@@ -299,8 +299,12 @@ class CodedInputStream
             return false;
         }
 
-        $buffer = substr($this->buffer, $this->current, $size);
-        $this->advance($size);
+        if ($size === 0) {
+          $buffer = "";
+        } else {
+          $buffer = substr($this->buffer, $this->current, $size);
+          $this->advance($size);
+        }
 
         return true;
     }
@@ -317,7 +321,7 @@ class CodedInputStream
      * passed unchanged to the corresponding call to popLimit().
      *
      * @param integer $byte_limit
-     * @throws Exception Fail to push limit.
+     * @throws \Exception Fail to push limit.
      */
     public function pushLimit($byte_limit)
     {

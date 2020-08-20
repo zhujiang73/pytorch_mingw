@@ -63,6 +63,7 @@ set(tests_protos
   google/protobuf/unittest_optimize_for.proto
   google/protobuf/unittest_preserve_unknown_enum.proto
   google/protobuf/unittest_preserve_unknown_enum2.proto
+  google/protobuf/unittest_proto3.proto
   google/protobuf/unittest_proto3_arena.proto
   google/protobuf/unittest_proto3_arena_lite.proto
   google/protobuf/unittest_proto3_lite.proto
@@ -78,6 +79,7 @@ set(tests_protos
   google/protobuf/util/internal/testdata/struct.proto
   google/protobuf/util/internal/testdata/timestamp_duration.proto
   google/protobuf/util/internal/testdata/wrappers.proto
+  google/protobuf/util/json_format.proto
   google/protobuf/util/json_format_proto3.proto
   google/protobuf/util/message_differencer_unittest.proto
 )
@@ -112,7 +114,7 @@ endforeach(proto_file)
 
 set(common_test_files
   ${protobuf_source_dir}/src/google/protobuf/arena_test_util.cc
-  ${protobuf_source_dir}/src/google/protobuf/map_test_util.cc
+  ${protobuf_source_dir}/src/google/protobuf/map_test_util.inc
   ${protobuf_source_dir}/src/google/protobuf/test_util.cc
   ${protobuf_source_dir}/src/google/protobuf/test_util.inc
   ${protobuf_source_dir}/src/google/protobuf/testing/file.cc
@@ -130,7 +132,6 @@ set(tests_files
   ${protobuf_source_dir}/src/google/protobuf/arena_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/arenastring_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/annotation_test_util.cc
-  ${protobuf_source_dir}/src/google/protobuf/compiler/command_line_interface_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/cpp/cpp_bootstrap_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/cpp/cpp_move_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/cpp/cpp_plugin_unittest.cc
@@ -154,6 +155,7 @@ set(tests_files
   ${protobuf_source_dir}/src/google/protobuf/extension_set_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/generated_message_reflection_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/io/coded_stream_unittest.cc
+  ${protobuf_source_dir}/src/google/protobuf/io/io_win32_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/io/printer_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/io/tokenizer_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/io/zero_copy_stream_unittest.cc
@@ -166,13 +168,13 @@ set(tests_files
   ${protobuf_source_dir}/src/google/protobuf/proto3_arena_lite_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/proto3_arena_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/proto3_lite_unittest.cc
+  ${protobuf_source_dir}/src/google/protobuf/proto3_lite_unittest.inc
   ${protobuf_source_dir}/src/google/protobuf/reflection_ops_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/repeated_field_reflection_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/repeated_field_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/stubs/bytestream_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/stubs/common_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/stubs/int128_unittest.cc
-  ${protobuf_source_dir}/src/google/protobuf/stubs/io_win32_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/stubs/status_test.cc
   ${protobuf_source_dir}/src/google/protobuf/stubs/statusor_test.cc
   ${protobuf_source_dir}/src/google/protobuf/stubs/stringpiece_unittest.cc
@@ -200,11 +202,31 @@ set(tests_files
   ${protobuf_source_dir}/src/google/protobuf/wire_format_unittest.cc
 )
 
+set(non_msvc_tests_files
+  ${protobuf_source_dir}/src/google/protobuf/compiler/command_line_interface_unittest.cc
+)
+
+set(all_tests_files
+  ${tests_files}
+  ${non_msvc_tests_files}
+)
+
 if(protobuf_ABSOLUTE_TEST_PLUGIN_PATH)
   add_compile_options(-DGOOGLE_PROTOBUF_TEST_PLUGIN_PATH="$<TARGET_FILE:test_plugin>")
 endif()
 
-add_executable(tests ${tests_files} ${common_test_files} ${tests_proto_files} ${lite_test_proto_files})
+if(MINGW)
+  set_source_files_properties(${all_tests_files} PROPERTIES COMPILE_FLAGS "-Wno-narrowing")
+
+  # required for tests on MinGW Win64
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,16777216")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
+  endif()
+
+endif()
+
+add_executable(tests ${all_tests_files} ${common_test_files} ${tests_proto_files} ${lite_test_proto_files})
 target_link_libraries(tests libprotoc libprotobuf gmock_main)
 
 set(test_plugin_files

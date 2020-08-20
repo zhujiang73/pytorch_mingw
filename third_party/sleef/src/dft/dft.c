@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -7,11 +7,19 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <math.h>
 #include <assert.h>
-
 #include <signal.h>
 #include <setjmp.h>
+
+#if defined(POWER64_UNDEF_USE_EXTERN_INLINES)
+// This is a workaround required to cross compile for PPC64 binaries
+#include <features.h>
+#ifdef __USE_EXTERN_INLINES
+#undef __USE_EXTERN_INLINES
+#endif
+#endif
+
+#include <math.h>
 
 #include "sleef.h"
 
@@ -291,7 +299,13 @@ static void dispatch(SleefDFT *p, const int N, real *d, const real *s, const int
 
 // Transposer
 
+#if defined(__GNUC__) && __GNUC__ < 5
+// This is another workaround of a bug in gcc-4
+#define LOG2BS 3
+#else
 #define LOG2BS 4
+#endif
+
 #define BS (1 << LOG2BS)
 #define TRANSPOSE_BLOCK(y2) do {					\
     for(int x2=y2+1;x2<BS;x2++) {					\

@@ -1,4 +1,4 @@
-//          Copyright Naoki Shibata 2010 - 2017.
+//          Copyright Naoki Shibata 2010 - 2019.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
@@ -15,7 +15,28 @@
 #define CONST
 #endif
 
+#if defined(__AVX2__) || defined(__aarch64__) || defined(__arm__) || defined(__powerpc64__)
+#ifndef FP_FAST_FMA
+#define FP_FAST_FMA
+#endif
+#endif
+
+#if defined(_MSC_VER) && !defined(__STDC__)
+#define __STDC__ 1
+#endif
+
+#if (defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || defined(_MSC_VER)) && !defined(SLEEF_STATIC_LIBS)
+#ifdef IMPORT_IS_EXPORT
+#define IMPORT __declspec(dllexport)
+#else // #ifdef IMPORT_IS_EXPORT
+#define IMPORT __declspec(dllimport)
+#if (defined(_MSC_VER))
+#pragma comment(lib,"sleef.lib")
+#endif // #if (defined(_MSC_VER))
+#endif // #ifdef IMPORT_IS_EXPORT
+#else // #if (defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || defined(_MSC_VER)) && !defined(SLEEF_STATIC_LIBS)
 #define IMPORT
+#endif // #if (defined(__MINGW32__) || defined(__MINGW64__) || defined(__CYGWIN__) || defined(_MSC_VER)) && !defined(SLEEF_STATIC_LIBS)
 
 #if (defined(__GNUC__) || defined(__CLANG__)) && (defined(__i386__) || defined(__x86_64__))
 #include <x86intrin.h>
@@ -76,11 +97,22 @@ typedef struct {
 } Sleef_longdouble2;
 #endif
 
-#if defined(ENABLEFLOAT128) && !defined(Sleef_quad2_DEFINED)
-#define Sleef_quad2_DEFINED
+#if !defined(Sleef_quad_DEFINED)
+#define Sleef_quad_DEFINED
+#if defined(ENABLEFLOAT128)
 typedef __float128 Sleef_quad;
-typedef struct {
-  __float128 x, y;
+#else
+typedef struct { uint64_t x, y; } Sleef_quad;
+#endif
+#endif
+
+#if !defined(Sleef_quad2_DEFINED)
+#define Sleef_quad2_DEFINED
+typedef union {
+  struct {
+    Sleef_quad x, y;
+  };
+  Sleef_quad s[2];
 } Sleef_quad2;
 #endif
 
@@ -114,14 +146,20 @@ IMPORT CONST double Sleef_pow_u10(double, double);
 IMPORT CONST double Sleef_sinh_u10(double);
 IMPORT CONST double Sleef_cosh_u10(double);
 IMPORT CONST double Sleef_tanh_u10(double);
+IMPORT CONST double Sleef_sinh_u35(double);
+IMPORT CONST double Sleef_cosh_u35(double);
+IMPORT CONST double Sleef_tanh_u35(double);
 IMPORT CONST double Sleef_asinh_u10(double);
 IMPORT CONST double Sleef_acosh_u10(double);
 IMPORT CONST double Sleef_atanh_u10(double);
 IMPORT CONST double Sleef_exp2_u10(double);
 IMPORT CONST double Sleef_exp10_u10(double);
+IMPORT CONST double Sleef_exp2_u35(double);
+IMPORT CONST double Sleef_exp10_u35(double);
 IMPORT CONST double Sleef_expm1_u10(double);
 IMPORT CONST double Sleef_log10_u10(double);
 IMPORT CONST double Sleef_log2_u10(double);
+IMPORT CONST double Sleef_log2_u35(double);
 IMPORT CONST double Sleef_log1p_u10(double);
 IMPORT CONST Sleef_double2 Sleef_sincospi_u05(double);
 IMPORT CONST Sleef_double2 Sleef_sincospi_u35(double);
@@ -171,6 +209,8 @@ IMPORT CONST float Sleef_cbrtf_u35(float);
 IMPORT CONST float Sleef_sinf_u10(float);
 IMPORT CONST float Sleef_cosf_u10(float);
 IMPORT CONST Sleef_float2 Sleef_sincosf_u10(float);
+IMPORT CONST float Sleef_fastsinf_u3500(float);
+IMPORT CONST float Sleef_fastcosf_u3500(float);
 IMPORT CONST float Sleef_tanf_u10(float);
 IMPORT CONST float Sleef_asinf_u10(float);
 IMPORT CONST float Sleef_acosf_u10(float);
@@ -180,17 +220,24 @@ IMPORT CONST float Sleef_logf_u10(float);
 IMPORT CONST float Sleef_cbrtf_u10(float);
 IMPORT CONST float Sleef_expf_u10(float);
 IMPORT CONST float Sleef_powf_u10(float, float);
+IMPORT CONST float Sleef_fastpowf_u3500(float, float);
 IMPORT CONST float Sleef_sinhf_u10(float);
 IMPORT CONST float Sleef_coshf_u10(float);
 IMPORT CONST float Sleef_tanhf_u10(float);
+IMPORT CONST float Sleef_sinhf_u35(float);
+IMPORT CONST float Sleef_coshf_u35(float);
+IMPORT CONST float Sleef_tanhf_u35(float);
 IMPORT CONST float Sleef_asinhf_u10(float);
 IMPORT CONST float Sleef_acoshf_u10(float);
 IMPORT CONST float Sleef_atanhf_u10(float);
 IMPORT CONST float Sleef_exp2f_u10(float);
 IMPORT CONST float Sleef_exp10f_u10(float);
+IMPORT CONST float Sleef_exp2f_u35(float);
+IMPORT CONST float Sleef_exp10f_u35(float);
 IMPORT CONST float Sleef_expm1f_u10(float);
 IMPORT CONST float Sleef_log10f_u10(float);
 IMPORT CONST float Sleef_log2f_u10(float);
+IMPORT CONST float Sleef_log2f_u35(float);
 IMPORT CONST float Sleef_log1pf_u10(float);
 IMPORT CONST Sleef_float2 Sleef_sincospif_u05(float);
 IMPORT CONST Sleef_float2 Sleef_sincospif_u35(float);
