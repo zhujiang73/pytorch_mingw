@@ -14,7 +14,7 @@ Pretreatment:
     win10  cmd  console :
         
         mk_imgs_dirs.cmd
-        imgs_comp_mask.py
+        python   imgs_comp_mask.py
 
 
 training models:
