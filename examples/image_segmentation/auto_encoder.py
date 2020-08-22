@@ -231,7 +231,7 @@ class Encoder_Thread(threading.Thread):
         torch.save(bpcv_dict, str_pth_fn)
      
     def run(self):
-        batch_sizes = [6, 6, 8, 8, 10, 10]  
+        batch_sizes = [10, 10, 20, 20, 20, 20]  
         lrs = [0.01*0.5, 0.01*0.2, 0.01*0.2, 0.01*0.1, 0.01*0.1, 0.01*0.1*0.5]
         m_loops = [0, 6000*1, 6000*2, 6000*3, 6000*4, 6000*5]  
 

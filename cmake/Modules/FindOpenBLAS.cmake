@@ -9,6 +9,7 @@ SET(Open_BLAS_INCLUDE_SEARCH_PATHS
   /usr/local/include/openblas-base
   /usr/local/opt/openblas/include
   /opt/OpenBLAS/include
+  /msys64/mingw64/include/OpenBLAS
   $ENV{OpenBLAS_HOME}
   $ENV{OpenBLAS_HOME}/include
 )

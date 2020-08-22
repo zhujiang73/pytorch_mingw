@@ -107,14 +107,10 @@ if(CAFFE2_CMAKE_BUILDING_WITH_MAIN_REPO)
 endif()
 
 # ---[ BLAS
-if(NOT INTERN_BUILD_MOBILE)
-  set(BLAS "MKL" CACHE STRING "Selected BLAS library")
-else()
-  set(BLAS "Eigen" CACHE STRING "Selected BLAS library")
-  set(AT_MKLDNN_ENABLED 0)
-  set(AT_MKL_ENABLED 0)
-endif()
-set_property(CACHE BLAS PROPERTY STRINGS "Eigen;ATLAS;OpenBLAS;MKL;vecLib;FLAME;Generic")
+set(BLAS "OpenBLAS" CACHE STRING "Selected BLAS library")
+set(AT_MKLDNN_ENABLED 0)
+set(AT_MKL_ENABLED 0)
+set_property(CACHE BLAS PROPERTY STRINGS "OpenBLAS;Eigen;ATLAS;MKL;vecLib;FLAME;Generic")
 message(STATUS "Trying to find preferred BLAS backend of choice: " ${BLAS})
 
 if(BLAS STREQUAL "Eigen")
